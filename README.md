@@ -1,84 +1,84 @@
 # ApiLens
 
-A powerful, local-first API testing tool facilitating Request building, Response analysis, and Visual Branching Workflows. Built with Flutter, Riverpod, and Hive.
+ApiLens는 Flutter, Riverpod, Hive로 구축된 강력한 로컬 우선(Local-first) API 테스팅 도구로, 요청 빌더, 응답 분석, 그리고 시각적 워크플로우 오케스트레이션 기능을 제공합니다.
 
 ![App Banner](docs/apilens_banner.png)
 
-## 🌟 Key Features
+## 🌟 주요 기능 (Key Features)
 
 ### 1. Request Builder
-- **Methods**: GET, POST, PUT, DELETE, PATCH, etc.
-- **Headers/Params**: Key-Value editor with toggle support.
-- **Body Types**: JSON, Text, None. supports JSON template variables.
-- **Auth**: Bearer Token, Basic Auth, API Key.
-- **cURL Integration**: Import/Export cURL commands directly.
+- **메소드**: GET, POST, PUT, DELETE, PATCH 등 지원.
+- **헤더/파라미터**: 토글(Toggle)을 지원하는 키-값(Key-Value) 에디터.
+- **Body 포맷**: JSON, Text, None. JSON 템플릿 변수 지원.
+- **인증(Auth)**: Bearer Token, Basic Auth, API Key.
+- **cURL 통합**: cURL 명령어 가져오기/내보내기 지원.
 
-### 2. Environment Manager
-- Create environments (Dev, Prod) with variables.
-- Use `{{baseUrl}}`, `{{token}}` in URL, Headers, Body.
-- Auto-compilation of variables during execution.
+### 2. Environment Manager (환경 변수)
+- 개발(Dev), 운영(Prod) 등 환경별 변수 관리.
+- URL, 헤더, Body 어디서든 `{{baseUrl}}`, `{{token}}` 문법 사용 가능.
+- 실행 시 변수 자동 치환.
 
 ### 3. Visual Workflow Orchestrator (New)
-A graph-based execution engine to chain APIs and create complex logic.
-- **Drag & Drop Interface**: Visually design API flows.
-- **Node Types**:
-    - **Start/End**: Define flow boundaries.
-    - **HTTP Node**: Execute API requests. Routes to `success` (2xx) or `failure`.
-    - **Condition Node**: Branch logic based on expressions (e.g. `{{node.api.response.status}} == 200`).
-- **Data Passing**: Reference output from previous nodes using `{{node.{nodeId}.response.body.{field}}}`.
-- **Debugging**: 
-    - Real-time status highlights (Running, Success, Failure).
-    - **Context Inspector**: View raw JSON results of every executed node.
-- **Persistence**: Save/Load/Export/Import workflows locally via JSON.
+API를 연결하고 복잡한 로직을 구성할 수 있는 그래프 기반 실행 엔진입니다.
+- **Drag & Drop 인터페이스**: 시각적으로 흐름을 디자인합니다.
+- **노드(Node) 타입**:
+    - **Start/End**: 흐름의 시작과 끝 정의.
+    - **HTTP Node**: API 요청 실행. 성공(2xx)/실패 경로 분기.
+    - **Condition Node**: 조건식에 따른 분기 처리 (예: `{{node.api.response.status}} == 200`).
+- **데이터 전달**: 이전 노드의 결과를 참조 (`{{node.{nodeId}.response.body.{field}}}`).
+- **디버깅**: 
+    - 실시간 상태 강조 (실행중, 성공, 실패).
+    - **Context Inspector**: 각 노드의 실행 결과(JSON) 상세 조회.
+- **영속성**: 워크플로우 로컬 저장/불러오기 및 JSON Export/Import.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 시작하기 (Getting Started)
 
-### Prerequisites
-- Flutter SDK (3.x+)
-- macOS, Windows, or Linux (Currently optimized for Desktop)
+### 필수 요구사항 (Prerequisites)
+- Flutter SDK (3.x 이상)
+- macOS, Windows 또는 Linux (현재 데스크톱에 최적화됨)
 
-### Installation
+### 설치 (Installation)
 ```bash
-# Clone the repository
+# 리포지토리 복제
 git clone https://github.com/clevekim00/ApiLens.git
 
-# Install dependencies
+# 의존성 설치
 flutter pub get
 
-# Run on macOS (Recommended)
+# macOS에서 실행 (권장)
 flutter run -d macos
 ```
 
 ---
 
-## 📖 Workflow Template Syntax
+## 📖 워크플로우 템플릿 문법
 
-The Workflow Engine supports a Handlebars-like syntax for dynamic data resolution.
+워크플로우 엔진은 동적 데이터 처리를 위해 Handlebars 스타일의 문법을 지원합니다.
 
-### 1. Environment Variables
-Access variables defined in the globally selected Environment.
+### 1. 환경 변수 (Environment Variables)
+선택된 환경의 변수에 접근합니다.
 - `{{env.baseUrl}}`
 - `{{env.apiKey}}`
 
-### 2. Node Data References
-Access results from executed nodes by their **Node ID**.
-- **Status Code**: `{{node.{nodeId}.response.statusCode}}`
-- **Body Field**: `{{node.{nodeId}.response.body.accessToken}}` (supports nested JSON)
-- **Headers**: `{{node.{nodeId}.response.headers.content-type}}`
+### 2. 노드 데이터 참조 (Node Data References)
+**Node ID**를 사용하여 이전 실행 결과를 참조합니다.
+- **상태 코드**: `{{node.{nodeId}.response.statusCode}}`
+- **Body 필드**: `{{node.{nodeId}.response.body.accessToken}}` (중첩 JSON 지원)
+- **헤더**: `{{node.{nodeId}.response.headers.content-type}}`
 
-### 3. Condition Expressions
-Used in **Condition Node** to determine routing.
+### 3. 조건식 (Condition Expressions)
+**Condition Node**에서 분기 로직을 결정할 때 사용합니다.
 - `{{node.login.response.statusCode}} == 200`
 - `{{node.user.response.body.age}} > 18`
 - `{{node.response.body.message}} contains "success"`
 
 ---
 
-## 📚 Documentation
+## 📚 문서 (Documentation)
 
-### 🇰🇷 Korean
+### 🇰🇷 한국어 (Korean)
 - [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
 - [빌드 및 배포 (Build & Deploy)](docs/BUILD_AND_DEPLOY.ko.md)
 - [사용자 가이드 (Usage Guide)](docs/USAGE_GUIDE.ko.md)
@@ -90,26 +90,25 @@ Used in **Condition Node** to determine routing.
 
 ---
 
-### Technical Docs
+### 기술 문서 (Technical Docs)
 - [AI Integration Guide](docs/ai_integration_guide.md)
 - [Workflow Implementation Plan](docs/workflow_implementation_plan_KR.md)
 
+---
+
+## 🗺️ 로드맵 (Roadmap)
+
+- [x] 기본 요청/응답 (Basic Request/Response)
+- [x] 환경 변수 관리 (Environment Variables)
+- [x] 시각적 워크플로우 에디터 (Visual Workflow Editor)
+- [x] 워크플로우 저장 및 내보내기 (Persistence & Export)
+- [x] 디버그 패널 및 컨텍스트 인스펙터 (Debug Panel & Context Inspector)
+- [ ] WebSocket 지원
+- [ ] GraphQL 지원
+- [ ] 클라우드 동기화 / 팀 공유 (Cloud Sync)
+- [ ] CI/CD용 CLI Runner
 
 ---
 
-## 🗺️ Roadmap
-
-- [x] Basic Request/Response
-- [x] Environment Variables
-- [x] Visual Workflow Editor
-- [x] Workflow Persistence & Export
-- [x] Debug Panel & Context Inspector
-- [ ] WebSocket Support
-- [ ] GraphQL Support
-- [ ] Cloud Sync / Team Sharing
-- [ ] CLI Runner for CI/CD
-
----
-
-## License
+## 라이선스 (License)
 MIT
