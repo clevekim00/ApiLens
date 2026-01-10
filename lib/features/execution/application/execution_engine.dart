@@ -8,15 +8,38 @@ import '../../../core/utils/expression_evaluator.dart';
 
 class ExecutionEngine {
   final Dio _dio;
+  final void Function(String message)? onLog;
 
-  ExecutionEngine({Dio? dio}) : _dio = dio ?? Dio();
+  ExecutionEngine({Dio? dio, this.onLog}) : _dio = dio ?? Dio() {
+    _dio.options.validateStatus = (status) => true; // Accept all status codes
+    _dio.options.responseType = ResponseType.plain; // Match DioClient behavior
+    
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        onLog?.call('--> ${options.method} ${options.uri}');
+        // Store start time
+        options.extra['start_time'] = DateTime.now().millisecondsSinceEpoch;
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        final start = response.requestOptions.extra['start_time'] as int?;
+        final duration = start != null ? DateTime.now().millisecondsSinceEpoch - start : 0;
+        onLog?.call('<-- ${response.statusCode} ${response.requestOptions.uri} (${duration}ms)');
+        return handler.next(response);
+      },
+      onError: (DioException e, handler) {
+        onLog?.call('!!! Error: ${e.message}');
+        return handler.next(e);
+      },
+    ));
+  }
 
   // Helper to build context from run results
   Map<String, dynamic> _buildContext(Map<String, NodeRunResult> results) {
     final context = <String, dynamic>{
       'node': {},
       'env': {
-        'baseUrl': 'https://api.example.com' // Mock env for now, inject real later
+        // 'baseUrl': 'https://api.example.com' // REMOVED to avoid forced HTTPS
       }
     };
     
@@ -88,6 +111,9 @@ class ExecutionEngine {
            final config = node.config as HttpNodeConfig;
            // Resolve Templates
            final url = TemplateResolver.resolve(config.url, context);
+           
+           onLog?.call('[${node.id}] Requesting: $url');
+           
            // Headers / Body resolution TODO
            
            final response = await _dio.request(
@@ -171,8 +197,4 @@ class ExecutionEngine {
     }
   }
 
-  Future<NodeRunResult> _executeNode(WorkflowNode node) async {
-      // Deprecated internal method, logic moved to main loop for accessing context/routing
-      return NodeRunResult(nodeId: node.id);
-  }
 }

@@ -83,9 +83,14 @@ class NodeWidget extends StatelessWidget {
           top: top,
           child: GestureDetector(
             onTapDown: (details) {
-              // We pass global position for drawing temp line start
               onPortTap?.call(port.key, details.globalPosition);
             },
+            onPanStart: (details) {
+               // Treat drag start as a tap to initiate connection mode
+               // This also consumes the gesture, preventing canvas panning/node dragging
+               onPortTap?.call(port.key, details.globalPosition);
+            },
+            onPanUpdate: (_) {}, // Conserve gesture
             child: Tooltip(
               message: port.label,
               child: _buildPortCircle(context, port.key),

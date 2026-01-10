@@ -77,10 +77,23 @@ Used in **Condition Node** to determine routing.
 ---
 
 ## 📚 Documentation
+
+### 🇰🇷 Korean
+- [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
+- [빌드 및 배포 (Build & Deploy)](docs/BUILD_AND_DEPLOY.ko.md)
+- [사용자 가이드 (Usage Guide)](docs/USAGE_GUIDE.ko.md)
+
+### 🇺🇸 English
+- [Installation Guide](docs/INSTALLATION.en.md)
+- [Build & Deploy Guide](docs/BUILD_AND_DEPLOY.en.md)
+- [Usage Guide](docs/USAGE_GUIDE.en.md)
+
+---
+
+### Technical Docs
 - [AI Integration Guide](docs/ai_integration_guide.md)
-- [Workflow Editor Plan](docs/workflow_editor_plan.md)
-- [Workflow Implementation Plan](docs/workflow_implementation_plan.md)
-- [Data Model Design](docs/workflow_data_model_design.md)
+- [Workflow Implementation Plan](docs/workflow_implementation_plan_KR.md)
+
 
 ---
 

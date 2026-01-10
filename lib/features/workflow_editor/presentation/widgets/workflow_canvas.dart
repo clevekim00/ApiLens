@@ -8,6 +8,7 @@ import '../../../execution/application/workflow_runner_controller.dart';
 import '../../../execution/domain/models/execution_models.dart';
 import 'node_widget.dart';
 import 'edge_painter.dart';
+import 'edge_path_util.dart'; // NEW
 
 class WorkflowCanvas extends ConsumerStatefulWidget {
   const WorkflowCanvas({super.key});
@@ -40,118 +41,180 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
     final edges = state.edges;
     final connectingNodeId = state.connectingNodeId;
     
-    // Calculate cursor position for connecting line (Optional for follow-mouse)
-    // For MVP click-click, we might just highlight the source port.
-    // Enhanced: We can track mouse movement to draw line to cursor?
-    // Let's stick to click-click first, maybe just draw line if we can get mouse pos.
-    
     return Container(
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-      child: GestureDetector(
-        onTap: () {
-           // Click on canvas background
-           ref.read(workflowEditorProvider.notifier).selectNode(null);
-           _focusNode.requestFocus();
-        },
-        child: KeyboardListener(
-          focusNode: _focusNode,
-          onKeyEvent: (event) {
-             if (event is KeyDownEvent) {
-               if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
-                  final selected = ref.read(workflowEditorProvider).selectedNodeId;
-                  if (selected != null) {
-                    ref.read(workflowEditorProvider.notifier).deleteNode(selected);
-                  }
-               }
-             }
-          },
-          child: InteractiveViewer(
-          boundaryMargin: const EdgeInsets.all(double.infinity),
-          minScale: 0.1,
-          maxScale: 2.0,
-          constrained: false, // Infinite canvas
-          child: SizedBox(
-            width: 5000,
-            height: 5000,
-            child: Stack(
-              key: _canvasKey,
-              children: [
-                // Grid Pattern
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: GridPainter(color: Theme.of(context).dividerColor.withOpacity(0.2)),
-                  ),
-                ),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3), // Updated deprecated color
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                 // Click on canvas background
+                 ref.read(workflowEditorProvider.notifier).selectNode(null);
+                 _focusNode.requestFocus();
+              },
+              child: KeyboardListener(
+                focusNode: _focusNode,
+                onKeyEvent: (event) {
+                   if (event is KeyDownEvent) {
+                     if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
+                        final selectedNode = ref.read(workflowEditorProvider).selectedNodeId;
+                        final selectedEdge = ref.read(workflowEditorProvider).selectedEdgeId;
+                        
+                        if (selectedNode != null) {
+                          ref.read(workflowEditorProvider.notifier).deleteNode(selectedNode);
+                        } else if (selectedEdge != null) {
+                          ref.read(workflowEditorProvider.notifier).deleteEdge(selectedEdge);
+                        }
+                     }
+                   }
+                },
+                child: InteractiveViewer(
+                  boundaryMargin: const EdgeInsets.all(double.infinity),
+                  minScale: 0.1,
+                  maxScale: 2.0,
+                  constrained: false, // Infinite canvas
+                  child: SizedBox(
+                    width: 5000,
+                    height: 5000,
+                    child: Stack(
+                      key: _canvasKey,
+                      children: [
+                        // Grid Pattern
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: GridPainter(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                          ),
+                        ),
 
-                // Edges (Behind nodes)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: EdgePainter(
-                      nodes: nodes, 
-                      edges: edges,
-                      // We can pass connecting info here if we want to draw temp line
-                      // connectingNodeId: connectingNodeId,
-                      // connectingPortKey: state.connectingPortKey,
+                        // Edges (Behind nodes)
+                        Positioned.fill(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.deferToChild, // Only hit where painter says hit
+                            onTapUp: (details) {
+                              final edgeId = _findEdgeAt(details.localPosition, nodes, edges);
+                              if (edgeId != null) {
+                                ref.read(workflowEditorProvider.notifier).selectEdge(edgeId);
+                              }
+                            },
+                            // Consume drag gestures on edges to prevent canvas panning
+                            onPanStart: (_) {},
+                            onPanUpdate: (_) {},
+                            child: CustomPaint(
+                              painter: EdgePainter(
+                                nodes: nodes, 
+                                edges: edges,
+                                selectedEdgeId: state.selectedEdgeId,
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        // Nodes
+                        ...nodes.map((node) {
+                          final execResult = runnerState.results[node.id];
+                          final isRunning = execResult?.status == NodeStatus.running;
+                          final isSuccess = execResult?.status == NodeStatus.success;
+                          final isFailure = execResult?.status == NodeStatus.failure;
+
+                          return Positioned(
+                            left: node.x,
+                            top: node.y,
+                            child: NodeWidget(
+                              node: node,
+                              isActive: state.selectedNodeId == node.id,
+                              isRunning: isRunning,
+                              isSuccess: isSuccess,
+                              hasError: isFailure,
+                              onDragEnd: (details) {
+                                 ref.read(workflowEditorProvider.notifier).updateNodePosition(
+                                     node.id, 
+                                     details.offset.dx - node.x, 
+                                     details.offset.dy - node.y 
+                                 );
+                              },
+                              onTap: () {
+                                  ref.read(workflowEditorProvider.notifier).selectNode(node.id);
+                              },
+                              onPortTap: (portKey, globalPos) {
+                                  final isInput = node.inputPortKeys.contains(portKey);
+                                  
+                                  if (isInput) {
+                                     ref.read(workflowEditorProvider.notifier).completeConnection(node.id, portKey);
+                                  } else {
+                                     ref.read(workflowEditorProvider.notifier).startConnection(node.id, portKey);
+                                  }
+                              }
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ),
                 ),
-                
-                // Nodes
-                ...nodes.map((node) {
-                  final execResult = runnerState.results[node.id];
-                  final isRunning = execResult?.status == NodeStatus.running;
-                  final isSuccess = execResult?.status == NodeStatus.success;
-                  final isFailure = execResult?.status == NodeStatus.failure;
-
-                  return Positioned(
-                    left: node.x,
-                    top: node.y,
-                    child: NodeWidget(
-                      node: node,
-                      isActive: state.selectedNodeId == node.id,
-                      isRunning: isRunning,
-                      isSuccess: isSuccess,
-                      hasError: isFailure,
-                      onDragEnd: (details) {
-                         ref.read(workflowEditorProvider.notifier).updateNodePosition(
-                             node.id, 
-                             details.offset.dx - node.x, // Simplified delta
-                             details.offset.dy - node.y 
-                         );
-                      },
-                      onTap: () {
-                          ref.read(workflowEditorProvider.notifier).selectNode(node.id);
-                      },
-                      onPortTap: (portKey, globalPos) {
-                          // Quick check:
-                          final isInput = node.inputPortKeys.contains(portKey);
-                          
-                          if (isInput) {
-                             ref.read(workflowEditorProvider.notifier).completeConnection(node.id, portKey);
-                          } else {
-                             ref.read(workflowEditorProvider.notifier).startConnection(node.id, portKey);
-                          }
-                      }
-                    ),
-                  );
-                }),
-                
-                // Visual feedback for connecting mode (Overlay)
-                if (connectingNodeId != null)
-                   Positioned(
-                     left: 10, top: 10,
-                     child: Container(
-                       padding: const EdgeInsets.all(8),
-                       color: Colors.yellowAccent,
-                       child: const Text('Connecting... Click target Input Port'),
-                     ),
-                   ),
-              ],
+              ),
             ),
           ),
-        ),
+          
+          // Fixed Connection Feedback Overlay (Outside InteractiveViewer)
+          if (connectingNodeId != null)
+             Positioned(
+               top: 24,
+               left: 0,
+               right: 0,
+               child: Center(
+                 child: Material(
+                   elevation: 8,
+                   borderRadius: BorderRadius.circular(24),
+                   color: Colors.blue.shade700,
+                   child: Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                     child: Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         SizedBox(
+                           width: 16, height: 16, 
+                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white.withValues(alpha: 0.8))
+                         ),
+                         const SizedBox(width: 12),
+                         const Text(
+                           'Connection Mode: Click a target Input Port to finish',
+                           style: TextStyle(
+                             color: Colors.white, 
+                             fontWeight: FontWeight.bold,
+                             fontSize: 15,
+                           ),
+                         ),
+                         const SizedBox(width: 8),
+                         IconButton(
+                           icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                           onPressed: () => ref.read(workflowEditorProvider.notifier).cancelConnection(),
+                           tooltip: 'Cancel Connection',
+                           padding: EdgeInsets.zero,
+                           constraints: const BoxConstraints(),
+                         )
+                       ],
+                     ),
+                   ),
+                 ),
+               ),
+             ),
+        ],
       ),
-    ));
+    );
+  }
+
+  String? _findEdgeAt(Offset position, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
+    for (final edge in edges) {
+      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      if (source.id.isEmpty || target.id.isEmpty) continue;
+
+      final path = EdgePathUtil.createEdgePath(edge, source, target);
+      if (EdgePathUtil.isPointNearPath(path, position)) {
+         return edge.id;
+      }
+    }
+    return null;
   }
 }
 
