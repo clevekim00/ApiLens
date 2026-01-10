@@ -29,9 +29,17 @@ class WorkflowRunnerState {
 }
 
 class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
-  final ExecutionEngine _engine;
+  late final ExecutionEngine _engine;
 
-  WorkflowRunnerController(this._engine) : super(const WorkflowRunnerState());
+  WorkflowRunnerController() : super(const WorkflowRunnerState()) {
+    _engine = ExecutionEngine(onLog: _handleLog);
+  }
+
+  void _handleLog(String message) {
+    if (mounted) {
+      state = state.copyWith(logs: [...state.logs, message]);
+    }
+  }
 
   void clear() {
     state = const WorkflowRunnerState();
@@ -64,5 +72,22 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
 }
 
 final workflowRunnerProvider = StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
-  return WorkflowRunnerController(ExecutionEngine());
+  // We need to defer controller creation or move logs handling but 
+  // ExecutionEngine needs a callback. 
+  // Since Controller holds the state, we can't easily pass "controller.addLog" to constructor BEFORE controller exists.
+  // Instead, let's create the engine inside the controller or pass a dummy and set it later?
+  // Easier: Pass a closure that delegates to a specialized "LogManager" or just pass null and let Controller attach?
+  // BUT ExecutionEngine doesn't expose a "setListener".
+  // 
+  // Better approach:
+  // Controller creates the engine.
+  // Or we change the architecture slightly. 
+  // 
+  // Let's make Controller create the Engine with 'this' reference? No.
+  // 
+  // Let's define the callback to use the ref.notifier AFTER generic setup?
+  // No, Provider doesn't work that way easily.
+  //
+  // Simpler: Inside WorkflowRunnerController, we initialize the engine.
+  return WorkflowRunnerController(); 
 });

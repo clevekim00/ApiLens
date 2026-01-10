@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_json_view/flutter_json_view.dart';
-import 'package:flutter_json_view/flutter_json_view.dart';
+
 import '../../response/providers/response_provider.dart';
 import '../../../core/network/models/response_model.dart';
 import 'response_compare_dialog.dart';
@@ -93,6 +93,8 @@ class ResponseViewer extends ConsumerWidget {
             child: Column(
               children: [
                 const TabBar(
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
                   tabs: [
                     Tab(text: 'Body'),
                     Tab(text: 'Headers'),
@@ -120,6 +122,7 @@ class ResponseViewer extends ConsumerWidget {
     if (response.jsonBody != null) {
       // JSON View
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: JsonView.map(

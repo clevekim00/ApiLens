@@ -11,6 +11,8 @@ class WorkflowEditorState {
   final String? selectedNodeId;
   final String? connectingNodeId;
   final String? connectingPortKey;
+  final bool isDirty;
+  final String? selectedEdgeId; // NEW
 
   const WorkflowEditorState({
     required this.id,
@@ -20,6 +22,8 @@ class WorkflowEditorState {
     this.selectedNodeId,
     this.connectingNodeId,
     this.connectingPortKey,
+    this.isDirty = false, // NEW
+    this.selectedEdgeId,
   });
 
   WorkflowEditorState copyWith({
@@ -30,6 +34,8 @@ class WorkflowEditorState {
     String? selectedNodeId,
     String? connectingNodeId,
     String? connectingPortKey,
+    bool? isDirty,
+    String? selectedEdgeId,
   }) {
     return WorkflowEditorState(
       id: id ?? this.id,
@@ -37,8 +43,9 @@ class WorkflowEditorState {
       nodes: nodes ?? this.nodes,
       edges: edges ?? this.edges,
       selectedNodeId: selectedNodeId ?? this.selectedNodeId,
-      connectingNodeId: connectingNodeId ?? this.connectingNodeId,
       connectingPortKey: connectingPortKey ?? this.connectingPortKey,
+      isDirty: isDirty ?? this.isDirty,
+      selectedEdgeId: selectedEdgeId ?? this.selectedEdgeId,
     );
   }
 }
@@ -52,22 +59,27 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   ));
   
   void loadWorkflow(String id, String name, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
-    state = WorkflowEditorState(id: id, name: name, nodes: nodes, edges: edges);
+    state = WorkflowEditorState(id: id, name: name, nodes: nodes, edges: edges, isDirty: false);
   }
   
   void clearWorkflow() {
     state = WorkflowEditorState(
       id: const Uuid().v4(),
       nodes: [WorkflowNode(id: 'start', type: 'start', x: 100, y: 100)],
+      isDirty: false,
     );
+  }
+
+  void markSaved() {
+    state = state.copyWith(isDirty: false);
   }
   
   void updateName(String name) {
-    state = state.copyWith(name: name);
+    state = state.copyWith(name: name, isDirty: true);
   }
 
   void addNode(WorkflowNode node) {
-    state = state.copyWith(nodes: [...state.nodes, node]);
+    state = state.copyWith(nodes: [...state.nodes, node], isDirty: true);
   }
 
   void updateNodePosition(String id, double dx, double dy) {
@@ -85,6 +97,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
         }
         return n;
       }).toList(),
+      isDirty: true,
     );
   }
 
@@ -105,6 +118,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
         }
         return n;
       }).toList(),
+      isDirty: true,
     );
   }
 
@@ -121,8 +135,25 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: id,
+      selectedEdgeId: null, // Clear edge selection
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
+      isDirty: state.isDirty,
+    );
+  }
+
+  void selectEdge(String? id) {
+    if (state.connectingNodeId != null) cancelConnection();
+    state = WorkflowEditorState(
+      id: state.id,
+      name: state.name,
+      nodes: state.nodes,
+      edges: state.edges,
+      selectedNodeId: null, // Clear node selection
+      selectedEdgeId: id,
+      connectingNodeId: state.connectingNodeId,
+      connectingPortKey: state.connectingPortKey,
+      isDirty: state.isDirty,
     );
   }
 
@@ -130,14 +161,32 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     // Cascade delete edges
     final newEdges = state.edges.where((e) => e.sourceNodeId != id && e.targetNodeId != id).toList();
     final newNodes = state.nodes.where((n) => n.id != id).toList();
+    
+    // Check if selected edge was deleted
+    String? newSelectedEdgeForState = state.selectedEdgeId;
+    if (newSelectedEdgeForState != null && !newEdges.any((e) => e.id == newSelectedEdgeForState)) {
+      newSelectedEdgeForState = null;
+    }
+
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
       nodes: newNodes,
       edges: newEdges,
       selectedNodeId: state.selectedNodeId == id ? null : state.selectedNodeId,
+      selectedEdgeId: newSelectedEdgeForState,
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
+      isDirty: true,
+    );
+  }
+  
+  void deleteEdge(String edgeId) {
+    final newEdges = state.edges.where((e) => e.id != edgeId).toList();
+    state = state.copyWith(
+        edges: newEdges, 
+        isDirty: true, 
+        selectedEdgeId: state.selectedEdgeId == edgeId ? null : state.selectedEdgeId
     );
   }
 
@@ -194,7 +243,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       targetNodeId: targetId,
       sourcePort: sourcePort,
       targetPort: targetPort
-    )]);
+    )], isDirty: true);
   }
 }
 

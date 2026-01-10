@@ -1,101 +1,114 @@
-# ApiLens 👁️
-> **Focus on the API, not the noise.**
+# ApiLens
 
-ApiLens is a modern, high-performance REST API testing tool built with Flutter. It focuses on developer productivity through a clean, distraction-free interface, powerful automation features, and seamless data persistence.
+A powerful, local-first API testing tool facilitating Request building, Response analysis, and Visual Branching Workflows. Built with Flutter, Riverpod, and Hive.
 
-![ApiLens Banner](assets/logo_full.png)
+![App Banner](docs/apilens_banner.png)
 
-## 🎥 Usage Guide
-A quick guide to explore ApiLens' main features (Collection Management, Flow Editor, Integrated Console, etc.).
+## � Key Features
 
-- **[Detailed Walkthrough](docs/guide_EN.md)**
-- **[Demo Video (WebP)](docs/demo.webp)**
+### 1. Request Builder
+- **Methods**: GET, POST, PUT, DELETE, PATCH, etc.
+- **Headers/Params**: Key-Value editor with toggle support.
+- **Body Types**: JSON, Text, None. supports JSON template variables.
+- **Auth**: Bearer Token, Basic Auth, API Key.
+- **cURL Integration**: Import/Export cURL commands directly.
 
----
+### 2. Environment Manager
+- Create environments (Dev, Prod) with variables.
+- Use `{{baseUrl}}`, `{{token}}` in URL, Headers, Body.
+- Auto-compilation of variables during execution.
 
-## 🚀 Design Direction
-- **Minimalism**: Intuitive UI/UX for immediate API testing without complex configurations.
-- **Visual Orchestration**: Graph-based visual workflows that go beyond traditional linear request chains.
-- **Productivity**: Maximize debugging efficiency with Auto-save, Data Mapping, and Log analysis.
-- **Aesthetics**: Premium Dark Mode design based on a Deep Blue & Cyan color palette that's easy on the eyes.
-
----
-
-## ✨ Key Features
-
-### 1. 🕸️ Visual Workflow Editor
-Design complex sequences with a node-based graph editor, going beyond simple API call lists.
-- **Graph Traversal**: Queue-based graph engine supporting conditional branching (If/Else) and recursive execution.
-- **Logic Nodes**: Conditional execution via If/Else nodes and custom debugging messages using **Log nodes**.
-- **Bezier Connections**: Define flows by intuitively connecting input/output ports with Bezier curves.
-- **Data Mapping**: Map response data from previous nodes to variables for subsequent steps using JSONPath.
-
-### 2. 📟 Integrated Console & Logs
-A dedicated console area to monitor workflow execution in real-time.
-- **Real-time Logging**: API execution results and Log node messages are output with timestamps.
-- **Variable Substitution**: Full support for variable replacement (e.g., `{{response.body.id}}`) in log messages.
-- **Execution History**: View a summary and results of all executed steps at a glance.
-
-### 3. 📊 Professional Response Visualization
-Significantly improved for deep and intuitive analysis of response data.
-- **Interactive JSON Tree**: `application/json` responses are automatically rendered as trees, allowing efficient navigation of large datasets.
-- **Header Table View**: Complex HTTP header information is presented in a clean, key-value table format.
-- **Precision Metrics**: Color-coded status badges, response time in milliseconds (ms), and readable content size (KB/B).
-- **Rich Error Details**: Instantly view error messages and detailed causes within the 'Body' tab on request failure.
-
-### 4. 🔗 Batch Execution & Result Tabs
-Run multiple requests in a collection at once and compare results.
-- **Batch Running**: Process entire collections sequentially or in parallel (Workflow mode) from the List View.
-- **Tabbed Results View**: Individual response results are provided in separate tabs, allowing seamless switching between request statuses.
-- **Copy to Clipboard**: Copy response bodies to the clipboard with a single click for immediate use in other tools.
-
-### 5. 🗄️ Persistence & UX
-- **Auto-save & Auto-load**: All collections and request history are saved locally in real-time and restored upon app restart.
-- **Split-View Layout**: Efficient layout allowing simultaneous work on request configuration and response results.
-- **Inline Renaming**: Instantly edit collection and request names with a single click.
+### 3. Visual Workflow Orchestrator (New)
+A graph-based execution engine to chain APIs and create complex logic.
+- **Drag & Drop Interface**: Visually design API flows.
+- **Node Types**:
+    - **Start/End**: Define flow boundaries.
+    - **HTTP Node**: Execute API requests. Routes to `success` (2xx) or `failure`.
+    - **Condition Node**: Branch logic based on expressions (e.g. `{{node.api.response.status}} == 200`).
+- **Data Passing**: Reference output from previous nodes using `{{node.{nodeId}.response.body.{field}}}`.
+- **Debugging**: 
+    - Real-time status highlights (Running, Success, Failure).
+    - **Context Inspector**: View raw JSON results of every executed node.
+- **Persistence**: Save/Load/Export/Import workflows locally via JSON.
 
 ---
 
-## 🏗 Architecture
-This project follows a **Service-Oriented** structure with **Provider** pattern-based state management and a dedicated execution system for the graph engine.
+## 🚀 Getting Started
 
-- **Presentation Layer**: Premium UI components based on Flutter widgets (`WorkflowCanvas`, `ConsoleViewer`, etc.).
-- **Business Logic Layer**: State synchronization via `CollectionProvider` and `RequestProvider`.
-- **Core Engine**:
-  - `BatchExecutionService`: Graph-based node traversal and execution engine.
-  - `HttpService`: High-performance network request handling.
-  - `VariableService`: Complex data binding and variable substitution engine.
+### Prerequisites
+- Flutter SDK (3.x+)
+- macOS, Windows, or Linux (Currently optimized for Desktop)
 
----
-
-## 🛠 Build & Installation
-
-### Setup
+### Installation
 ```bash
+# Clone the repository
 git clone https://github.com/clevekim00/ApiLens.git
-cd ApiLens
+
+# Install dependencies
 flutter pub get
-```
 
-### Build for macOS
-```bash
-flutter build macos --release
-```
-
-### Build for Windows
-```bash
-flutter build windows --release
-```
-
-### Build for Web & Serving
-```bash
-flutter build web --release
-python3 -m http.server 8080 --directory build/web
+# Run on macOS (Recommended)
+flutter run -d macos
 ```
 
 ---
 
-## 📜 License
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+## 📖 Workflow Template Syntax
 
-Copyright © 2026 clevekim.
+The Workflow Engine supports a Handlebars-like syntax for dynamic data resolution.
+
+### 1. Environment Variables
+Access variables defined in the globally selected Environment.
+- `{{env.baseUrl}}`
+- `{{env.apiKey}}`
+
+### 2. Node Data References
+Access results from executed nodes by their **Node ID**.
+- **Status Code**: `{{node.{nodeId}.response.statusCode}}`
+- **Body Field**: `{{node.{nodeId}.response.body.accessToken}}` (supports nested JSON)
+- **Headers**: `{{node.{nodeId}.response.headers.content-type}}`
+
+### 3. Condition Expressions
+Used in **Condition Node** to determine routing.
+- `{{node.login.response.statusCode}} == 200`
+- `{{node.user.response.body.age}} > 18`
+- `{{node.response.body.message}} contains "success"`
+
+---
+
+## 📚 Documentation
+
+### 🇺🇸 English
+- [Installation Guide](docs/INSTALLATION.en.md)
+- [Build & Deploy Guide](docs/BUILD_AND_DEPLOY.en.md)
+- [Usage Guide](docs/USAGE_GUIDE.en.md)
+
+### 🇰🇷 Korean
+- [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
+- [빌드 및 배포 (Build & Deploy)](docs/BUILD_AND_DEPLOY.ko.md)
+- [사용자 가이드 (Usage Guide)](docs/USAGE_GUIDE.ko.md)
+
+---
+
+### Technical Docs
+- [AI Integration Guide](docs/ai_integration_guide.md)
+- [Workflow Implementation Plan](docs/workflow_implementation_plan_KR.md)
+
+---
+
+## �️ Roadmap
+
+- [x] Basic Request/Response
+- [x] Environment Variables
+- [x] Visual Workflow Editor
+- [x] Workflow Persistence & Export
+- [x] Debug Panel & Context Inspector
+- [ ] WebSocket Support
+- [ ] GraphQL Support
+- [ ] Cloud Sync / Team Sharing
+- [ ] CLI Runner for CI/CD
+
+---
+
+## License
+MIT

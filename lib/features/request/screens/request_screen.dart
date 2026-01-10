@@ -8,6 +8,8 @@ import 'package:apilens/features/request/widgets/url_bar.dart';
 import '../widgets/key_value_editor.dart';
 import '../widgets/body_editor.dart';
 import '../widgets/auth_editor.dart';
+import '../widgets/auto_header_list.dart'; // NEW
+import '../../../../core/network/request_header_builder.dart'; // NEW
 import '../../history/widgets/history_panel.dart';
 import '../../environments/widgets/environment_selector.dart';
 import '../../../../core/utils/curl_parser.dart';
@@ -77,6 +79,9 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                ),
                PopupMenuButton<String>(
                  onSelected: (val) {
+                   if (val == 'workflow') {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkflowEditorScreen()));
+                   }
                    if (val == 'import') _showImportDialog(context, ref);
                    if (val == 'export') _showExportDialog(context, ref);
                    if (val == 'settings') {
@@ -84,6 +89,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                    }
                  },
                  itemBuilder: (context) => [
+                   const PopupMenuItem(value: 'workflow', child: Text('Workflow Editor')), // Added
                    const PopupMenuItem(value: 'import', child: Text('Import cURL')),
                    const PopupMenuItem(value: 'export', child: Text('Copy as cURL')),
                    const PopupMenuItem(value: 'settings', child: Text('Settings')),
@@ -93,6 +99,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
             ],
           ),
           body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // --- Top Split: Request Builder ---
               Expanded(
@@ -147,13 +154,24 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                                   
                                   // Headers Tab
                                   SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child: KeyValueEditor(
-                                      items: request.headers,
-                                      onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateHeader(idx, item),
-                                      onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeHeader(idx),
-                                      onAdd: () => ref.read(requestNotifierProvider.notifier).addHeader(),
-                                      keyLabel: 'Header',
+                                    padding: const EdgeInsets.all(0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        AutoHeaderList(
+                                          autoHeaders: RequestHeaderBuilder.buildAutoHeaders(request),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: KeyValueEditor(
+                                            items: request.headers,
+                                            onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateHeader(idx, item),
+                                            onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeHeader(idx),
+                                            onAdd: () => ref.read(requestNotifierProvider.notifier).addHeader(),
+                                            keyLabel: 'Header',
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   

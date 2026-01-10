@@ -4,6 +4,9 @@ import '../../domain/models/node_config.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../../request/widgets/key_value_editor.dart';
 import '../../../request/models/key_value_item.dart';
+import '../../../request/models/request_model.dart'; // NEW
+import '../../../request/widgets/auto_header_list.dart'; // NEW
+import '../../../../core/network/request_header_builder.dart'; // NEW
 import 'package:uuid/uuid.dart';
 
 class HttpNodeForm extends ConsumerStatefulWidget {
@@ -95,7 +98,7 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
         Row(
           children: [
             SizedBox(
-              width: 100,
+              width: 120, // Increased width to prevent overflow
               child: DropdownButtonFormField<String>(
                 value: _method,
                 items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map((m) => 
@@ -138,25 +141,50 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                    children: [
                      // Headers Editor
                      SingleChildScrollView(
-                       child: KeyValueEditor(
-                         items: _headers,
-                         onAdd: () {
-                           setState(() {
-                             _headers.add(KeyValueItem(id: const Uuid().v4(), key: '', value: '', isEnabled: true));
-                           });
-                           _save(); // Save immediately? Or wait? 
-                           // For seamless UX, maybe save on edit.
-                         },
-                         onRemove: (index) {
-                           setState(() => _headers.removeAt(index));
-                           _save();
-                         },
-                         onUpdate: (index, item) {
-                           setState(() => _headers[index] = item);
-                           _save();
-                         },
-                       ),
-                     ),
+                       child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.stretch,
+                         children: [
+                           // Auto Headers (Calculated)
+                           Builder(builder: (context) {
+                             // Heuristic for Body Type: If body starts with {, assume JSON.
+                             // Workflow HttpNodeConfig is simple, so we guess.
+                             final bodyText = _bodyController.text.trim();
+                             final bodyType = bodyText.startsWith('{') ? RequestBodyType.json : RequestBodyType.text;
+                             
+                             final tempRequest = RequestModel(
+                               id: 'temp', 
+                               method: _method,
+                               url: _urlController.text,
+                               bodyType: bodyType,
+                               // We don't have full Auth config in HttpNodeConfig yet exposed in this form cleanly
+                               // but RequestHeaderBuilder handles basics.
+                             );
+                             return AutoHeaderList(
+                               autoHeaders: RequestHeaderBuilder.buildAutoHeaders(tempRequest),
+                             );
+                           }),
+                           
+                            KeyValueEditor(
+                              items: _headers,
+                              keyLabel: 'Header',
+                              onAdd: () {
+                                setState(() {
+                                  _headers.add(KeyValueItem(id: const Uuid().v4(), key: '', value: '', isEnabled: true));
+                                });
+                                _save();
+                              },
+                              onRemove: (index) {
+                                setState(() => _headers.removeAt(index));
+                                _save();
+                              },
+                              onUpdate: (index, item) {
+                                setState(() => _headers[index] = item);
+                                _save();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                      
                      // Body Editor
                      Padding(

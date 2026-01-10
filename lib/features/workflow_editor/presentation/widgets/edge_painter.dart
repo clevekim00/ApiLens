@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/workflow_node.dart';
 import '../../domain/models/workflow_edge.dart';
+import 'edge_path_util.dart'; // NEW
 
 class EdgePainter extends CustomPainter {
   final List<WorkflowNode> nodes;
   final List<WorkflowEdge> edges;
   final Offset? dragStart;
   final Offset? dragEnd;
+  final String? selectedEdgeId; // NEW
 
   EdgePainter({
     required this.nodes, 
     required this.edges,
     this.dragStart,
     this.dragEnd,
+    this.selectedEdgeId,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final defaultPaint = Paint()
       ..color = Colors.grey
       ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    final selectedPaint = Paint()
+      ..color = Colors.blueAccent
+      ..strokeWidth = 4 // Thicker
       ..style = PaintingStyle.stroke;
 
     // Draw existing edges
@@ -28,15 +36,19 @@ class EdgePainter extends CustomPainter {
       final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
       
       if (source.id.isNotEmpty && target.id.isNotEmpty) {
-        // Simple visual offset for Condition/API nodes
-        double sourceOffsetY = 40;
-        if (edge.sourcePort == 'true' || edge.sourcePort == 'success') sourceOffsetY = 20; 
-        if (edge.sourcePort == 'false' || edge.sourcePort == 'failure') sourceOffsetY = 60;
+        final path = EdgePathUtil.createEdgePath(edge, source, target);
         
-        final start = Offset(source.x + 160, source.y + sourceOffsetY); 
-        final end = Offset(target.x, target.y + 40);         
+        final isSelected = edge.id == selectedEdgeId;
+        canvas.drawPath(path, isSelected ? selectedPaint : defaultPaint);
         
-        _drawCurvedLine(canvas, start, end, paint);
+        // Draw arrow at end (simplified)
+        final metrics = path.computeMetrics().toList();
+        if (metrics.isNotEmpty) {
+           final endPos = metrics.last.getTangentForOffset(metrics.last.length)?.position;
+           if (endPos != null) {
+              canvas.drawCircle(endPos, 4, Paint()..color = (isSelected ? selectedPaint.color : defaultPaint.color)..style = PaintingStyle.fill);
+           }
+        }
       }
     }
     
@@ -47,35 +59,40 @@ class EdgePainter extends CustomPainter {
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-        
-      // canvas.drawLine(dragStart!, dragEnd!, tempPaint);
-      _drawCurvedLine(canvas, dragStart!, dragEnd!, tempPaint);
+      
+      final path = Path();
+      path.moveTo(dragStart!.dx, dragStart!.dy);
+      // Cubic Bezier for smooth curve similar to _createEdgePath logic
+      final controlPoint1 = Offset(dragStart!.dx + 50, dragStart!.dy);
+      final controlPoint2 = Offset(dragEnd!.dx - 50, dragEnd!.dy);
+      path.cubicTo(controlPoint1.dx, controlPoint1.dy, controlPoint2.dx, controlPoint2.dy, dragEnd!.dx, dragEnd!.dy);
+      
+      canvas.drawPath(path, tempPaint);
     }
-  }
-  
-  void _drawCurvedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
-    final path = Path();
-    path.moveTo(start.dx, start.dy);
-    
-    // Cubic Bezier for smooth curve
-    // Control points: slightly shifted horizontally
-    final controlPoint1 = Offset(start.dx + 50, start.dy);
-    final controlPoint2 = Offset(end.dx - 50, end.dy);
-    
-    path.cubicTo(
-      controlPoint1.dx, controlPoint1.dy, 
-      controlPoint2.dx, controlPoint2.dy, 
-      end.dx, end.dy
-    );
-    
-    canvas.drawPath(path, paint);
-    
-    // Draw arrow at end
-    // Simple triangle
-    // ... skipping complex arrow geometry for now
-    canvas.drawCircle(end, 4, Paint()..color = paint.color..style = PaintingStyle.fill);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true; // Always repaint for drags
+  bool hitTest(Offset position) {
+    for (final edge in edges) {
+      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      if (source.id.isEmpty || target.id.isEmpty) continue;
+
+      final path = EdgePathUtil.createEdgePath(edge, source, target);
+      if (EdgePathUtil.isPointNearPath(path, position)) {
+         return true;
+      }
+    }
+    return false;
+  }
+
+
+  @override
+  bool shouldRepaint(covariant EdgePainter oldDelegate) {
+    return oldDelegate.nodes != nodes || 
+           oldDelegate.edges != edges || 
+           oldDelegate.dragStart != dragStart || 
+           oldDelegate.dragEnd != dragEnd ||
+           oldDelegate.selectedEdgeId != selectedEdgeId;
+  }
 }

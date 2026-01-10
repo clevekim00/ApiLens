@@ -4,6 +4,7 @@ import '../../features/request/models/request_model.dart';
 import 'dio_client.dart';
 import 'models/response_model.dart';
 import '../utils/template_resolver.dart';
+import 'request_header_builder.dart'; // NEW
 
 class ApiService {
   final DioClient _dioClient;
@@ -14,13 +15,24 @@ class ApiService {
     // 1. Prepare URL & Headers (Environment substitution)
     String finalUrl = TemplateResolver.resolve(req.url, env ?? {});
     
-    Map<String, String> finalHeaders = {};
+    // Auto-headers logic
+    final autoHeaders = RequestHeaderBuilder.buildAutoHeaders(req);
+    
+    // Resolve user headers
+    // We can't use RequestHeaderBuilder.mergeHeaders directly because we need to RESOLVE templates in user headers first.
+    // So let's resolve user headers, then merge.
+    
+    Map<String, String> resolvedUserHeaders = {};
     for (var h in req.headers) {
-      if (h.isEnabled) {
-        finalHeaders[TemplateResolver.resolve(h.key, env ?? {})] = 
+      if (h.isEnabled && h.key.isNotEmpty) {
+        resolvedUserHeaders[TemplateResolver.resolve(h.key, env ?? {})] = 
             TemplateResolver.resolve(h.value, env ?? {});
       }
     }
+    
+    // Merge: User headers override auto headers
+    final Map<String, String> finalHeaders = {...autoHeaders};
+    resolvedUserHeaders.forEach((k, v) => finalHeaders[k] = v);
     
     // Auth Headers
     if (req.authType == AuthType.bearer && req.authData != null) {
@@ -38,7 +50,7 @@ class ApiService {
     // 3. Prepare Params
     Map<String, dynamic> finalParams = {};
     for (var p in req.params) {
-      if (p.isEnabled) {
+      if (p.isEnabled && p.key.trim().isNotEmpty) {
         finalParams[TemplateResolver.resolve(p.key, env ?? {})] = 
             TemplateResolver.resolve(p.value, env ?? {});
       }
