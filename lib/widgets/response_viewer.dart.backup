@@ -1,0 +1,381 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'dart:convert';
+import '../providers/request_provider.dart';
+import '../theme/app_theme.dart';
+
+class ResponseViewer extends StatefulWidget {
+  const ResponseViewer({super.key});
+
+  @override
+  State<ResponseViewer> createState() => _ResponseViewerState();
+}
+
+class _ResponseViewerState extends State<ResponseViewer> {
+  bool _isPrettyFormat = true; // Default to pretty format
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<RequestProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Card(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(48.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Sending request...'),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (provider.error != null) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: AppTheme.errorRed,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppTheme.errorRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[400]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final response = provider.currentResponse;
+        if (response == null) {
+          return Card(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(48.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.http,
+                      size: 64,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No response yet',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Send a request to see the response',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Response header with status
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text(
+                      'Response',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const Spacer(),
+                    // Status badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.getStatusColor(response.statusCode),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        '${response.statusCode} ${response.statusMessage}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Response time
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkCard,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.timer, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            response.formattedResponseTime,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Content length
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkCard,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.data_usage, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            response.formattedContentLength,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Tabs for Body, Headers
+                Expanded(
+                  child: DefaultTabController(
+                    length: 2,
+                    child: Column(
+                      children: [
+                        TabBar(
+                          labelColor: Theme.of(context).colorScheme.primary,
+                          unselectedLabelColor: Colors.grey,
+                          indicatorColor: Theme.of(context).colorScheme.primary,
+                          tabs: const [
+                            Tab(text: 'Body'),
+                            Tab(text: 'Headers'),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              _buildBodyTab(context, response.body),
+                              _buildHeadersTab(context, response.headers),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBodyTab(BuildContext context, String body) {
+    // Try to format as JSON
+    String formattedBody = body;
+    String rawBody = body;
+    bool isJson = false;
+
+    try {
+      final decoded = jsonDecode(body);
+      formattedBody = const JsonEncoder.withIndent('  ').convert(decoded);
+      isJson = true;
+    } catch (e) {
+      // Not JSON, use as is
+    }
+
+    final displayBody = (isJson && _isPrettyFormat) ? formattedBody : rawBody;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: isJson
+                ? HighlightView(
+                    displayBody,
+                    language: 'json',
+                    theme: monokaiSublimeTheme,
+                    padding: const EdgeInsets.all(16),
+                    textStyle: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      displayBody,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+          ),
+          // Action buttons
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Row(
+              children: [
+                // Pretty format toggle (only for JSON)
+                if (isJson)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPrettyFormat ? Icons.code : Icons.text_fields,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPrettyFormat = !_isPrettyFormat;
+                        });
+                      },
+                      tooltip: _isPrettyFormat ? 'Raw Format' : 'Pretty Format',
+                    ),
+                  ),
+                const SizedBox(width: 4),
+                // Copy button
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: displayBody));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Copied to clipboard'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    tooltip: 'Copy to clipboard',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeadersTab(BuildContext context, Map<String, dynamic> headers) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: ListView.builder(
+        itemCount: headers.length,
+        itemBuilder: (context, index) {
+          final key = headers.keys.elementAt(index);
+          final value = headers[key].toString();
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.darkCard,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    key,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryPurple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: SelectableText(
+                    value,
+                    style: TextStyle(color: Colors.grey[300]),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

@@ -1,0 +1,49 @@
+name: apilens
+description: A new Flutter project.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Network
+  dio: ^5.4.0
+  
+  # Database
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.2
+  
+  # UI/Utils
+  google_fonts: ^6.1.0
+  uuid: ^4.3.3
+  flutter_json_view: # For optimized JSON viewing
+  intl: ^0.20.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  
+  # Code Generation
+  build_runner: ^2.4.8
+  riverpod_generator: ^2.4.0
+  isar_generator: ^3.1.0+1
+  hive_generator: ^2.0.1
+  # custom_lint: ^0.6.2
+  # riverpod_lint: ^2.3.9
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
