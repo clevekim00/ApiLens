@@ -37,6 +37,14 @@ Support for real-time WebSocket connection and messaging.
 - **Workflow Integration**: Automate scenarios using `ws_connect`, `ws_send`, and `ws_wait` nodes.
 - **REST Chaining**: Use auth tokens from REST responses in subsequent socket connections.
 
+### 5. GraphQL Support (New)
+ApiFlow Studio now provides first-class GraphQL support.
+- **Dedicated Client**: Full-featured editor for Query, Variables, and Headers.
+- **Response Viewer**: JSON viewer with syntax highlighting and error handling.
+- **Workflow Integration**: Execute GraphQL operations within workflows via `gql_request` node.
+- **Chaining**: Seamlessly pass data between REST and GraphQL requests.
+- [Learn more in the GraphQL Guide](docs/GRAPHQL_GUIDE.en.md)
+
 ---
 
 ## 🚀 Getting Started
@@ -89,6 +97,7 @@ Used in **Condition Node** to determine routing.
 - [Build & Deploy Guide](docs/BUILD_AND_DEPLOY.en.md)
 - [Usage Guide](docs/USAGE_GUIDE.en.md)
 - [WebSocket Guide](docs/WEBSOCKET_GUIDE.en.md)
+- [GraphQL Guide](docs/GRAPHQL_GUIDE.en.md)
 
 ### 🇰🇷 Korean
 - [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
@@ -111,7 +120,7 @@ Used in **Condition Node** to determine routing.
 - [x] Workflow Persistence & Export
 - [x] Debug Panel & Context Inspector
 - [x] WebSocket Support
-- [ ] GraphQL Support
+- [x] GraphQL Support
 - [ ] Cloud Sync / Team Sharing
 - [ ] CLI Runner for CI/CD
 

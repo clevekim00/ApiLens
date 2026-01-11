@@ -1,0 +1,83 @@
+{
+    "id": "sample-chained",
+    "name": "Sample: REST to GraphQL",
+    "nodes": [
+        {
+            "id": "start",
+            "type": "start",
+            "x": 50,
+            "y": 100,
+            "data": {
+                "name": "Start"
+            },
+            "config": {
+                "type": "start"
+            }
+        },
+        {
+            "id": "rest1",
+            "type": "api",
+            "x": 200,
+            "y": 100,
+            "data": {
+                "name": "Get ID (REST)"
+            },
+            "config": {
+                "type": "http",
+                "method": "GET",
+                "url": "https://jsonplaceholder.typicode.com/posts/1"
+            }
+        },
+        {
+            "id": "gql1",
+            "type": "gql_request",
+            "x": 400,
+            "y": 100,
+            "data": {
+                "name": "Use ID in Query"
+            },
+            "config": {
+                "type": "gql_request",
+                "mode": "direct",
+                "endpoint": "https://rickandmortyapi.com/graphql",
+                "query": "query { character(id: {{node.rest1.response.body.id}}) { name } }",
+                "storeAs": "character"
+            }
+        },
+        {
+            "id": "end",
+            "type": "end",
+            "x": 600,
+            "y": 100,
+            "data": {
+                "name": "End"
+            },
+            "config": {
+                "type": "end"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e1",
+            "sourceNodeId": "start",
+            "targetNodeId": "rest1",
+            "sourcePort": "output",
+            "targetPort": "input"
+        },
+        {
+            "id": "e2",
+            "sourceNodeId": "rest1",
+            "targetNodeId": "gql1",
+            "sourcePort": "success",
+            "targetPort": "input"
+        },
+        {
+            "id": "e3",
+            "sourceNodeId": "gql1",
+            "targetNodeId": "end",
+            "sourcePort": "success",
+            "targetPort": "input"
+        }
+    ]
+}

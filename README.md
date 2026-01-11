@@ -37,6 +37,14 @@ API를 연결하고 복잡한 로직을 구성할 수 있는 그래프 기반 �
 - **Workflow Integration**: `ws_connect`, `ws_send`, `ws_wait` 노드를 통해 자동화 시나리오 구성.
 - **REST 연계**: API 로그인 후 토큰을 소켓 연결에 사용하는 체이닝 지원.
 
+### 5. GraphQL Support (New)
+ApiFlow Studio는 이제 GraphQL을 공식 지원합니다.
+- **Dedicated Client**: 쿼리, 변수, 헤더를 위한 전용 에디터 제공.
+- **Response Viewer**: 구문 강조가 적용된 JSON 뷰어 및 에러 하이라이팅.
+- **Workflow Integration**: `gql_request` 노드를 통해 워크플로우 내에서 GraphQL 실행.
+- **Chaining**: REST 로그인 결과를 GraphQL 쿼리 변수로 사용하는 등 유연한 연계.
+- [GraphQL 사용 가이드 바로가기](docs/GRAPHQL_GUIDE.ko.md)
+
 ---
 
 ## 🚀 시작하기 (Getting Started)
@@ -89,6 +97,7 @@ flutter run -d macos
 - [빌드 및 배포 (Build & Deploy)](docs/BUILD_AND_DEPLOY.ko.md)
 - [사용자 가이드 (Usage Guide)](docs/USAGE_GUIDE.ko.md)
 - [WebSocket 가이드 (WebSocket Guide)](docs/WEBSOCKET_GUIDE.ko.md)
+- [GraphQL 가이드 (GraphQL Guide)](docs/GRAPHQL_GUIDE.ko.md)
 
 ### 🇺🇸 English
 - [Installation Guide](docs/INSTALLATION.en.md)
@@ -111,7 +120,7 @@ flutter run -d macos
 - [x] 워크플로우 저장 및 내보내기 (Persistence & Export)
 - [x] 디버그 패널 및 컨텍스트 인스펙터 (Debug Panel & Context Inspector)
 - [x] WebSocket 지원
-- [ ] GraphQL 지원
+- [x] GraphQL 지원
 - [ ] 클라우드 동기화 / 팀 공유 (Cloud Sync)
 - [ ] CI/CD용 CLI Runner
 

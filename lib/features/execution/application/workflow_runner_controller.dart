@@ -5,6 +5,7 @@ import '../../workflow_editor/domain/models/workflow_edge.dart'; // Fixed import
 import '../domain/models/execution_models.dart';
 import 'execution_engine.dart';
 import '../../../core/network/websocket/websocket_manager.dart';
+import '../../../core/network/graphql_service.dart';
 
 class WorkflowRunnerState {
   final bool isRunning;
@@ -33,13 +34,17 @@ class WorkflowRunnerState {
 final workflowRunnerProvider = StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
   // Inject WebSocketManager
   final wsManager = ref.watch(webSocketManagerProvider);
-  return WorkflowRunnerController(wsManager: wsManager);
+  final gqlService = ref.watch(graphQLServiceProvider);
+  return WorkflowRunnerController(wsManager: wsManager, gqlService: gqlService);
 });
 
 class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
   final WebSocketManager _wsManager;
-  WorkflowRunnerController({required WebSocketManager wsManager}) 
+  final GraphQLService _gqlService;
+
+  WorkflowRunnerController({required WebSocketManager wsManager, required GraphQLService gqlService}) 
     : _wsManager = wsManager,
+      _gqlService = gqlService,
       super(const WorkflowRunnerState());
 
   StreamSubscription? _subscription;
@@ -57,6 +62,7 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
     // Instantiate engine per run to maintain fresh state (like activeConnectionId)
     final engine = ExecutionEngine(
       wsManager: _wsManager,
+      gqlService: _gqlService,
       onLog: (msg) {
         if (mounted) {
            state = state.copyWith(logs: [...state.logs, msg]);

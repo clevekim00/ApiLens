@@ -7,11 +7,15 @@ import '../../../core/network/models/response_model.dart';
 import 'response_compare_dialog.dart';
 
 class ResponseViewer extends ConsumerWidget {
-  const ResponseViewer({super.key});
+  final ResponseModel? response;
+  
+  const ResponseViewer({super.key, this.response});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final responseState = ref.watch(responseNotifierProvider);
+    final responseState = response != null 
+        ? AsyncValue.data(response) 
+        : ref.watch(responseNotifierProvider);
 
     return responseState.when(
       data: (response) {

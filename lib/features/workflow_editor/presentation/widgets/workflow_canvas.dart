@@ -19,10 +19,6 @@ class WorkflowCanvas extends ConsumerStatefulWidget {
 }
 
 class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
-  // Dragging state
-  String? _draggingNodeId;
-  Offset? _grabOffset; // In World Coordinates
-  
   final GlobalKey _canvasKey = GlobalKey();
   final FocusNode _focusNode = FocusNode(); 
   bool _panEnabled = true; 
@@ -268,31 +264,6 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
         ],
       ),
     );
-  }
-
-  Offset _toWorld(Offset globalPos) {
-    // 1. Convert Global to Local (Consumer's Box relative)
-    // Actually, InteractiveViewer's coordinate system is complex.
-    // The easiest way is to use the inverse of the transformation matrix.
-    // BUT globalPos is Screen coordinates. 
-    // We need to convert Screen -> Widget Local -> World Transformed.
-    
-    // Step 1: Get render box of the Canvas container (the one holding InteractiveViewer or the Stack?)
-    // The gesture detector returns global position.
-    // If we assume the top-left of the InteractiveViewer is at (0,0) of the viewport...
-    // simpler is to map the point to the RenderBox of the InteractiveViewer (or its child).
-    
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    if (box == null) return globalPos;
-    
-    final localPos = box.globalToLocal(globalPos);
-    
-    // Step 2: Apply inverse transformation matrix to get World Coordinates
-    final matrix = _transformationController.value;
-    final inverse = Matrix4.tryInvert(matrix) ?? Matrix4.identity();
-    
-    final point = inverse.transform3(Vector3(localPos.dx, localPos.dy, 0));
-    return Offset(point.x, point.y);
   }
 
   String? _findEdgeAt(Offset position, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {

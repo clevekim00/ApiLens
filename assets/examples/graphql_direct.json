@@ -1,0 +1,63 @@
+{
+    "id": "sample-gql-direct",
+    "name": "Sample: Direct GraphQL",
+    "nodes": [
+        {
+            "id": "start",
+            "type": "start",
+            "x": 50,
+            "y": 100,
+            "data": {
+                "name": "Start"
+            },
+            "config": {
+                "type": "start"
+            }
+        },
+        {
+            "id": "gql1",
+            "type": "gql_request",
+            "x": 250,
+            "y": 100,
+            "data": {
+                "name": "Fetch Rick"
+            },
+            "config": {
+                "type": "gql_request",
+                "mode": "direct",
+                "endpoint": "https://rickandmortyapi.com/graphql",
+                "query": "query { character(id: 1) { name species } }",
+                "variablesJson": "{}",
+                "storeAs": "rick"
+            }
+        },
+        {
+            "id": "end",
+            "type": "end",
+            "x": 500,
+            "y": 100,
+            "data": {
+                "name": "End"
+            },
+            "config": {
+                "type": "end"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e1",
+            "sourceNodeId": "start",
+            "targetNodeId": "gql1",
+            "sourcePort": "output",
+            "targetPort": "input"
+        },
+        {
+            "id": "e2",
+            "sourceNodeId": "gql1",
+            "targetNodeId": "end",
+            "sourcePort": "success",
+            "targetPort": "input"
+        }
+    ]
+}

@@ -151,6 +151,52 @@ class WebSocketWaitNodeConfig implements NodeConfig {
   );
 }
 
+class GraphQLNodeConfig implements NodeConfig {
+  final String mode; // 'direct' | 'configRef'
+  final String? endpoint; // for direct
+  final String? configRefId; // for configRef
+  final Map<String, String>? headers;
+  final Map<String, dynamic> auth; // {type: 'none'|'bearer'|'basic'|'apiKey', ...}
+  final String query;
+  final String variablesJson;
+  final String storeAs;
+
+  GraphQLNodeConfig({
+    this.mode = 'direct',
+    this.endpoint,
+    this.configRefId,
+    this.headers,
+    this.auth = const {'type': 'none'},
+    this.query = '',
+    this.variablesJson = '{}',
+    this.storeAs = 'gqlResult',
+  });
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'type': 'gql_request',
+    'mode': mode,
+    'endpoint': endpoint,
+    'configRefId': configRefId,
+    'headers': headers,
+    'auth': auth,
+    'query': query,
+    'variablesJson': variablesJson,
+    'storeAs': storeAs,
+  };
+
+  factory GraphQLNodeConfig.fromJson(Map<String, dynamic> json) => GraphQLNodeConfig(
+    mode: json['mode'] as String? ?? 'direct',
+    endpoint: json['endpoint'] as String?,
+    configRefId: json['configRefId'] as String?,
+    headers: (json['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
+    auth: Map<String, dynamic>.from(json['auth'] ?? {'type': 'none'}),
+    query: json['query'] ?? '',
+    variablesJson: json['variablesJson'] ?? '{}',
+    storeAs: json['storeAs'] ?? 'gqlResult',
+  );
+}
+
 class EmptyNodeConfig implements NodeConfig {
   const EmptyNodeConfig();
   

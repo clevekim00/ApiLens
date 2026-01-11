@@ -5,6 +5,7 @@ import '../../domain/models/node_config.dart';
 import 'http_node_form.dart';
 import 'condition_node_form.dart';
 import 'inspector_forms.dart';
+import 'graphql_node_form.dart'; // Add import
 
 class InspectorPanel extends ConsumerWidget {
   const InspectorPanel({super.key});
@@ -90,12 +91,26 @@ class InspectorPanel extends ConsumerWidget {
                         onSave: updateConfig,
                       );
                    }
+
                    if (node.type == 'ws_wait') {
                       final config = node.config is WebSocketWaitNodeConfig
                           ? node.config as WebSocketWaitNodeConfig
                           : WebSocketWaitNodeConfig(sessionKey: 'mainWs', match: {'type': 'containsText', 'value': ''});
                       return WebSocketWaitForm(
                         key: ValueKey(node.id),
+                        config: config,
+                        onSave: updateConfig,
+                      );
+                   }
+                   
+                   // GraphQL Form
+                   if (node.type == 'gql_request') {
+                      final config = node.config is GraphQLNodeConfig
+                          ? node.config as GraphQLNodeConfig
+                          : GraphQLNodeConfig();
+                      return GraphQLNodeForm(
+                        key: ValueKey(node.id),
+                        nodeId: node.id,
                         config: config,
                         onSave: updateConfig,
                       );

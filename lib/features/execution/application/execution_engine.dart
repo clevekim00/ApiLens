@@ -6,20 +6,24 @@ import '../domain/models/execution_models.dart';
 import '../../../core/utils/template_resolver.dart';
 import '../../../core/utils/expression_evaluator.dart';
 import '../../../core/network/websocket/websocket_manager.dart';
+import '../../../core/network/graphql_service.dart';
+import '../../../features/graphql/domain/models/graphql_request_config.dart';
 import 'dart:async';
 
 class ExecutionEngine {
   final Dio _dio;
   final WebSocketManager? _wsManager;
+  final GraphQLService? _gqlService;
   final void Function(String message)? onLog;
   
   // Runtime state for active connections within a workflow run
   // Maps stored sessionKey to underlying connectionId form WSManager
   final Map<String, String> _sessionKeyToConnectionId = {};
 
-  ExecutionEngine({Dio? dio, WebSocketManager? wsManager, this.onLog}) 
+  ExecutionEngine({Dio? dio, WebSocketManager? wsManager, GraphQLService? gqlService, this.onLog}) 
     : _dio = dio ?? Dio(),
-      _wsManager = wsManager {
+      _wsManager = wsManager,
+      _gqlService = gqlService {
     _dio.options.validateStatus = (status) => true;
     _dio.options.responseType = ResponseType.plain;
     

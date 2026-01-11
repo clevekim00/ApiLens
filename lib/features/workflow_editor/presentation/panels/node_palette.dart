@@ -33,6 +33,12 @@ class NodePalette extends ConsumerWidget {
                 const Divider(),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('GraphQL', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                ),
+                _buildDraggableItem(context, ref, 'GraphQL Request', 'gql_request', Icons.code, Colors.pink),
+                const Divider(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text('WebSocket', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                 ),
                 _buildDraggableItem(context, ref, 'WS Connect', 'ws_connect', Icons.link, Colors.purple),
