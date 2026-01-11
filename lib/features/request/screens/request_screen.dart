@@ -8,8 +8,8 @@ import 'package:apilens/features/request/widgets/url_bar.dart';
 import '../widgets/key_value_editor.dart';
 import '../widgets/body_editor.dart';
 import '../widgets/auth_editor.dart';
-import '../widgets/auto_header_list.dart'; // NEW
-import '../../../../core/network/request_header_builder.dart'; // NEW
+import '../widgets/auto_header_list.dart';
+import '../../../../core/network/request_header_builder.dart';
 import '../../history/widgets/history_panel.dart';
 import '../../environments/widgets/environment_selector.dart';
 import '../../../../core/utils/curl_parser.dart';
@@ -33,7 +33,6 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     final isLoading = responseState.isLoading;
 
     void onSend() {
-      // Unfocus any active text fields
       FocusManager.instance.primaryFocus?.unfocus();
       ref.read(responseNotifierProvider.notifier).sendRequest();
     }
@@ -50,34 +49,39 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
             width: 300,
             child: HistoryPanel(
               onClose: () {
-                Navigator.of(context).pop(); // Close drawer
+                Navigator.of(context).pop();
               },
             ),
           ),
           appBar: AppBar(
             title: const Text('Request Builder'),
-            elevation: 0,
+            centerTitle: false,
             actions: [
-              IconButton(
-                icon: const Icon(Icons.account_tree),
+               IconButton(
+                icon: const Icon(Icons.account_tree_outlined),
                 tooltip: 'Workflow Editor',
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkflowEditorScreen()));
                 },
               ),
               const EnvironmentSelector(),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
                Padding(
-                 padding: const EdgeInsets.only(right: 16.0),
+                 padding: const EdgeInsets.only(right: 8.0, top: 8, bottom: 8),
                  child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  ),
                   onPressed: isLoading ? null : onSend,
                   icon: isLoading
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
-                      : const Icon(Icons.send),
+                      ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
+                      : const Icon(Icons.play_arrow, size: 16),
                   label: Text(isLoading ? 'Sending...' : 'Send'),
                                ),
                ),
                PopupMenuButton<String>(
+                 tooltip: 'Settings & More',
+                 icon: const Icon(Icons.settings_outlined),
                  onSelected: (val) {
                    if (val == 'workflow') {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkflowEditorScreen()));
@@ -89,7 +93,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                    }
                  },
                  itemBuilder: (context) => [
-                   const PopupMenuItem(value: 'workflow', child: Text('Workflow Editor')), // Added
+                   const PopupMenuItem(value: 'workflow', child: Text('Workflow Editor')), 
                    const PopupMenuItem(value: 'import', child: Text('Import cURL')),
                    const PopupMenuItem(value: 'export', child: Text('Copy as cURL')),
                    const PopupMenuItem(value: 'settings', child: Text('Settings')),
@@ -103,21 +107,22 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
             children: [
               // --- Top Split: Request Builder ---
               Expanded(
-                flex: 5, // 50% height
+                flex: 5, 
                 child: Column(
                   children: [
-                    // 1. URL Bar Section
-                    Card(
-                      margin: const EdgeInsets.all(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            const MethodSelector(),
-                            const SizedBox(width: 16),
-                            Expanded(child: UrlInput()),
-                          ],
-                        ),
+                    // 1. URL Bar Section (Flat panel)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+                      ),
+                      child: const Row(
+                        children: [
+                          MethodSelector(),
+                          SizedBox(width: 8),
+                          Expanded(child: UrlInput()),
+                        ],
                       ),
                     ),
                     
@@ -127,59 +132,77 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                         length: 4,
                         child: Column(
                           children: [
-                            const TabBar(
-                              isScrollable: true, // cleaner for small screens
-                              tabAlignment: TabAlignment.start,
-                              tabs: [
-                                Tab(text: 'Params'),
-                                Tab(text: 'Headers'),
-                                Tab(text: 'Body'),
-                                Tab(text: 'Auth'),
-                              ],
+                            Container(
+                              color: Theme.of(context).colorScheme.surface, // Sidebar/Panel color
+                              width: double.infinity,
+                              child: const TabBar(
+                                isScrollable: true,
+                                tabAlignment: TabAlignment.start,
+                                tabs: [
+                                  Tab(text: 'Params'),
+                                  Tab(text: 'Headers'),
+                                  Tab(text: 'Body'),
+                                  Tab(text: 'Auth'),
+                                ],
+                              ),
                             ),
+                            const Divider(height: 1, thickness: 1),
                             Expanded(
                               child: TabBarView(
                                 children: [
                                   // Params Tab
-                                  SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child: KeyValueEditor(
-                                      items: request.params,
-                                      onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateParam(idx, item),
-                                      onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeParam(idx),
-                                      onAdd: () => ref.read(requestNotifierProvider.notifier).addParam(),
-                                      keyLabel: 'Parameter',
+                                  Container(
+                                    color: Theme.of(context).scaffoldBackgroundColor, // Editor bg
+                                    padding: const EdgeInsets.all(0),
+                                    child: SingleChildScrollView(
+                                      padding: const EdgeInsets.all(16),
+                                      child: KeyValueEditor(
+                                        items: request.params,
+                                        onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateParam(idx, item),
+                                        onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeParam(idx),
+                                        onAdd: () => ref.read(requestNotifierProvider.notifier).addParam(),
+                                        keyLabel: 'Parameter',
+                                      ),
                                     ),
                                   ),
                                   
                                   // Headers Tab
-                                  SingleChildScrollView(
-                                    padding: const EdgeInsets.all(0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        AutoHeaderList(
-                                          autoHeaders: RequestHeaderBuilder.buildAutoHeaders(request),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: KeyValueEditor(
-                                            items: request.headers,
-                                            onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateHeader(idx, item),
-                                            onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeHeader(idx),
-                                            onAdd: () => ref.read(requestNotifierProvider.notifier).addHeader(),
-                                            keyLabel: 'Header',
+                                  Container(
+                                    color: Theme.of(context).scaffoldBackgroundColor,
+                                    child: SingleChildScrollView(
+                                      padding: const EdgeInsets.all(0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          AutoHeaderList(
+                                            autoHeaders: RequestHeaderBuilder.buildAutoHeaders(request),
                                           ),
-                                        ),
-                                      ],
+                                          Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: KeyValueEditor(
+                                              items: request.headers,
+                                              onUpdate: (idx, item) => ref.read(requestNotifierProvider.notifier).updateHeader(idx, item),
+                                              onRemove: (idx) => ref.read(requestNotifierProvider.notifier).removeHeader(idx),
+                                              onAdd: () => ref.read(requestNotifierProvider.notifier).addHeader(),
+                                              keyLabel: 'Header',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   
                                   // Body Tab
-                                  BodyEditor(),
+                                  Container(
+                                    color: Theme.of(context).scaffoldBackgroundColor,
+                                    child: const BodyEditor(),
+                                  ),
                                   
                                   // Auth Tab
-                                  AuthEditor(),
+                                  Container(
+                                    color: Theme.of(context).scaffoldBackgroundColor,
+                                    child: const AuthEditor(),
+                                  ),
                                 ],
                               ),
                             ),
@@ -191,11 +214,11 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                 ),
               ),
 
-              const Divider(thickness: 4, height: 4), // Visual separator
+              const Divider(thickness: 1, height: 1), 
 
               // --- Bottom Split: Response Viewer ---
               const Expanded(
-                flex: 5, // 50% height
+                flex: 5,
                 child: ResponseViewer(),
               ),
             ],
@@ -218,7 +241,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               final model = CurlParser.parse(controller.text);
               if (model != null) {
@@ -244,10 +267,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Copy as cURL'),
-        content: SelectableText(curl), // Simplified for MVP
+        content: SelectableText(curl, style: const TextStyle(fontFamily: 'Fira Code', fontSize: 12)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: curl));
               Navigator.pop(context);

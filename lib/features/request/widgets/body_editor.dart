@@ -45,62 +45,111 @@ class _BodyEditorState extends ConsumerState<BodyEditor> {
   @override
   Widget build(BuildContext context) {
     final bodyType = ref.watch(requestNotifierProvider.select((s) => s.bodyType));
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
+        // Toolbar
+        Container(
+          height: 36,
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: theme.dividerColor)),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
             children: [
-              // Body Type Dropdown
-              DropdownButton<RequestBodyType>(
-                value: bodyType,
-                items: RequestBodyType.values.map((t) {
-                  return DropdownMenuItem(value: t, child: Text(t.name.toUpperCase()));
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    ref.read(requestNotifierProvider.notifier).updateBodyType(val);
-                  }
-                },
+              Text('Type:', style: theme.textTheme.bodySmall),
+              const SizedBox(width: 8),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<RequestBodyType>(
+                  value: bodyType,
+                  isDense: true,
+                  style: theme.textTheme.bodyMedium,
+                  icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+                  items: RequestBodyType.values.map((t) {
+                    return DropdownMenuItem(value: t, child: Text(t.name.toUpperCase()));
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      ref.read(requestNotifierProvider.notifier).updateBodyType(val);
+                    }
+                  },
+                ),
               ),
               const Spacer(),
-              // Pretty Print Button
               if (bodyType == RequestBodyType.json)
-                TextButton.icon(
+                IconButton(
                   onPressed: _prettyPrint,
-                  icon: const Icon(Icons.format_align_left),
-                  label: const Text('Pretty'),
+                  icon: const Icon(Icons.format_align_left, size: 16),
+                  tooltip: 'Format JSON',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  splashRadius: 16,
                 ),
             ],
           ),
         ),
         
+        // Editor Area
         Expanded(
-          child: Container(
-            margin: const EdgeInsets.all(8.0),
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: bodyType == RequestBodyType.none
-                ? const Center(child: Text('No Body'))
-                : TextFormField(
-                    controller: _controller,
-                    maxLines: null,
-                    expands: true,
-                    style: const TextStyle(fontFamily: 'monospace'),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter request body...',
-                    ),
-                    onChanged: (val) {
-                      ref.read(requestNotifierProvider.notifier).updateBody(val);
-                    },
+          child: bodyType == RequestBodyType.none
+              ? Center(
+                  child: Text(
+                    'No Body',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
                   ),
-          ),
+                )
+              : Container(
+                  color: theme.scaffoldBackgroundColor, // Editor background
+                  child: Row(
+                    children: [
+                      // Gutter (simulated)
+                      Container(
+                        width: 48,
+                        color: theme.colorScheme.surface, // Sidebar color
+                        // TODO: Implement actual line numbers in future
+                        alignment: Alignment.topRight,
+                        padding: const EdgeInsets.only(top: 8, right: 8),
+                        child: Text(
+                          '1\n2\n3', 
+                          style: TextStyle(
+                            fontFamily: 'Fira Code', 
+                            fontSize: 13, 
+                            color: theme.hintColor.withOpacity(0.5),
+                            height: 1.5 // Matching text field height
+                          )
+                        ),
+                      ),
+                      
+                      // Code Input
+                      Expanded(
+                        child: TextFormField(
+                          controller: _controller,
+                          maxLines: null,
+                          expands: true,
+                          style: TextStyle(
+                            fontFamily: 'Fira Code',
+                            fontSize: 13,
+                            color: theme.textTheme.bodyMedium?.color,
+                            height: 1.5,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.all(8),
+                            hintText: 'Enter request body...',
+                            filled: false,
+                          ),
+                          onChanged: (val) {
+                            ref.read(requestNotifierProvider.notifier).updateBody(val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ],
     );
