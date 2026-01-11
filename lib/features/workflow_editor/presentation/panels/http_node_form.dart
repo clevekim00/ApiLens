@@ -98,11 +98,19 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
         Row(
           children: [
             SizedBox(
-              width: 120, // Increased width to prevent overflow
+              width: 86,
               child: DropdownButtonFormField<String>(
                 value: _method,
+                isExpanded: true, // Ensure content fits
                 items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map((m) => 
-                   DropdownMenuItem(value: m, child: Text(m))
+                   DropdownMenuItem(
+                     value: m, 
+                     child: Text(
+                       m, 
+                       style: const TextStyle(fontSize: 13), // Reduce font size slightly
+                       overflow: TextOverflow.ellipsis // Ensure text doesn't push bounds
+                     )
+                   )
                 ).toList(),
                 onChanged: (val) {
                    if (val != null) {
@@ -110,7 +118,10 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                      _save();
                    }
                 },
-                decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15)),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(), 
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 15) // Tight padding
+                ),
               ),
             ),
             const SizedBox(width: 8),

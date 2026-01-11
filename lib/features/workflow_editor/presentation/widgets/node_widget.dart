@@ -8,7 +8,9 @@ class NodeWidget extends StatelessWidget {
   final bool isRunning;
   final bool isSuccess;
   final bool hasError;
-  final Function(DraggableDetails) onDragEnd;
+  final Function(DragStartDetails)? onDragStart;
+  final Function(DragUpdateDetails)? onDragUpdate;
+  final VoidCallback? onDragEnd;
   final VoidCallback? onTap;
   
   // Port Callbacks
@@ -21,7 +23,9 @@ class NodeWidget extends StatelessWidget {
     this.isRunning = false,
     this.isSuccess = false,
     this.hasError = false,
-    required this.onDragEnd,
+    this.onDragStart,
+    this.onDragUpdate,
+    this.onDragEnd,
     this.onTap,
     this.onPortTap,
   });
@@ -30,26 +34,20 @@ class NodeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Draggable<String>(
-        data: node.id,
-        feedback: _buildNodeCard(context, isDragging: true),
-        childWhenDragging: Opacity(
-          opacity: 0.5,
-          child: _buildNodeCard(context),
-        ),
-        onDragEnd: onDragEnd,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            _buildNodeCard(context),
+      onPanStart: onDragStart,
+      onPanUpdate: onDragUpdate,
+      onPanEnd: (_) => onDragEnd?.call(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _buildNodeCard(context, isDragging: isActive), // Use active state for border
+          
+          // Render Input Ports
+          ..._buildPorts(context, node.inputs, isInput: true),
             
-            // Render Input Ports
-            ..._buildPorts(context, node.inputs, isInput: true),
-              
-            // Render Output Ports
-            ..._buildPorts(context, node.outputs, isInput: false),
-          ],
-        ),
+          // Render Output Ports
+          ..._buildPorts(context, node.outputs, isInput: false),
+        ],
       ),
     );
   }

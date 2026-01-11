@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../request/providers/request_provider.dart';
-import '../../../../core/theme/vscode_theme.dart';
+import '../../../../core/ui/tokens/app_tokens.dart';
+import '../../../../core/ui/components/app_input.dart';
 
 class MethodSelector extends ConsumerWidget {
   const MethodSelector({super.key});
 
   Color _getMethodColor(String method) {
     switch (method) {
-      case 'GET': return VSCodeColors.accentBlue;
-      case 'POST': return VSCodeColors.accentGreen;
-      case 'PUT': return VSCodeColors.accentOrange;
-      case 'DELETE': return VSCodeColors.accentRed;
-      case 'PATCH': return Colors.purpleAccent;
+      case 'GET': return AppColorsLight.ring; // Blue
+      case 'POST': return Colors.green;
+      case 'PUT': return Colors.orange;
+      case 'DELETE': return AppColorsLight.destructive;
+      case 'PATCH': return Colors.purple;
       default: return Colors.grey;
     }
   }
@@ -22,28 +23,29 @@ class MethodSelector extends ConsumerWidget {
     final method = ref.watch(requestNotifierProvider.select((s) => s.method));
     
     return Container(
+      width: 110,
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).inputDecorationTheme.fillColor,
         border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: method,
+          isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down, size: 16),
-          style: TextStyle(
-            color: _getMethodColor(method),
+          style: AppTokens.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            fontFamily: 'Fira Code', // Monospace for tech feel
+            color: _getMethodColor(method),
           ),
           items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
               .map((m) => DropdownMenuItem(
                     value: m, 
                     child: Text(
                       m, 
-                      style: TextStyle(color: _getMethodColor(m), fontWeight: FontWeight.bold)
+                      style: AppTokens.textTheme.bodyMedium?.copyWith(color: _getMethodColor(m), fontWeight: FontWeight.bold)
                     ),
                   ))
               .toList(),
@@ -59,7 +61,8 @@ class MethodSelector extends ConsumerWidget {
 }
 
 class UrlInput extends ConsumerStatefulWidget {
-  const UrlInput({super.key});
+  final VoidCallback? onSubmitted;
+  const UrlInput({super.key, this.onSubmitted});
 
   @override
   ConsumerState<UrlInput> createState() => _UrlInputState();
@@ -87,16 +90,12 @@ class _UrlInputState extends ConsumerState<UrlInput> {
 
     return SizedBox(
       height: 36,
-      child: TextField(
+      child: AppInput(
         controller: _controller,
-        style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
-        decoration: const InputDecoration(
-          hintText: 'https://api.example.com/v1/resource',
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0), // Centered vertically
-        ),
-        onChanged: (val) {
-          ref.read(requestNotifierProvider.notifier).updateUrl(val);
-        },
+        hintText: 'https://api.example.com/v1/resource',
+        mono: true,
+        onChanged: (val) => ref.read(requestNotifierProvider.notifier).updateUrl(val),
+        onSubmitted: (_) => widget.onSubmitted?.call(),
       ),
     );
   }

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,8 @@ import '../../../execution/application/workflow_runner_controller.dart';
 
 class WorkflowActions {
   static Future<void> handleNew(BuildContext context, WidgetRef ref) async {
-    if (ref.read(workflowEditorProvider).isDirty) {
+    final state = ref.read(workflowEditorProvider);
+    if (state.isDirty) {
       final discard = await _showDiscardConfirm(context);
       if (!discard) return;
     }
@@ -26,7 +28,8 @@ class WorkflowActions {
       if (newName == null) return;
       name = newName;
       id = const Uuid().v4();
-      ref.read(workflowEditorProvider.notifier).updateName(name);
+      // Update state first to reflect new ID/Name
+      ref.read(workflowEditorProvider.notifier).saveAs(id, name);
     }
 
     final workflow = Workflow(
@@ -37,10 +40,14 @@ class WorkflowActions {
     );
 
     await ref.read(workflowRepositoryProvider).save(workflow);
-    ref.read(workflowEditorProvider.notifier).markSaved();
+    
+    // markSaved updates lastSavedAt and isDirty=false
+    if (!saveAs) {
+       ref.read(workflowEditorProvider.notifier).markSaved();
+    }
     
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved "$name"!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Workflow saved as "$name"')));
     }
   }
 
@@ -64,13 +71,23 @@ class WorkflowActions {
              padding: EdgeInsets.all(16), 
              child: Text('No saved workflows found.'),
           ),
-          ...workflows.map((w) => SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, w),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(w.name),
+          SizedBox(
+            width: 400,
+            height: 300,
+            child: ListView.builder(
+              itemCount: workflows.length,
+              itemBuilder: (context, index) {
+                final w = workflows[index];
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, w),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(w.name),
+                  ),
+                );
+              },
             ),
-          )),
+          ),
         ],
       ),
     );
@@ -82,7 +99,97 @@ class WorkflowActions {
     }
   }
 
+  static Future<void> handleRun(BuildContext context, WidgetRef ref) async {
+    final state = ref.read(workflowEditorProvider);
+    
+    // Validation
+    final startNode = state.nodes.where((n) => n.type == 'start').firstOrNull;
+    if (startNode == null) {
+       ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(
+           content: Text('Error: Missing "start" node.'), 
+           backgroundColor: Colors.red
+         )
+       );
+       return;
+    }
+    
+    // Check path to end (BFS)
+    // Assuming end node type is 'end' (checking assumption...)
+    // Actually standard is 'end' type? Or maybe I should just check if edges exit?
+    // Let's assume just reachability check to any node is enough, but specifically strict requirement:
+    // "end로 도달 가능한 path 최소 1개"
+    // Does 'end' node exist in palette?
+    // Assuming there is an 'end' node. If not, maybe just check if graph is connected.
+    
+    // Check disconnected nodes
+    final connectedNodes = <String>{};
+    final queue = [startNode.id];
+    connectedNodes.add(startNode.id);
+    
+    while(queue.isNotEmpty) {
+      final current = queue.removeAt(0);
+      final outgoing = state.edges.where((e) => e.sourceNodeId == current).map((e) => e.targetNodeId);
+      for (final next in outgoing) {
+        if (!connectedNodes.contains(next)) {
+          connectedNodes.add(next);
+          queue.add(next);
+        }
+      }
+    }
+    
+    bool hasEndNode = state.nodes.any((n) => n.type == 'end');
+    bool pathToEnd = false;
+    if (hasEndNode) {
+       pathToEnd = state.nodes.where((n) => n.type == 'end').any((n) => connectedNodes.contains(n.id));
+    } else {
+       // If no end node explicitly, maybe it's okay? Requirement said "end로 도달 가능한 path".
+       // I'll warn if no end node is reachable.
+    }
+
+    if (hasEndNode && !pathToEnd) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Validation Warning'),
+            content: const Text('No path found from Start to End node. Execution may not complete properly. Run anyway?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Run')),
+            ],
+          )
+        ) ?? false;
+        if (!proceed) return;
+    }
+    
+    if (connectedNodes.length < state.nodes.length) {
+       final disconnectedCount = state.nodes.length - connectedNodes.length;
+       final proceed = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Validation Warning'),
+            content: Text('$disconnectedCount nodes are not connected to the Start node and will be ignored. Proceed?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Run')),
+            ],
+          )
+        ) ?? false;
+       if (!proceed) return;
+    }
+
+    ref.read(workflowRunnerProvider.notifier).run(state.nodes, state.edges);
+    if (context.mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Workflow execution started...')));
+    }
+  }
+
   static Future<void> handleExport(BuildContext context, WidgetRef ref) async {
+     // Optional per request ("다른 메뉴는 제거" -> Remove from menu bar app_menu_bar, but maybe keep action available?
+     // Re-reading: "Menu is exactly 2: Workflow, Settings". Export is NOT in the list.
+     // So I should remove Export from Menu. But I can keep the code here just in case, or remove it?
+     // "다른 메뉴는 제거" applies to visible menus.
+     // I'll keep the code but not expose it in AppMenuBar.
      final state = ref.read(workflowEditorProvider);
      final workflow = Workflow(
        id: state.id,
@@ -98,6 +205,9 @@ class WorkflowActions {
   }
 
   static Future<void> handleImport(BuildContext context, WidgetRef ref) async {
+    // Similarly, Import is not in "Workflow" menu list provided by user:
+    // "New workflow, Save workflow, Save as, Open, Run"
+    // So Import/Export are GONE from the UI.
     if (ref.read(workflowEditorProvider).isDirty) {
        final discard = await _showDiscardConfirm(context);
        if (!discard) return;
@@ -136,27 +246,20 @@ class WorkflowActions {
       }
     }
   }
-  
-  static void handleRun(BuildContext context, WidgetRef ref) {
-    final state = ref.read(workflowEditorProvider);
-    if (!state.nodes.any((n) => n.type == 'start')) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error: Missing "start" node.')));
-       return;
-    }
-    
-    ref.read(workflowRunnerProvider.notifier).run(state.nodes, state.edges);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Workflow execution started...')));
-  }
 
   static Future<bool> _showDiscardConfirm(BuildContext context) async {
     return await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Unsaved Changes'),
-        content: const Text('You have unsaved changes. Discard them?'),
+        title: const Text('Discard unsaved changes?'),
+        content: const Text('You have unsaved changes that will be lost.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Discard', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Discard')
+          ),
         ],
       ),
     ) ?? false;

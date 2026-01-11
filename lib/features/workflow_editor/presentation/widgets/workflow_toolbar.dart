@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../data/workflow_repository.dart';
 import '../../domain/models/workflow.dart';
+import 'workflow_actions.dart'; // Add this import
 
 import '../../data/sample_workflows.dart';
 
@@ -82,6 +83,11 @@ class WorkflowToolbar extends ConsumerWidget {
                 );
               }
             },
+          ),
+          IconButton(
+            tooltip: 'Run Workflow',
+            icon: const Icon(Icons.play_arrow, color: Colors.green),
+            onPressed: () => WorkflowActions.handleRun(context, ref),
           ),
           IconButton(
             tooltip: 'Save',
