@@ -12,7 +12,8 @@ class WorkflowEditorState {
   final String? connectingNodeId;
   final String? connectingPortKey;
   final bool isDirty;
-  final String? selectedEdgeId; // NEW
+  final DateTime? lastSavedAt;
+  final String? selectedEdgeId;
 
   const WorkflowEditorState({
     required this.id,
@@ -22,7 +23,8 @@ class WorkflowEditorState {
     this.selectedNodeId,
     this.connectingNodeId,
     this.connectingPortKey,
-    this.isDirty = false, // NEW
+    this.isDirty = false,
+    this.lastSavedAt,
     this.selectedEdgeId,
   });
 
@@ -35,6 +37,7 @@ class WorkflowEditorState {
     String? connectingNodeId,
     String? connectingPortKey,
     bool? isDirty,
+    DateTime? lastSavedAt,
     String? selectedEdgeId,
   }) {
     return WorkflowEditorState(
@@ -45,6 +48,7 @@ class WorkflowEditorState {
       selectedNodeId: selectedNodeId ?? this.selectedNodeId,
       connectingPortKey: connectingPortKey ?? this.connectingPortKey,
       isDirty: isDirty ?? this.isDirty,
+      lastSavedAt: lastSavedAt ?? this.lastSavedAt,
       selectedEdgeId: selectedEdgeId ?? this.selectedEdgeId,
     );
   }
@@ -71,7 +75,16 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   }
 
   void markSaved() {
-    state = state.copyWith(isDirty: false);
+    state = state.copyWith(isDirty: false, lastSavedAt: DateTime.now());
+  }
+
+  void saveAs(String newId, String newName) {
+    state = state.copyWith(
+      id: newId,
+      name: newName,
+      isDirty: false,
+      lastSavedAt: DateTime.now(),
+    );
   }
   
   void updateName(String name) {
@@ -91,6 +104,25 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
               type: n.type,
               x: n.x + dx,
               y: n.y + dy,
+              data: n.data,
+              inputPortKeys: n.inputPortKeys,
+              outputPortKeys: n.outputPortKeys);
+        }
+        return n;
+      }).toList(),
+      isDirty: true,
+    );
+  }
+
+  void setNodePosition(String id, double x, double y) {
+    state = state.copyWith(
+      nodes: state.nodes.map((n) {
+        if (n.id == id) {
+          return WorkflowNode(
+              id: n.id,
+              type: n.type,
+              x: x,
+              y: y,
               data: n.data,
               inputPortKeys: n.inputPortKeys,
               outputPortKeys: n.outputPortKeys);

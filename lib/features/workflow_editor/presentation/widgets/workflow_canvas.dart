@@ -18,17 +18,61 @@ class WorkflowCanvas extends ConsumerStatefulWidget {
 }
 
 class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
-  // Dragging state for creating new edges
-  // Offset? dragStart; // Deprecated by Port-Click mode
-  // Offset? dragEnd;
+  // Dragging state
+  String? _draggingNodeId;
+  Offset? _grabOffset; // In World Coordinates
   
   final GlobalKey _canvasKey = GlobalKey();
-  final FocusNode _focusNode = FocusNode(); // For keyboard shortcuts
+  final FocusNode _focusNode = FocusNode();
+  final TransformationController _transformationController = TransformationController();
 
   @override
   void dispose() {
     _focusNode.dispose();
+    _transformationController.dispose();
     super.dispose();
+  }
+
+  // Coordinate Conversion
+  Offset _screenToWorld(Offset screenPos) {
+    final Matrix4 transform = _transformationController.value;
+    final double scale = transform.getMaxScaleOnAxis();
+    final translationVector = transform.getTranslation();
+    final Offset translation = Offset(translationVector.x, translationVector.y);
+    
+    // world = (screen - translation) / scale
+    return (screenPos - translation) / scale;
+  }
+
+  void _onNodeDragStart(String nodeId, DragStartDetails details) {
+    _draggingNodeId = nodeId;
+    
+    // Select node
+    ref.read(workflowEditorProvider.notifier).selectNode(nodeId);
+    
+    final worldPointer = _screenToWorld(details.globalPosition);
+    final node = ref.read(workflowEditorProvider).nodes.firstWhere((n) => n.id == nodeId);
+    final nodePos = Offset(node.x, node.y);
+    
+    // anchor = worldPointer - nodePos
+    _grabOffset = worldPointer - nodePos;
+  }
+
+  void _onNodeDragUpdate(DragUpdateDetails details) {
+    if (_draggingNodeId == null || _grabOffset == null) return;
+    
+    final worldPointer = _screenToWorld(details.globalPosition);
+    final newNodePos = worldPointer - _grabOffset!;
+    
+    // Optional: Grid Snap
+    // if (RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) { ... }
+    
+    ref.read(workflowEditorProvider.notifier).setNodePosition(_draggingNodeId!, newNodePos.dx, newNodePos.dy);
+  }
+
+  void _onNodeDragEnd() {
+    _draggingNodeId = null;
+    _grabOffset = null;
   }
 
   @override
@@ -42,7 +86,7 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
     final connectingNodeId = state.connectingNodeId;
     
     return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3), // Updated deprecated color
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       child: Stack(
         children: [
           Positioned.fill(
@@ -69,6 +113,7 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                    }
                 },
                 child: InteractiveViewer(
+                  transformationController: _transformationController,
                   boundaryMargin: const EdgeInsets.all(double.infinity),
                   minScale: 0.1,
                   maxScale: 2.0,
@@ -125,13 +170,9 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                               isRunning: isRunning,
                               isSuccess: isSuccess,
                               hasError: isFailure,
-                              onDragEnd: (details) {
-                                 ref.read(workflowEditorProvider.notifier).updateNodePosition(
-                                     node.id, 
-                                     details.offset.dx - node.x, 
-                                     details.offset.dy - node.y 
-                                 );
-                              },
+                              onDragStart: (d) => _onNodeDragStart(node.id, d),
+                              onDragUpdate: _onNodeDragUpdate,
+                              onDragEnd: _onNodeDragEnd,
                               onTap: () {
                                   ref.read(workflowEditorProvider.notifier).selectNode(node.id);
                               },
