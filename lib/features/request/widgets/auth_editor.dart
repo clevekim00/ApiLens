@@ -10,6 +10,7 @@ class AuthEditor extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authType = ref.watch(requestNotifierProvider.select((s) => s.authType));
     final authData = ref.watch(requestNotifierProvider.select((s) => s.authData ?? {}));
+    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -18,62 +19,94 @@ class AuthEditor extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Text('Type: ', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
-              DropdownButton<AuthType>(
-                value: authType,
-                items: AuthType.values.map((t) {
-                  return DropdownMenuItem(
-                    value: t,
-                    child: Text(t.name.toUpperCase()),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    ref.read(requestNotifierProvider.notifier).updateAuthType(val);
-                  }
-                },
+              Text('Authentication Type:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: theme.inputDecorationTheme.fillColor,
+                  border: Border.all(color: theme.dividerColor),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<AuthType>(
+                    value: authType,
+                    dropdownColor: theme.cardColor,
+                    style: theme.textTheme.bodyMedium,
+                    isDense: true,
+                    icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+                    items: AuthType.values.map((t) {
+                      return DropdownMenuItem(
+                        value: t,
+                        child: Text(t.name.toUpperCase()),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        ref.read(requestNotifierProvider.notifier).updateAuthType(val);
+                      }
+                    },
+                  ),
+                ),
               ),
             ],
           ),
-          const Divider(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           
           if (authType == AuthType.bearer) ...[
-            _buildBearerInput(ref, authData),
+            _buildBearerInput(ref, authData, theme),
           ] else if (authType == AuthType.basic) ...[
-            _buildBasicInput(ref, authData),
+            _buildBasicInput(ref, authData, theme),
           ] else if (authType == AuthType.apiKey) ...[
-            _buildApiKeyInput(ref, authData),
+            _buildApiKeyInput(ref, authData, theme),
           ] else ...[
-             const Text('No authentication selected.', style: TextStyle(color: Colors.grey)),
+             Padding(
+               padding: const EdgeInsets.only(top: 32.0),
+               child: Center(
+                 child: Text(
+                   'No authentication selected.', 
+                   style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor)
+                 ),
+               ),
+             ),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildBearerInput(WidgetRef ref, Map<String, String> data) {
-    return TextFormField(
-      initialValue: data['token'],
-      decoration: const InputDecoration(
-        labelText: 'Bearer Token',
-        border: OutlineInputBorder(),
-      ),
-      onChanged: (val) {
-        final newData = Map<String, String>.from(data);
-        newData['token'] = val;
-        ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
-      },
+  Widget _buildBearerInput(WidgetRef ref, Map<String, String> data, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Token', style: theme.textTheme.labelMedium),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: data['token'],
+          decoration: const InputDecoration(
+            hintText: 'e.g. eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          ),
+          style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
+          onChanged: (val) {
+            final newData = Map<String, String>.from(data);
+            newData['token'] = val;
+            ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildBasicInput(WidgetRef ref, Map<String, String> data) {
+  Widget _buildBasicInput(WidgetRef ref, Map<String, String> data, ThemeData theme) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('Username', style: theme.textTheme.labelMedium),
+        const SizedBox(height: 8),
         TextFormField(
           initialValue: data['username'],
-          decoration: const InputDecoration(labelText: 'Username'),
+          decoration: const InputDecoration(),
+          style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
           onChanged: (val) {
             final newData = Map<String, String>.from(data);
             newData['username'] = val;
@@ -81,10 +114,13 @@ class AuthEditor extends ConsumerWidget {
           },
         ),
         const SizedBox(height: 16),
+        Text('Password', style: theme.textTheme.labelMedium),
+        const SizedBox(height: 8),
         TextFormField(
           initialValue: data['password'],
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Password'),
+          decoration: const InputDecoration(),
+          style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
           onChanged: (val) {
             final newData = Map<String, String>.from(data);
             newData['password'] = val;
@@ -95,39 +131,77 @@ class AuthEditor extends ConsumerWidget {
     );
   }
   
-  Widget _buildApiKeyInput(WidgetRef ref, Map<String, String> data) {
+  Widget _buildApiKeyInput(WidgetRef ref, Map<String, String> data, ThemeData theme) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
-          initialValue: data['key'],
-          decoration: const InputDecoration(labelText: 'Key'),
-          onChanged: (val) {
-             final newData = Map<String, String>.from(data);
-             newData['key'] = val;
-             ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
-          },
-        ),
-         const SizedBox(height: 16),
-        TextFormField(
-          initialValue: data['value'],
-          decoration: const InputDecoration(labelText: 'Value'),
-          onChanged: (val) {
-             final newData = Map<String, String>.from(data);
-             newData['value'] = val;
-             ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
-          },
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Key', style: theme.textTheme.labelMedium),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    initialValue: data['key'],
+                    style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
+                    onChanged: (val) {
+                       final newData = Map<String, String>.from(data);
+                       newData['key'] = val;
+                       ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Value', style: theme.textTheme.labelMedium),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    initialValue: data['value'],
+                    style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
+                    onChanged: (val) {
+                       final newData = Map<String, String>.from(data);
+                       newData['value'] = val;
+                       ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
-        DropdownButton<String>(
-          value: data['addTo'] ?? 'Header',
-          items: ['Header', 'Query Params'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-           onChanged: (val) {
-             if (val != null) {
-                final newData = Map<String, String>.from(data);
-                newData['addTo'] = val;
-                ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
-             }
-           },
+        Text('Add to', style: theme.textTheme.labelMedium),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: theme.inputDecorationTheme.fillColor,
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: data['addTo'] ?? 'Header',
+              dropdownColor: theme.cardColor,
+              style: theme.textTheme.bodyMedium,
+              isExpanded: true,
+              items: ['Header', 'Query Params'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+               onChanged: (val) {
+                 if (val != null) {
+                    final newData = Map<String, String>.from(data);
+                    newData['addTo'] = val;
+                    ref.read(requestNotifierProvider.notifier).updateAuthData(newData);
+                 }
+               },
+            ),
+          ),
         ),
       ],
     );

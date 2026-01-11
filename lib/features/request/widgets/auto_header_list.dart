@@ -16,8 +16,11 @@ class _AutoHeaderListState extends State<AutoHeaderList> {
   Widget build(BuildContext context) {
     if (widget.autoHeaders.isEmpty) return const SizedBox.shrink();
 
+    final theme = Theme.of(context);
+    final borderColor = theme.dividerColor;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         InkWell(
           onTap: () {
@@ -25,23 +28,33 @@ class _AutoHeaderListState extends State<AutoHeaderList> {
               _isExpanded = !_isExpanded;
             });
           },
-          child: Padding(
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            color: theme.colorScheme.surface, // Sidebar color
             child: Row(
               children: [
                 Icon(
-                  _isExpanded ? Icons.expand_more : Icons.expand_less,
+                  _isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
                   size: 16,
-                  color: Colors.grey,
+                  color: theme.iconTheme.color,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Auto-generated headers (${widget.autoHeaders.length})',
-                  style: const TextStyle(
-                    color: Colors.grey,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.iconTheme.color,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Text('READ-ONLY', style: TextStyle(fontSize: 10, color: theme.hintColor)),
                 ),
               ],
             ),
@@ -49,33 +62,48 @@ class _AutoHeaderListState extends State<AutoHeaderList> {
         ),
         if (_isExpanded)
           Container(
-            color: Colors.grey.withOpacity(0.05),
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: borderColor)),
+            ),
             child: Column(
               children: widget.autoHeaders.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 4.0),
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor.withOpacity(0.5),
+                    border: Border(bottom: BorderSide(color: borderColor.withOpacity(0.5))),
+                  ),
                   child: Row(
                     children: [
+                      const SizedBox(width: 32), // Indent to align with list
                       Expanded(
-                        flex: 4,
-                        child: Text(
-                          entry.key, 
-                          style: const TextStyle(
-                            fontSize: 12, 
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87
-                          )
+                        flex: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            entry.key, 
+                            style: TextStyle(
+                              fontFamily: 'Fira Code',
+                              fontSize: 12, 
+                              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)
+                            )
+                          ),
                         ),
                       ),
+                      VerticalDivider(width: 1, thickness: 1, color: borderColor),
                       Expanded(
-                        flex: 6,
-                        child: Text(
-                          entry.value, 
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54
-                          )
+                        flex: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            entry.value, 
+                            style: TextStyle(
+                              fontFamily: 'Fira Code',
+                              fontSize: 12,
+                              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)
+                            )
+                          ),
                         ),
                       ),
                     ],
@@ -84,6 +112,7 @@ class _AutoHeaderListState extends State<AutoHeaderList> {
               }).toList(),
             ),
           ),
+        Divider(height: 1, thickness: 1, color: borderColor),
       ],
     );
   }

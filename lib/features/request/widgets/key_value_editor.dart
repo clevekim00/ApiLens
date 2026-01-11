@@ -24,12 +24,7 @@ class KeyValueEditor extends StatelessWidget {
     return Column(
       children: [
         // List of existing items
-        ReorderableListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          onReorder: (oldIndex, newIndex) {
-            // Reorder logic (optional for MVP, but good to have API)
-          },
+        Column(
           children: [
              for (int i = 0; i < items.length; i++)
                _KeyValueRow(
@@ -44,12 +39,22 @@ class KeyValueEditor extends StatelessWidget {
         ),
         
         // Add Button
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Row'),
+        Container(
+          width: double.infinity,
+          height: 32,
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+          ),
+          child: InkWell(
+            onTap: onAdd,
+            child: Row(
+              children: [
+                const SizedBox(width: 8),
+                const Icon(Icons.add, size: 14),
+                const SizedBox(width: 4),
+                Text('Add Item', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
           ),
         ),
       ],
@@ -75,43 +80,78 @@ class _KeyValueRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+    final borderColor = Theme.of(context).dividerColor;
+    
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: borderColor)),
+      ),
       child: Row(
         children: [
           // Enable/Disable Checkbox
-          Checkbox(
-            value: item.isEnabled,
-            onChanged: (val) {
-              onUpdate(item.copyWith(isEnabled: val));
-            },
+          SizedBox(
+            width: 32,
+            child: Center(
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: Checkbox(
+                  value: item.isEnabled,
+                  onChanged: (val) {
+                    onUpdate(item.copyWith(isEnabled: val));
+                  },
+                  activeColor: Theme.of(context).primaryColor,
+                  checkColor: Colors.white,
+                  side: BorderSide(color: Theme.of(context).disabledColor, width: 1),
+                ),
+              ),
+            ),
           ),
+         
+          // Vertical Divider
+          VerticalDivider(width: 1, thickness: 1, color: borderColor),
           
           // Key Input
           Expanded(
+            flex: 1,
             child: TextFormField(
               initialValue: item.key,
+              style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
               decoration: InputDecoration(
                 hintText: keyLabel,
+                hintStyle: TextStyle(fontFamily: 'Fira Code', fontSize: 13, color: Theme.of(context).hintColor.withOpacity(0.5)),
                 isDense: true,
-                contentPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
               ),
               onChanged: (val) {
-                // Debounce could be added here, but for MVP direct update is fine
                 onUpdate(item.copyWith(key: val)); 
               },
             ),
           ),
-          const SizedBox(width: 8),
           
+          // Vertical Divider
+          VerticalDivider(width: 1, thickness: 1, color: borderColor),
+
           // Value Input
           Expanded(
+            flex: 2, // More space for value
             child: TextFormField(
               initialValue: item.value,
+              style: const TextStyle(fontFamily: 'Fira Code', fontSize: 13),
               decoration: InputDecoration(
                 hintText: valueLabel,
+                hintStyle: TextStyle(fontFamily: 'Fira Code', fontSize: 13, color: Theme.of(context).hintColor.withOpacity(0.5)),
                 isDense: true,
-                contentPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
               ),
               onChanged: (val) {
                 onUpdate(item.copyWith(value: val));
@@ -120,10 +160,15 @@ class _KeyValueRow extends StatelessWidget {
           ),
           
           // Remove Button
-          IconButton(
-            icon: const Icon(Icons.close, size: 20),
-            onPressed: onRemove,
-            color: Colors.grey,
+          SizedBox(
+            width: 32,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 14),
+              onPressed: onRemove,
+              padding: EdgeInsets.zero,
+              splashRadius: 16,
+              tooltip: 'Remove',
+            ),
           ),
         ],
       ),
