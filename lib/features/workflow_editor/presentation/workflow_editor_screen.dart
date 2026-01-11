@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apilens/features/workflow_editor/application/workflow_editor_controller.dart';
 import 'package:apilens/features/execution/application/workflow_runner_controller.dart';
 import 'package:apilens/features/workflow_editor/presentation/widgets/workflow_toolbar.dart';
-import 'widgets/workflow_menu_bar.dart'; 
+import 'widgets/app_menu_bar.dart'; 
 import 'widgets/workflow_actions.dart'; // NEW
 import 'panels/inspector_panel.dart';
 import 'panels/node_palette.dart';
@@ -18,7 +18,7 @@ class WorkflowEditorScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const WorkflowMenuBar(), 
+        title: const AppMenuBar(), 
         centerTitle: false,
         elevation: 0,
         actions: [

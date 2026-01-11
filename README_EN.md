@@ -31,6 +31,12 @@ A graph-based execution engine to chain APIs and create complex logic.
     - **Context Inspector**: View raw JSON results of every executed node.
 - **Persistence**: Save/Load/Export/Import workflows locally via JSON.
 
+### 4. WebSocket Automation (New)
+Support for real-time WebSocket connection and messaging.
+- **WebSocket Client**: Dedicated client screen for connection and testing.
+- **Workflow Integration**: Automate scenarios using `ws_connect`, `ws_send`, and `ws_wait` nodes.
+- **REST Chaining**: Use auth tokens from REST responses in subsequent socket connections.
+
 ---
 
 ## 🚀 Getting Started
@@ -82,6 +88,7 @@ Used in **Condition Node** to determine routing.
 - [Installation Guide](docs/INSTALLATION.en.md)
 - [Build & Deploy Guide](docs/BUILD_AND_DEPLOY.en.md)
 - [Usage Guide](docs/USAGE_GUIDE.en.md)
+- [WebSocket Guide](docs/WEBSOCKET_GUIDE.en.md)
 
 ### 🇰🇷 Korean
 - [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
@@ -103,7 +110,7 @@ Used in **Condition Node** to determine routing.
 - [x] Visual Workflow Editor
 - [x] Workflow Persistence & Export
 - [x] Debug Panel & Context Inspector
-- [ ] WebSocket Support
+- [x] WebSocket Support
 - [ ] GraphQL Support
 - [ ] Cloud Sync / Team Sharing
 - [ ] CLI Runner for CI/CD

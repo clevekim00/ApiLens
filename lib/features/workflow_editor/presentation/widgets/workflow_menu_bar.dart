@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/workflow_editor_controller.dart';
 import 'workflow_actions.dart'; // NEW
 
+import '../../../websocket/screens/websocket_tester_screen.dart';
+
 class WorkflowMenuBar extends ConsumerWidget {
   const WorkflowMenuBar({super.key});
 
@@ -60,6 +62,14 @@ class WorkflowMenuBar extends ConsumerWidget {
           leadingIcon: const Icon(Icons.file_download),
           onPressed: () => WorkflowActions.handleExport(context, ref),
           child: const Text('Export JSON'),
+        ),
+        const PopupMenuDivider(),
+        MenuItemButton(
+          leadingIcon: const Icon(Icons.network_check),
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WebSocketTesterScreen()));
+          },
+          child: const Text('WebSocket Tester'),
         ),
         const PopupMenuDivider(),
         MenuItemButton(

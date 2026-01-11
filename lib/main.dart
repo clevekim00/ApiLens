@@ -5,10 +5,15 @@ import 'core/theme/app_theme.dart';
 import 'core/widgets/splash_screen.dart';
 
 
+import 'features/websocket/data/websocket_config_repository.dart'; // import
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Hive.initFlutter();
+  
+  // Seed Defaults
+  await WebSocketConfigRepository().ensureSeeded();
   
   runApp(
     const ProviderScope(

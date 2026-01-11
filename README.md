@@ -31,6 +31,12 @@ API를 연결하고 복잡한 로직을 구성할 수 있는 그래프 기반 �
     - **Context Inspector**: 각 노드의 실행 결과(JSON) 상세 조회.
 - **영속성**: 워크플로우 로컬 저장/불러오기 및 JSON Export/Import.
 
+### 4. WebSocket Automation (New)
+실시간 WebSocket 연결 및 메시징을 지원합니다.
+- **WebSocket Client**: 별도의 클라이언트 화면에서 연결, 메시지 전송, 로그 확인 가능.
+- **Workflow Integration**: `ws_connect`, `ws_send`, `ws_wait` 노드를 통해 자동화 시나리오 구성.
+- **REST 연계**: API 로그인 후 토큰을 소켓 연결에 사용하는 체이닝 지원.
+
 ---
 
 ## 🚀 시작하기 (Getting Started)
@@ -82,6 +88,7 @@ flutter run -d macos
 - [설치 가이드 (Installation)](docs/INSTALLATION.ko.md)
 - [빌드 및 배포 (Build & Deploy)](docs/BUILD_AND_DEPLOY.ko.md)
 - [사용자 가이드 (Usage Guide)](docs/USAGE_GUIDE.ko.md)
+- [WebSocket 가이드 (WebSocket Guide)](docs/WEBSOCKET_GUIDE.ko.md)
 
 ### 🇺🇸 English
 - [Installation Guide](docs/INSTALLATION.en.md)
@@ -103,7 +110,7 @@ flutter run -d macos
 - [x] 시각적 워크플로우 에디터 (Visual Workflow Editor)
 - [x] 워크플로우 저장 및 내보내기 (Persistence & Export)
 - [x] 디버그 패널 및 컨텍스트 인스펙터 (Debug Panel & Context Inspector)
-- [ ] WebSocket 지원
+- [x] WebSocket 지원
 - [ ] GraphQL 지원
 - [ ] 클라우드 동기화 / 팀 공유 (Cloud Sync)
 - [ ] CI/CD용 CLI Runner

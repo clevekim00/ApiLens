@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../workflow_editor/domain/models/workflow_node.dart';
 import '../../workflow_editor/domain/models/workflow_edge.dart'; // Fixed import path
 import '../domain/models/execution_models.dart';
 import 'execution_engine.dart';
+import '../../../core/network/websocket/websocket_manager.dart';
 
 class WorkflowRunnerState {
   final bool isRunning;
@@ -28,18 +30,19 @@ class WorkflowRunnerState {
   }
 }
 
+final workflowRunnerProvider = StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
+  // Inject WebSocketManager
+  final wsManager = ref.watch(webSocketManagerProvider);
+  return WorkflowRunnerController(wsManager: wsManager);
+});
+
 class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
-  late final ExecutionEngine _engine;
+  final WebSocketManager _wsManager;
+  WorkflowRunnerController({required WebSocketManager wsManager}) 
+    : _wsManager = wsManager,
+      super(const WorkflowRunnerState());
 
-  WorkflowRunnerController() : super(const WorkflowRunnerState()) {
-    _engine = ExecutionEngine(onLog: _handleLog);
-  }
-
-  void _handleLog(String message) {
-    if (mounted) {
-      state = state.copyWith(logs: [...state.logs, message]);
-    }
-  }
+  StreamSubscription? _subscription;
 
   void clear() {
     state = const WorkflowRunnerState();
@@ -51,7 +54,17 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
     clear();
     state = state.copyWith(isRunning: true, logs: ['Execution started...']);
 
-    await for (final result in _engine.runWorkflow(nodes, edges)) {
+    // Instantiate engine per run to maintain fresh state (like activeConnectionId)
+    final engine = ExecutionEngine(
+      wsManager: _wsManager,
+      onLog: (msg) {
+        if (mounted) {
+           state = state.copyWith(logs: [...state.logs, msg]);
+        }
+      }
+    );
+
+    await for (final result in engine.runWorkflow(nodes, edges)) {
       final newResults = Map<String, NodeRunResult>.from(state.results);
       newResults[result.nodeId] = result;
       
@@ -71,23 +84,4 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
   }
 }
 
-final workflowRunnerProvider = StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
-  // We need to defer controller creation or move logs handling but 
-  // ExecutionEngine needs a callback. 
-  // Since Controller holds the state, we can't easily pass "controller.addLog" to constructor BEFORE controller exists.
-  // Instead, let's create the engine inside the controller or pass a dummy and set it later?
-  // Easier: Pass a closure that delegates to a specialized "LogManager" or just pass null and let Controller attach?
-  // BUT ExecutionEngine doesn't expose a "setListener".
-  // 
-  // Better approach:
-  // Controller creates the engine.
-  // Or we change the architecture slightly. 
-  // 
-  // Let's make Controller create the Engine with 'this' reference? No.
-  // 
-  // Let's define the callback to use the ref.notifier AFTER generic setup?
-  // No, Provider doesn't work that way easily.
-  //
-  // Simpler: Inside WorkflowRunnerController, we initialize the engine.
-  return WorkflowRunnerController(); 
-});
+

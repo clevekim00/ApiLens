@@ -4,6 +4,7 @@ import '../../application/workflow_editor_controller.dart';
 import '../../domain/models/node_config.dart';
 import 'http_node_form.dart';
 import 'condition_node_form.dart';
+import 'inspector_forms.dart';
 
 class InspectorPanel extends ConsumerWidget {
   const InspectorPanel({super.key});
@@ -13,7 +14,6 @@ class InspectorPanel extends ConsumerWidget {
     final state = ref.watch(workflowEditorProvider);
     final selectedId = state.selectedNodeId;
     
-    // Ensure we have a valid selection
     if (selectedId == null) {
       return Container(
         color: Theme.of(context).colorScheme.surface,
@@ -22,12 +22,10 @@ class InspectorPanel extends ConsumerWidget {
       );
     }
     
-    // Find node safely
     final nodeIndex = state.nodes.indexWhere((n) => n.id == selectedId);
     if (nodeIndex == -1) return const SizedBox();
     
     final node = state.nodes[nodeIndex];
-    final nodeName = node.data['name'] ?? node.type;
 
     return Container(
       color: Theme.of(context).colorScheme.surface,
@@ -39,54 +37,78 @@ class InspectorPanel extends ConsumerWidget {
              children: [
                 Icon(Icons.edit, size: 16, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Properties', style: Theme.of(context).textTheme.titleMedium),
+                Text('Properties: ${node.data['name'] ?? node.type}', style: Theme.of(context).textTheme.titleMedium),
              ],
            ),
            const Divider(),
            
            Expanded(
-             child: Builder(
-               builder: (context) {
-                 if (node.type == 'api') {
-                   // Ensure config is HttpNodeConfig, or create default if matching failed (unlikely if created via palette)
-                   // But beware of state updates causing rebuilds. Forms usually need unique keys if node changes.
-                   // We use Key(selectedId) to force rebuild form when selection changes.
-                   HttpNodeConfig config;
-                   try {
-                      config = node.config as HttpNodeConfig;
-                   } catch (_) {
-                      config = HttpNodeConfig(url: '', method: 'GET'); // Fallback
+             child: SingleChildScrollView(
+               child: Builder(
+                 builder: (context) {
+                   // Helper for updates
+                   void updateConfig(NodeConfig newConfig) {
+                      ref.read(workflowEditorProvider.notifier).updateNodeConfig(node.id, newConfig.toJson());
                    }
-                   return HttpNodeForm(
-                     key: ValueKey(node.id), 
-                     nodeId: node.id, 
-                     nodeName: nodeName,
-                     config: config,
-                   );
-                 }
-                 
-                 if (node.type == 'condition') {
-                   ConditionNodeConfig config;
-                   try {
-                     config = node.config as ConditionNodeConfig;
-                   } catch (_) {
-                     config = ConditionNodeConfig(expression: '');
+
+                   if (node.type == 'api') {
+                     // Existing Http Form (Self-managed mostly but passing nodeId)
+                     return HttpNodeForm(
+                       key: ValueKey(node.id), 
+                       nodeId: node.id, 
+                       nodeName: node.data['name'] ?? 'Request',
+                       config: node.config is HttpNodeConfig ? node.config as HttpNodeConfig : HttpNodeConfig(url: '', method: 'GET'),
+                     );
                    }
-                   return ConditionNodeForm(
-                     key: ValueKey(node.id),
-                     nodeId: node.id,
-                     nodeName: nodeName,
-                     config: config,
+                   if (node.type == 'condition') {
+                     return ConditionNodeForm(
+                       key: ValueKey(node.id),
+                       nodeId: node.id,
+                       nodeName: node.data['name'] ?? 'Condition',
+                       config: node.config is ConditionNodeConfig ? node.config as ConditionNodeConfig : ConditionNodeConfig(expression: ''),
+                     );
+                   }
+                   
+                   // WebSocket Forms
+                   if (node.type == 'ws_connect') {
+                      final config = node.config is WebSocketConnectNodeConfig 
+                          ? node.config as WebSocketConnectNodeConfig
+                          : WebSocketConnectNodeConfig(url: '');
+                      return WebSocketConnectForm(
+                        key: ValueKey(node.id),
+                        config: config,
+                        onSave: updateConfig,
+                      );
+                   }
+                   if (node.type == 'ws_send') {
+                      final config = node.config is WebSocketSendNodeConfig
+                          ? node.config as WebSocketSendNodeConfig
+                          : WebSocketSendNodeConfig(sessionKey: 'mainWs', payload: '');
+                      return WebSocketSendForm(
+                        key: ValueKey(node.id),
+                        config: config,
+                        onSave: updateConfig,
+                      );
+                   }
+                   if (node.type == 'ws_wait') {
+                      final config = node.config is WebSocketWaitNodeConfig
+                          ? node.config as WebSocketWaitNodeConfig
+                          : WebSocketWaitNodeConfig(sessionKey: 'mainWs', match: {'type': 'containsText', 'value': ''});
+                      return WebSocketWaitForm(
+                        key: ValueKey(node.id),
+                        config: config,
+                        onSave: updateConfig,
+                      );
+                   }
+                   
+                   return Column(
+                     children: [
+                       Text('Type: ${node.type}'),
+                       const Text('No specific properties for this node type.'),
+                     ],
                    );
-                 }
-                 
-                 return Column(
-                   children: [
-                     Text('Type: ${node.type}'),
-                     const Text('No specific properties for this node type.'),
-                   ],
-                 );
-               },
+                 },
+               ),
              ),
            ),
         ],

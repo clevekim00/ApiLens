@@ -93,3 +93,32 @@ A: They are saved in an internal database (Hive). Use "Export JSON" to backup yo
 
 **Q: Can I loop?**
 A: Currently, simple cycles are supported, but infinite loops are not protected against. Use with caution.
+
+## WebSocket Automation
+
+ApiLens supports WebSocket integration both for testing and automated workflows.
+
+### 1. WebSocket Tester
+Access via **Menu -> Tools -> WebSocket Tester**. This standalone tool lets you:
+*   Connect to a WS server.
+*   Send messages (Text/JSON).
+*   View logs.
+*   Save configurations for later use.
+
+### 2. Workflow Integration
+You can automate complex WebSocket flows using three new node types:
+
+*   **WS Connect**: Initiates a connection.
+    *   *Store Session As*: Define a key (e.g., `mainWs`) to reference this connection in subsequent nodes.
+    *   *Mode*: Use "Direct" for dynamic URLs or "Config Ref" to use saved presets.
+*   **WS Send**: Sends a message to an active session.
+    *   *Payload*: Supports templates (e.g., `{"token": "{{node.login.response.body.token}}"}`).
+*   **WS Wait**: Pauses execution until a matching message is received.
+    *   *Match Type*: "Contains Text", "JSON Path" (e.g. `$.type == "pong"`), or "Any Message".
+    *   *Timeout*: Fails if no match found within X ms.
+
+### 3. Web Platform Limitations
+When running ApiLens on the **Web** (Browser):
+*   **Custom Headers**: The standard browser WebSocket API does **not** support custom HTTP headers during the handshake (e.g., `Authorization: Bearer ...`).
+*   **Workaround**: Use Query Parameters (e.g., `wss://api.com?token=XYZ`) or Subprotocols (Sec-WebSocket-Protocol) for authentication.
+*   *Note*: Desktop (macOS/Windows/Linux) versions support full custom headers.
