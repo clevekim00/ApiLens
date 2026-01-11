@@ -26,28 +26,37 @@ class WorkflowActions {
     if (saveAs) {
       final newName = await _showNameDialog(context, 'Save Workflow As', name);
       if (newName == null) return;
-      name = newName;
-      id = const Uuid().v4();
-      // Update state first to reflect new ID/Name
-      ref.read(workflowEditorProvider.notifier).saveAs(id, name);
-    }
-
-    final workflow = Workflow(
-      id: id,
-      name: name,
-      nodes: state.nodes,
-      edges: state.edges,
-    );
-
-    await ref.read(workflowRepositoryProvider).save(workflow);
-    
-    // markSaved updates lastSavedAt and isDirty=false
-    if (!saveAs) {
-       ref.read(workflowEditorProvider.notifier).markSaved();
-    }
-    
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Workflow saved as "$name"')));
+      final newId = const Uuid().v4();
+      
+      // Save new file
+      final workflow = Workflow(
+        id: newId,
+        name: newName,
+        nodes: state.nodes,
+        edges: state.edges,
+      );
+      await ref.read(workflowRepositoryProvider).save(workflow);
+      
+      // Switch context to new file
+      ref.read(workflowEditorProvider.notifier).saveAs(newId, newName);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved as "$newName"!')));
+      }
+    } else {
+      // Regular Save
+      final workflow = Workflow(
+        id: id,
+        name: name,
+        nodes: state.nodes,
+        edges: state.edges,
+      );
+      await ref.read(workflowRepositoryProvider).save(workflow);
+      ref.read(workflowEditorProvider.notifier).markSaved();
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved "$name"!')));
+      }
     }
   }
 

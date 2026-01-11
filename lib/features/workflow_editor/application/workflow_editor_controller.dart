@@ -12,8 +12,13 @@ class WorkflowEditorState {
   final String? connectingNodeId;
   final String? connectingPortKey;
   final bool isDirty;
+<<<<<<< HEAD
   final DateTime? lastSavedAt;
   final String? selectedEdgeId;
+=======
+  final String? selectedEdgeId; 
+  final DateTime? lastSavedAt; // NEW
+>>>>>>> feature/websocket
 
   const WorkflowEditorState({
     required this.id,
@@ -23,9 +28,14 @@ class WorkflowEditorState {
     this.selectedNodeId,
     this.connectingNodeId,
     this.connectingPortKey,
+<<<<<<< HEAD
     this.isDirty = false,
     this.lastSavedAt,
+=======
+    this.isDirty = false, 
+>>>>>>> feature/websocket
     this.selectedEdgeId,
+    this.lastSavedAt, // NEW
   });
 
   WorkflowEditorState copyWith({
@@ -39,6 +49,7 @@ class WorkflowEditorState {
     bool? isDirty,
     DateTime? lastSavedAt,
     String? selectedEdgeId,
+    DateTime? lastSavedAt, // NEW
   }) {
     return WorkflowEditorState(
       id: id ?? this.id,
@@ -50,6 +61,7 @@ class WorkflowEditorState {
       isDirty: isDirty ?? this.isDirty,
       lastSavedAt: lastSavedAt ?? this.lastSavedAt,
       selectedEdgeId: selectedEdgeId ?? this.selectedEdgeId,
+      lastSavedAt: lastSavedAt ?? this.lastSavedAt, // NEW
     );
   }
 }
@@ -63,19 +75,25 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   ));
   
   void loadWorkflow(String id, String name, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
-    state = WorkflowEditorState(id: id, name: name, nodes: nodes, edges: edges, isDirty: false);
+    state = WorkflowEditorState(id: id, name: name, nodes: nodes, edges: edges, isDirty: false, lastSavedAt: DateTime.now());
   }
   
   void clearWorkflow() {
     state = WorkflowEditorState(
       id: const Uuid().v4(),
+      name: 'Untitled Workflow',
       nodes: [WorkflowNode(id: 'start', type: 'start', x: 100, y: 100)],
       isDirty: false,
     );
   }
 
+  void saveAs(String newId, String newName) {
+     state = state.copyWith(id: newId, name: newName, isDirty: false, lastSavedAt: DateTime.now());
+  }
+
   void markSaved() {
     state = state.copyWith(isDirty: false, lastSavedAt: DateTime.now());
+<<<<<<< HEAD
   }
 
   void saveAs(String newId, String newName) {
@@ -85,6 +103,8 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       isDirty: false,
       lastSavedAt: DateTime.now(),
     );
+=======
+>>>>>>> feature/websocket
   }
   
   void updateName(String name) {
@@ -93,6 +113,25 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
 
   void addNode(WorkflowNode node) {
     state = state.copyWith(nodes: [...state.nodes, node], isDirty: true);
+  }
+
+  void setNodePosition(String id, double x, double y) {
+    state = state.copyWith(
+      nodes: state.nodes.map((n) {
+        if (n.id == id) {
+          return WorkflowNode(
+              id: n.id,
+              type: n.type,
+              x: x, 
+              y: y,
+              data: n.data,
+              inputPortKeys: n.inputPortKeys,
+              outputPortKeys: n.outputPortKeys);
+        }
+        return n;
+      }).toList(),
+      isDirty: true,
+    );
   }
 
   void updateNodePosition(String id, double dx, double dy) {
@@ -159,8 +198,6 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       cancelConnection();
     }
     // Direct constructor to allow nullifying selectedNodeId safely
-    // copyWith with 'id' param would work if we trust null handling, 
-    // but explicit constructor is safest when dealing with clearing fields.
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
@@ -171,6 +208,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: state.isDirty,
+      lastSavedAt: state.lastSavedAt,
     );
   }
 
@@ -186,6 +224,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: state.isDirty,
+      lastSavedAt: state.lastSavedAt,
     );
   }
 
@@ -210,6 +249,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: true,
+      lastSavedAt: state.lastSavedAt,
     );
   }
   
@@ -230,8 +270,11 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: state.selectedNodeId,
+      selectedEdgeId: state.selectedEdgeId,
       connectingNodeId: nodeId,
       connectingPortKey: portKey,
+      isDirty: state.isDirty,
+      lastSavedAt: state.lastSavedAt,
     );
   }
 
@@ -255,8 +298,11 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: state.selectedNodeId,
+      selectedEdgeId: state.selectedEdgeId,
       connectingNodeId: null,
       connectingPortKey: null,
+      isDirty: state.isDirty,
+      lastSavedAt: state.lastSavedAt,
     );
   }
   

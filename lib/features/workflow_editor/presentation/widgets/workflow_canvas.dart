@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/workflow_node.dart';
 import '../../domain/models/workflow_edge.dart';
@@ -23,8 +24,14 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
   Offset? _grabOffset; // In World Coordinates
   
   final GlobalKey _canvasKey = GlobalKey();
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode(); 
+  bool _panEnabled = true; 
+  
   final TransformationController _transformationController = TransformationController();
+  
+  // Drag State
+  String? _dragNodeId;
+  Offset _grabOffset = Offset.zero;
 
   @override
   void dispose() {
@@ -34,45 +41,29 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
   }
 
   // Coordinate Conversion
-  Offset _screenToWorld(Offset screenPos) {
-    final Matrix4 transform = _transformationController.value;
-    final double scale = transform.getMaxScaleOnAxis();
-    final translationVector = transform.getTranslation();
-    final Offset translation = Offset(translationVector.x, translationVector.y);
+  Offset _toWorld(Offset globalPos) {
+    // 1. Convert Global to Local (Consumer's Box relative)
+    // Actually, InteractiveViewer's coordinate system is complex.
+    // The easiest way is to use the inverse of the transformation matrix.
+    // BUT globalPos is Screen coordinates. 
+    // We need to convert Screen -> Widget Local -> World Transformed.
     
-    // world = (screen - translation) / scale
-    return (screenPos - translation) / scale;
-  }
-
-  void _onNodeDragStart(String nodeId, DragStartDetails details) {
-    _draggingNodeId = nodeId;
+    // Step 1: Get render box of the Canvas container (the one holding InteractiveViewer or the Stack?)
+    // The gesture detector returns global position.
+    // If we assume the top-left of the InteractiveViewer is at (0,0) of the viewport...
+    // simpler is to map the point to the RenderBox of the InteractiveViewer (or its child).
     
-    // Select node
-    ref.read(workflowEditorProvider.notifier).selectNode(nodeId);
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null) return globalPos;
     
-    final worldPointer = _screenToWorld(details.globalPosition);
-    final node = ref.read(workflowEditorProvider).nodes.firstWhere((n) => n.id == nodeId);
-    final nodePos = Offset(node.x, node.y);
+    final localPos = box.globalToLocal(globalPos);
     
-    // anchor = worldPointer - nodePos
-    _grabOffset = worldPointer - nodePos;
-  }
-
-  void _onNodeDragUpdate(DragUpdateDetails details) {
-    if (_draggingNodeId == null || _grabOffset == null) return;
+    // Step 2: Apply inverse transformation matrix to get World Coordinates
+    final matrix = _transformationController.value;
+    final inverse = Matrix4.tryInvert(matrix) ?? Matrix4.identity();
     
-    final worldPointer = _screenToWorld(details.globalPosition);
-    final newNodePos = worldPointer - _grabOffset!;
-    
-    // Optional: Grid Snap
-    // if (RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftLeft)) { ... }
-    
-    ref.read(workflowEditorProvider.notifier).setNodePosition(_draggingNodeId!, newNodePos.dx, newNodePos.dy);
-  }
-
-  void _onNodeDragEnd() {
-    _draggingNodeId = null;
-    _grabOffset = null;
+    final point = inverse.transform3(Vector3(localPos.dx, localPos.dy, 0));
+    return Offset(point.x, point.y);
   }
 
   @override
@@ -117,8 +108,38 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                   boundaryMargin: const EdgeInsets.all(double.infinity),
                   minScale: 0.1,
                   maxScale: 2.0,
+                  panEnabled: _panEnabled, // Controlled by listener
                   constrained: false, // Infinite canvas
-                  child: SizedBox(
+              child: Listener(
+                onPointerDown: (event) {
+                  // Hit test for edge
+                  // Local position in the 5000x5000 canvas
+                  final localPos = event.localPosition;
+                  final edgeId = _findEdgeAt(localPos, nodes, edges);
+                  
+                  if (edgeId != null) {
+                     // Hit Edge -> Select & Disable Pan
+                     ref.read(workflowEditorProvider.notifier).selectEdge(edgeId);
+                     setState(() {
+                       _panEnabled = false;
+                     });
+                  } else {
+                     // Hit Empty -> Enable Pan (if not hitting node)
+                     // Node selection handled by NodeWidget's GestureDetector usually.
+                     // But if we clicked background, we might want to deselect?
+                     // Existing onTap handles background deselect.
+                     setState(() {
+                       _panEnabled = true;
+                     });
+                  }
+                },
+                onPointerUp: (_) {
+                   setState(() => _panEnabled = true);
+                },
+                onPointerCancel: (_) {
+                   setState(() => _panEnabled = true);
+                },
+                child: SizedBox(
                     width: 5000,
                     height: 5000,
                     child: Stack(
@@ -133,23 +154,11 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
 
                         // Edges (Behind nodes)
                         Positioned.fill(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.deferToChild, // Only hit where painter says hit
-                            onTapUp: (details) {
-                              final edgeId = _findEdgeAt(details.localPosition, nodes, edges);
-                              if (edgeId != null) {
-                                ref.read(workflowEditorProvider.notifier).selectEdge(edgeId);
-                              }
-                            },
-                            // Consume drag gestures on edges to prevent canvas panning
-                            onPanStart: (_) {},
-                            onPanUpdate: (_) {},
-                            child: CustomPaint(
-                              painter: EdgePainter(
-                                nodes: nodes, 
-                                edges: edges,
-                                selectedEdgeId: state.selectedEdgeId,
-                              ),
+                          child: CustomPaint(
+                            painter: EdgePainter(
+                              nodes: nodes, 
+                              edges: edges,
+                              selectedEdgeId: state.selectedEdgeId,
                             ),
                           ),
                         ),
@@ -164,33 +173,50 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                           return Positioned(
                             left: node.x,
                             top: node.y,
-                            child: NodeWidget(
-                              node: node,
-                              isActive: state.selectedNodeId == node.id,
-                              isRunning: isRunning,
-                              isSuccess: isSuccess,
-                              hasError: isFailure,
-                              onDragStart: (d) => _onNodeDragStart(node.id, d),
-                              onDragUpdate: _onNodeDragUpdate,
-                              onDragEnd: _onNodeDragEnd,
-                              onTap: () {
-                                  ref.read(workflowEditorProvider.notifier).selectNode(node.id);
-                              },
-                              onPortTap: (portKey, globalPos) {
-                                  final isInput = node.inputPortKeys.contains(portKey);
-                                  
-                                  if (isInput) {
-                                     ref.read(workflowEditorProvider.notifier).completeConnection(node.id, portKey);
-                                  } else {
-                                     ref.read(workflowEditorProvider.notifier).startConnection(node.id, portKey);
-                                  }
-                              }
-                            ),
+                  child: NodeWidget(
+                    node: node,
+                    isActive: state.selectedNodeId == node.id,
+                    isRunning: isRunning,
+                    isSuccess: isSuccess,
+                    hasError: isFailure,
+                    onDragStart: (globalPos) {
+                       final worldPos = _toWorld(globalPos);
+                       _dragNodeId = node.id;
+                       _grabOffset = worldPos - Offset(node.x, node.y);
+                       setState(() => _panEnabled = false); // Disable pan when dragging node
+                    },
+                    onDragUpdate: (globalPos) {
+                       if (_dragNodeId != node.id) return;
+                       final worldPos = _toWorld(globalPos);
+                       final newPos = worldPos - _grabOffset;
+                       
+                       // Optional Grid Snap (Shift Key not implemented yet, using default free move)
+                       ref.read(workflowEditorProvider.notifier).setNodePosition(node.id, newPos.dx, newPos.dy);
+                    },
+                    onDragEnd: () {
+                       _dragNodeId = null;
+                       _grabOffset = Offset.zero;
+                       setState(() => _panEnabled = true);
+                    },
+                    onTap: () {
+                        ref.read(workflowEditorProvider.notifier).selectNode(node.id);
+                    },
+                    onPortTap: (portKey, globalPos) {
+                        final isInput = node.inputPortKeys.contains(portKey);
+                        
+                        if (isInput) {
+                           ref.read(workflowEditorProvider.notifier).completeConnection(node.id, portKey);
+                        } else {
+                           ref.read(workflowEditorProvider.notifier).startConnection(node.id, portKey);
+                        }
+                    }
+                  ),
                           );
                         }),
                       ],
                     ),
                   ),
+              ),
                 ),
               ),
             ),
@@ -244,7 +270,39 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
     );
   }
 
+  Offset _toWorld(Offset globalPos) {
+    // 1. Convert Global to Local (Consumer's Box relative)
+    // Actually, InteractiveViewer's coordinate system is complex.
+    // The easiest way is to use the inverse of the transformation matrix.
+    // BUT globalPos is Screen coordinates. 
+    // We need to convert Screen -> Widget Local -> World Transformed.
+    
+    // Step 1: Get render box of the Canvas container (the one holding InteractiveViewer or the Stack?)
+    // The gesture detector returns global position.
+    // If we assume the top-left of the InteractiveViewer is at (0,0) of the viewport...
+    // simpler is to map the point to the RenderBox of the InteractiveViewer (or its child).
+    
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null) return globalPos;
+    
+    final localPos = box.globalToLocal(globalPos);
+    
+    // Step 2: Apply inverse transformation matrix to get World Coordinates
+    final matrix = _transformationController.value;
+    final inverse = Matrix4.tryInvert(matrix) ?? Matrix4.identity();
+    
+    final point = inverse.transform3(Vector3(localPos.dx, localPos.dy, 0));
+    return Offset(point.x, point.y);
+  }
+
   String? _findEdgeAt(Offset position, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
+    // 1. Check if point is inside any node (Approximate size 150x80 to prevent edge selection under node)
+    // This prioritizes Node selection over Edge selection
+    for (final node in nodes) {
+      final rect = Rect.fromLTWH(node.x, node.y, 150, 80); 
+      if (rect.contains(position)) return null; 
+    }
+
     for (final edge in edges) {
       final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
       final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));

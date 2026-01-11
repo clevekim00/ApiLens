@@ -8,9 +8,9 @@ class NodeWidget extends StatelessWidget {
   final bool isRunning;
   final bool isSuccess;
   final bool hasError;
-  final Function(DragStartDetails)? onDragStart;
-  final Function(DragUpdateDetails)? onDragUpdate;
-  final VoidCallback? onDragEnd;
+  final Function(Offset globalPos)? onDragStart;
+  final Function(Offset globalPos)? onDragUpdate;
+  final VoidCallback onDragEnd;
   final VoidCallback? onTap;
   
   // Port Callbacks
@@ -25,7 +25,7 @@ class NodeWidget extends StatelessWidget {
     this.hasError = false,
     this.onDragStart,
     this.onDragUpdate,
-    this.onDragEnd,
+    required this.onDragEnd,
     this.onTap,
     this.onPortTap,
   });
@@ -34,13 +34,21 @@ class NodeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      onPanStart: onDragStart,
-      onPanUpdate: onDragUpdate,
-      onPanEnd: (_) => onDragEnd?.call(),
+      onPanStart: (details) {
+         // Notify parent (WorkflowCanvas) to start dragging this node
+         // We pass global position so Canvas can map it to World space
+         onDragStart?.call(details.globalPosition);     
+      },
+      onPanUpdate: (details) {
+         onDragUpdate?.call(details.globalPosition);
+      },
+      onPanEnd: (_) {
+         onDragEnd.call();
+      },
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          _buildNodeCard(context, isDragging: isActive), // Use active state for border
+          _buildNodeCard(context),
           
           // Render Input Ports
           ..._buildPorts(context, node.inputs, isInput: true),
@@ -116,13 +124,12 @@ class NodeWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNodeCard(BuildContext context, {bool isDragging = false}) {
+  Widget _buildNodeCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     
-    Color borderColor = isDragging ? colorScheme.primary : colorScheme.outline;
-    double borderWidth = isDragging ? 2 : 1;
+    Color borderColor = colorScheme.outline;
+    double borderWidth = 1;
     List<BoxShadow> shadows = [
-      if (!isDragging)
         BoxShadow(
           color: Colors.black.withOpacity(0.1),
           blurRadius: 4,

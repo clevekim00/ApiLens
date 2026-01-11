@@ -7,6 +7,8 @@ import 'core/widgets/splash_screen.dart';
 import 'core/settings/settings_repository.dart';
 
 
+import 'features/websocket/data/websocket_config_repository.dart'; // import
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -15,6 +17,9 @@ void main() async {
   // Initialize Settings
   final settingsRepo = SettingsRepository();
   await settingsRepo.init();
+
+  // Seed Defaults
+  await WebSocketConfigRepository().ensureSeeded();
 
   runApp(
     ProviderScope(

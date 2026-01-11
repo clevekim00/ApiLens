@@ -25,7 +25,7 @@ class EdgePathUtil {
       return path;
   }
 
-  static bool isPointNearPath(Path path, Offset point, {double threshold = 10.0}) {
+  static bool isPointNearPath(Path path, Offset point, {double threshold = 15.0}) {
     final bounds = path.getBounds();
     if (!bounds.inflate(threshold).contains(point)) return false;
 

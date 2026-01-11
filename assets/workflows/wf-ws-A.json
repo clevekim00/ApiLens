@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "wf-ws-A",
+  "name": "A: Direct WS",
+  "startNodeId": "start",
+  "env": {
+    "wsUrl": "wss://echo.websocket.org",
+    "token": "YOUR_TOKEN"
+  },
+  "nodes": [
+    { "id": "start", "type": "start", "name": "Start", "position": { "x": 80, "y": 180 }, "inputPorts": [], "outputPorts": [{ "key": "out" }], "config": {}, "data": {"name": "Start"} },
+    {
+      "id": "wsConnect",
+      "type": "ws_connect",
+      "name": "WS Connect",
+      "position": { "x": 320, "y": 180 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "data": {"name": "WS Connect"},
+      "config": {
+        "mode": "direct",
+        "url": "{{env.wsUrl}}?token={{env.token}}",
+        "protocols": [],
+        "autoReconnect": false,
+        "reconnectPolicy": { "maxAttempts": 0, "backoffMs": 0 },
+        "storeAs": "mainWs"
+      }
+    },
+    {
+      "id": "wsSend",
+      "type": "ws_send",
+      "name": "Send ping",
+      "position": { "x": 600, "y": 180 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "data": {"name": "Send ping"},
+      "config": {
+        "sessionKey": "mainWs",
+        "payloadFormat": "text",
+        "payload": "{\"type\":\"ping\"}"
+      }
+    },
+    {
+      "id": "wsWait",
+      "type": "ws_wait",
+      "name": "Wait pong",
+      "position": { "x": 880, "y": 180 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "data": {"name": "Wait pong"},
+      "config": {
+        "sessionKey": "mainWs",
+        "timeoutMs": 5000,
+        "match": { "type": "containsText", "value": "ping" }
+      }
+    },
+    { "id": "endOk", "type": "end", "name": "End OK", "position": { "x": 1160, "y": 140 }, "inputPorts": [{ "key": "in" }], "outputPorts": [], "config": {}, "data": {"name": "End OK"} },
+    { "id": "endFail", "type": "end", "name": "End FAIL", "position": { "x": 600, "y": 320 }, "inputPorts": [{ "key": "in" }], "outputPorts": [], "config": {}, "data": {"name": "End FAIL"} }
+  ],
+  "edges": [
+    { "id": "e1", "sourceNodeId": "start", "sourcePort": "out", "targetNodeId": "wsConnect", "targetPort": "in" },
+    { "id": "e2", "sourceNodeId": "wsConnect", "sourcePort": "success", "targetNodeId": "wsSend", "targetPort": "in" },
+    { "id": "e3", "sourceNodeId": "wsSend", "sourcePort": "success", "targetNodeId": "wsWait", "targetPort": "in" },
+    { "id": "e4", "sourceNodeId": "wsWait", "sourcePort": "success", "targetNodeId": "endOk", "targetPort": "in" },
+    { "id": "e5", "sourceNodeId": "wsConnect", "sourcePort": "failure", "targetNodeId": "endFail", "targetPort": "in" },
+    { "id": "e6", "sourceNodeId": "wsSend", "sourcePort": "failure", "targetNodeId": "endFail", "targetPort": "in" },
+    { "id": "e7", "sourceNodeId": "wsWait", "sourcePort": "failure", "targetNodeId": "endFail", "targetPort": "in" }
+  ]
+}
