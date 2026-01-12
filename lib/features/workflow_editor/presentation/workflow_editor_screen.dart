@@ -117,7 +117,7 @@ class _WorkflowEditorScreenState extends ConsumerState<WorkflowEditorScreen> {
                        child: AppCard(
                          padding: EdgeInsets.zero,
                          backgroundColor: canvasColor,
-                         child: const ClipRect(child: WorkflowCanvas()),
+                         child: const ClipRect(key: Key('canvas_workflow'), child: WorkflowCanvas()),
                        ),
                      ),
                      const SizedBox(width: 8),

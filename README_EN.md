@@ -3,22 +3,21 @@
 ApiLens is a desktop/web-based API tool that connects REST, WebSocket, and GraphQL into a single workflow.
 
 ## Key Features
-- **Multi-Client**: Supports REST, WebSocket, and GraphQL requests.
-- **Workflow Editor**: Automate complex API scenarios with a node-based visual editor.
-- **Workgroup System**: Provides isolated workspaces for each project.
-- **Advanced OpenAPI Import**: Filter Swagger docs by Tags/Search and selectively import APIs.
-- **Team Collaboration**: Export/Import Workgroups as JSON files to share with teammates.
-- **Cross Platform**: Available on macOS, Windows Desktop, and Web.
-- **Themes**: Supports Light and Dark modes.
+- **Multi-Client**: REST / WebSocket / GraphQL Client support
+- **Workflow Editor**: Automate complex API scenarios by connecting nodes
+- **Workgroup System**: Isolate and manage projects
+- **OpenAPI Import**: Supports tag filtering and selective import
+- **Team Collaboration**: Share projects via Workgroup Export/Import
+- **Platform**: Supports Desktop (macOS, Windows) and Web
+- **Theme**: Light / Dark theme support
 
 ## Quick Start
-1. **Launch ApiLens**: Install the desktop app or visit the web version.
-2. **Create Workgroup**: Click the `+` button in the sidebar to create a new workspace.
-3. **OpenAPI Import**: Right-click the Workgroup and select `Import Swagger` to load existing specs.
-4. **Run Request**: Click a request and hit `Send` to verify behavior.
-5. **Create Workflow**: Click `+ Workflow` to chain multiple requests and build automation logic.
+1. **Launch ApiLens**: Run the application.
+2. **Create Workgroup**: Click `+` in the sidebar to create a new group.
+3. **OpenAPI Import**: Right-click group -> `Import Swagger` to load specs.
+4. **Run Request**: Select a request and click `Send`.
+5. **Create Workflow**: Click `+ Workflow` to chain and execute multiple requests.
 
 ## Documentation
-For more details, please refer to the full guides below:
-- [User Guide (English)](docs/GUIDE.en.md)
-- [User Guide (Korean)](docs/GUIDE.ko.md)
+For more details, please refer to the official guide.
+- **User Guide**: [docs/GUIDE.en.md](docs/GUIDE.en.md)

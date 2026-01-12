@@ -64,6 +64,7 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
               children: [
                 Expanded(
                   child: TextField(
+                    key: const Key('input_ws_url'),
                     controller: _urlController,
                     decoration: const InputDecoration(
                       labelText: 'WebSocket URL',
@@ -76,6 +77,7 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
                 const SizedBox(width: 8),
                 if (session.status != WebSocketConnectionStatus.connected && session.status != WebSocketConnectionStatus.connecting)
                   FilledButton.icon(
+                    key: const Key('btn_ws_connect'),
                     onPressed: () => _handleConnect(),
                     icon: const Icon(Icons.link),
                     label: const Text('Connect'),

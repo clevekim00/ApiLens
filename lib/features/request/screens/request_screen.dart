@@ -54,6 +54,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         child: DefaultTabController(
           length: 3, // HTTP, WebSocket, GraphQL
           child: Scaffold(
+            key: const Key('screen_request_builder'),
             drawer: Drawer(
               width: 300,
               child: HistoryPanel(
@@ -69,12 +70,13 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
               bottom: const TabBar(
                 tabs: [
                   Tab(text: 'HTTP / REST'),
-                  Tab(text: 'WebSocket'),
+                  Tab(key: Key('tab_websocket'), text: 'WebSocket'),
                   Tab(text: 'GraphQL'),
                 ],
               ),
               actions: [
                  IconButton(
+                  key: const Key('menu_workflow'),
                   icon: const Icon(Icons.account_tree_outlined),
                   tooltip: 'Workflow Editor',
                   onPressed: () {
@@ -95,6 +97,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                    ),
                  ),
                  PopupMenuButton<String>(
+                   key: const Key('btn_more_actions'),
                    onSelected: (val) {
                      if (val == 'workflow') Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkflowEditorScreen()));
                      if (val == 'import') _showImportDialog(context, ref);
@@ -105,7 +108,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                      const PopupMenuItem(value: 'workflow', child: Text('Workflow Editor')), 
                      const PopupMenuItem(value: 'import', child: Text('Import cURL')),
                      const PopupMenuItem(value: 'export', child: Text('Copy as cURL')),
-                     const PopupMenuItem(value: 'settings', child: Text('Settings')),
+                     const PopupMenuItem(value: 'settings', key: Key('menu_settings'), child: Text('Settings')),
                    ],
                  ),
                  const SizedBox(width: 8),
@@ -128,11 +131,11 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                               padding: const EdgeInsets.all(8.0),
                                 child: Row(
                                   children: [
-                                    const MethodSelector(),
+                                    const MethodSelector(key: Key('selector_method')),
                                     const SizedBox(width: 16),
                                     const WorkgroupSelector(), 
                                     const SizedBox(width: 16),
-                                    Expanded(child: UrlInput()),
+                                    Expanded(child: UrlInput(key: Key('input_url_bar'))),
                                   ],
                                 ),
                             ),
@@ -213,10 +216,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                 ),
 
                 // Tab 2: WebSocket
-                const WebSocketClientPanel(),
+                const WebSocketClientPanel(key: Key('screen_websocket_client')),
 
                 // Tab 3: GraphQL
-                const GraphQLClientTab(),
+                const GraphQLClientTab(key: Key('screen_graphql_client')),
               ],
             ),
           ),
