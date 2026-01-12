@@ -7,12 +7,12 @@ part of 'environment_provider.dart';
 // **************************************************************************
 
 String _$environmentRepositoryHash() =>
-    r'1da1659f3e553539f57c08e3765bc9b8e4ce5e79';
+    r'e0417dd5068db1775c135fea9df387e052825a04';
 
 /// See also [environmentRepository].
 @ProviderFor(environmentRepository)
 final environmentRepositoryProvider =
-    AutoDisposeProvider<EnvironmentRepository>.internal(
+    AutoDisposeFutureProvider<EnvironmentRepository>.internal(
   environmentRepository,
   name: r'environmentRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -23,7 +23,7 @@ final environmentRepositoryProvider =
 );
 
 typedef EnvironmentRepositoryRef
-    = AutoDisposeProviderRef<EnvironmentRepository>;
+    = AutoDisposeFutureProviderRef<EnvironmentRepository>;
 String _$activeEnvironmentIdHash() =>
     r'3f3e6ec9435f3297052e8ebc1f20f9e2a5e3382c';
 
@@ -41,7 +41,7 @@ final activeEnvironmentIdProvider =
 );
 
 typedef _$ActiveEnvironmentId = AutoDisposeNotifier<Id?>;
-String _$environmentListHash() => r'b5c467ae3fdf58f6a2382f214a59593e24e01188';
+String _$environmentListHash() => r'3b3f1dac1c3d312f439ad8e8bc86f747b0c2f145';
 
 /// See also [EnvironmentList].
 @ProviderFor(EnvironmentList)

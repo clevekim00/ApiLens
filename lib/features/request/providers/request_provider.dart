@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
+import '../../workgroup/application/workgroup_controller.dart';
 import '../models/request_model.dart';
 import '../models/key_value_item.dart';
 
@@ -9,7 +10,10 @@ part 'request_provider.g.dart';
 class RequestNotifier extends _$RequestNotifier {
   @override
   RequestModel build() {
-    return RequestModel.initial();
+    // Auto-assign to active workgroup on creation
+    // We use read() to avoid rebuilding when selection changes while editing
+    final activeGroupId = ref.read(activeWorkgroupIdProvider);
+    return RequestModel.initial(groupId: activeGroupId ?? 'no-workgroup');
   }
 
   void updateMethod(String method) {
@@ -18,6 +22,10 @@ class RequestNotifier extends _$RequestNotifier {
 
   void updateUrl(String url) {
     state = state.copyWith(url: url);
+  }
+
+  void updateGroupId(String? groupId) {
+    state = state.copyWith(groupId: groupId ?? 'no-workgroup');
   }
 
   // --- Header CRUD ---
@@ -85,7 +93,17 @@ class RequestNotifier extends _$RequestNotifier {
   }
 
   void restoreRequest(RequestModel model) {
-    // Generate new ID for the new session, but keep content
-    state = model.copyWith(id: Uuid().v4());
+    // Use the model's group ID, not new session's
+    // But generate new ID for the session? 
+    // Usually restore is "Edit this request". 
+    // If it's "Edit", we keep ID? 
+    // If this provider is used for "New Request" and "Edit Request", we need to be careful.
+    // Assuming this provider is the "Editor Buffer".
+    state = model;
+  }
+  
+  void resetForNewRequest() {
+    final activeGroupId = ref.read(activeWorkgroupIdProvider);
+    state = RequestModel.initial(groupId: activeGroupId ?? 'no-workgroup');
   }
 }

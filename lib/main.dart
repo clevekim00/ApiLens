@@ -7,7 +7,10 @@ import 'core/widgets/splash_screen.dart';
 import 'core/settings/settings_repository.dart';
 
 
-import 'features/websocket/data/websocket_config_repository.dart'; // import
+import 'features/websocket/data/websocket_config_repository.dart';
+import 'features/workgroup/data/workgroup_repository.dart';
+import 'features/request/data/request_repository.dart';
+import 'core/data/migration_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +20,13 @@ void main() async {
   // Initialize Settings
   final settingsRepo = SettingsRepository();
   await settingsRepo.init();
+
+  // Initialize Data Layer (Hive Boxes)
+  await WorkgroupRepository().init();
+  await RequestRepository().init();
+
+  // Run Migrations (Seed & Fix Data)
+  await MigrationService().run();
 
   // Seed Defaults
   await WebSocketConfigRepository().ensureSeeded();
