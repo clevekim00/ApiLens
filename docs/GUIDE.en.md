@@ -1,174 +1,186 @@
 # ApiLens User Guide
 
 ## 1. Overview
-**ApiLens** is a powerful all-in-one tool designed to help developers design, test, and automate APIs. It supports REST, WebSocket, and GraphQL within a unified interface and goes beyond simple request testing by enabling complex scenario automation via a node-based workflow editor.
+### What is ApiLens?
+**ApiLens** is a powerful desktop and web-based tool that allows you to test REST APIs, WebSockets, and GraphQL in a single interface, and connect them into a **Workflow** to automate complex scenarios.
 
-### Key Features
-- **Multi-Protocol Support**: Manage REST APIs, WebSockets, and GraphQL in one place.
-- **Workflow Automation**: Connect API requests via an n8n-style visual editor to orchestrate data flow.
-- **Workgroup System**: Organize resources by project or team with isolated environments.
-- **OpenAPI Import**: Import Swagger/OpenAPI specifications and instantly convert them into runnable requests.
+### Problems Solved
+- **Fragmented Tools**: Solves the issue of managing REST (Postman), WebSocket (wscat), and automation scripts (Python) separately.
+- **Collaboration Difficulties**: Easily share API specs and test scenarios via a single file (`.json`).
+- **Complex Testing**: Configure sequential scenarios like "Receive token after login -> Connect WebSocket" without writing code.
 
 ### Target Audience
-- Backend engineers developing and testing APIs.
-- Frontend developers verifying API behavior before integration.
-- QA engineers validating complex API scenarios (e.g., Auth -> Fetch Data -> Process).
+- **Backend/Frontend Developers** developing and testing APIs.
+- **QA Engineers** requiring API scenario verification.
+- **System Architects** dealing with multiple protocols (HTTP, WS, GQL).
 
 ---
 
-## 2. Installation & Run
-
+## 2. Installation & Execution
 ### Desktop (macOS / Windows)
-1. Download the installer (.dmg or .exe) for your OS from the Releases page.
-2. Install and launch the application.
-3. It operates offline using a local database.
+1. Download the installer (`.dmg`, `.exe`) for your OS from the Releases page.
+2. Run the application after installation.
+3. The local DB (Hive/Isar) initializes immediately without extra configuration.
 
 ### Web
-1. Access the deployed web URL.
-2. Uses IndexedDB for data storage.
-   - *Note*: Clearing browser cache may delete your data. Use the `Export` feature to back up your work.
+1. Visit the hosted URL (e.g., `apilens.app`).
+2. Data is stored using the browser's local storage (IndexedDB).
+   > **Note**: Clearing browser cache may result in data loss, so export important data frequently.
 
-### Connecting to Test Backends
-ApiLens connects to both local (localhost) and remote servers.
-- **Desktop**: Can access local addresses (e.g., `http://localhost:8080`) directly.
-- **Web**: Accessing local servers may require proxy settings or CORS configuration due to browser security policies.
+### Connecting to Test Backend
+You can run a backend server locally for ApiLens development and testing.
+```bash
+# Run backend server (Node/Python depending on project)
+npm run start:server
+```
+Typically uses `http://localhost:3000` or `ws://localhost:8080`.
 
 ---
 
 ## 3. Core Concepts
-
 ### Request
-The smallest executable unit in ApiLens.
-- **REST**: Standard HTTP requests like GET, POST, PUT, DELETE.
-- **WebSocket**: Persistent sessions for real-time message exchange.
-- **GraphQL**: Execution of Queries, Mutations, and Subscriptions.
+The basic unit of API calls.
+- **REST**: Supports HTTP methods like GET, POST, PUT, DELETE. Configurable Params, Headers, Body.
+- **WebSocket**: Connect, Send Message, Wait for Message.
+- **GraphQL**: Execute Query/Mutation and generic Variables support.
 
 ### Workflow
-An automation script linking multiple requests in a logical sequence. Built using a drag-and-drop visual node editor.
+A flowchart connecting multiple Requests as Nodes.
+- **Start Node**: execution entry point.
+- **Request Node**: Performs REST/GQL requests.
+- **WebSocket Node**: Handles connection and message I/O.
+- **Delay/Script Node**: Waits or performs simple value transformations.
 
 ### Workgroup
-Similar to a filesystem 'folder' but offers stronger isolation. Each Workgroup maintains its own Environment variables and resources.
+A project-level folder concept. Isolates Requests and Workflows just like folders in a local file system.
 
 ### Environment
-Manages dynamic values like `{{baseUrl}}` or `{{token}}`. Variables are scoped per Workgroup.
+Manages global variables like `{{env.baseUrl}}` to easily switch between Development/Production environments. (Currently under development)
 
 ---
 
 ## 4. Using Workgroups
+### Create/Select Workgroup
+- **Create**: Click the `+` button at the top of the sidebar and enter a new group name.
+- **Select**: Click a group in the sidebar to activate it; subsequent Requests will belong to this group.
 
-### Creation & Selection
-1. **Create**: Click the `+` button at the top of the sidebar to create a new Workgroup.
-2. **Select**: Click a folder in the sidebar to activate that group.
-3. **No Workgroup**: The default system group. Items not assigned to any specific group reside here.
+### no-workgroup (System Group)
+- Items created without selecting a group are saved in `System Default` or `No Workgroup`.
+- Accessible at the top of the sidebar.
 
-### Resource Management
-- **Move**: Drag and drop Requests or Workflows between Workgroup folders.
-- **Structure**: Create sub-folders within Workgroups for hierarchical organization.
+### Management & Move
+- **Move**: Drag and drop Requests to move them to another Workgroup.
+- **Delete**: Right-click a group to delete it. (Option to keep internal data is available).
 
-### Sharing (Export / Import)
-Use this to share API specifications with teammates.
-1. **Export**: Right-click a Workgroup -> Select `Export JSON`. Saves as a `.json` file.
-2. **Import**: Click the `Import` button in the sidebar header -> Select a `.json` file. Restores as a new Workgroup.
+### Export / Import (Team Sharing)
+1. **Export**: Right-click a Workgroup and select `Export` to save as a `.json` file.
+2. **Import**: Load `.json` files via the `Import` button (or menu) at the top of the sidebar.
+   > **ID Conflict Prevention**: Automatically issues new IDs if imported data conflicts with existing IDs.
 
 ---
 
 ## 5. REST Request Builder
+### Create New Request
+1. Select `HTTP / REST` from the top tabs.
+2. Choos Method (GET, POST, etc.) and enter URL.
 
-### Creating a Request
-1. Click `+ Request` and select the `REST` tab.
-2. **Method**: Choose HTTP method (GET, POST, etc.).
-3. **URL**: Enter the endpoint URL (e.g., `{{baseUrl}}/users`).
+### Detailed Settings
+- **Params**: Enter Query Parameters as Key-Value pairs.
+- **Headers**: Set headers like `Content-Type`, `Authorization`.
+- **Body**: Select JSON, Text, Form Data, etc. JSON supports syntax highlighting.
+- **Auth**: Easy configuration for Basic, Bearer Token, etc.
 
-### Components
-- **Params**: Enter Query Parameters as key-value pairs.
-- **Headers**: Set headers like Authorization tokens or Content-Type.
-- **Body**: Compose the request body in JSON, Form Data, or Text format.
+### Execution & Results
+- Click `Send` to view response results (Status, Time, Size, Body) in the right (or bottom) panel.
+- JSON responses are formatted in a Tree View for readability.
 
-### Execution
-- Click `Send` to execute.
-- View Status Code, Response Body, and Headers in the bottom panel.
+### Relation to Workgroup
+Saving a request (`Ctrl+S` / `Cmd+S`) saves it to the currently active Workgroup.
 
 ---
 
 ## 6. WebSocket
+### Using WebSocket Client
+1. Select `WebSocket` from the top tabs.
+2. Enter URL (e.g., `wss://echo.websocket.org`) and click `Connect`.
+3. Green status indicator appears upon success.
+4. Enter message and click `Send`.
+5. Send/Receive logs are displayed in real-time.
 
-### Connect & Send
-1. Select the `WebSocket` tab when creating a request.
-2. Enter the URL (ws:// or wss://) and click `Connect`.
-3. **Message**: Type text or JSON and click `Send`.
-4. **Log**: View the timeline of sent and received messages.
-
-### Workflow Integration
-- **ws_connect**: Establishes a socket connection at the start of a flow.
-- **ws_send**: Sends a message when conditions are met.
-- **ws_wait**: Waits for a specific incoming message or verifies a response.
+### Use in Workflow
+WebSockets are powerful in Workflows as state is maintained.
+- **ws_connect Node**: Establishes connection and returns Session ID.
+- **ws_send Node**: Sends message to a specific session.
+- **ws_wait Node**: Waits until a specific message or pattern is received (for test verification).
 
 ---
 
 ## 7. GraphQL
+### Using GraphQL Client
+1. Select `GraphQL` from the top tabs.
+2. Enter Endpoint URL.
+3. Write Query/Mutation in the left editor.
+4. Enter JSON variables in the bottom Variables tab if needed.
+5. Click `Execute`.
 
-### Usage
-1. Select the `GraphQL` tab when creating a request.
-2. **Query**: Write your GraphQL query in the editor.
-3. **Variables**: Input variables in JSON format.
-4. Click `Run` to execute and view results.
-
-### Workflow Node (gql_request)
-- Supports scenarios like feeding a value from a REST API (e.g., User ID) into a GraphQL variable for subsequent execution.
+### REST → GraphQL Integration
+In a Workflow, obtain an auth token via REST API, then inject it into GraphQL Headers (`Authorization: Bearer {{token}}`).
 
 ---
 
 ## 8. Workflow Editor
+### Add/Connect Nodes
+1. Enter editor via top menu or `+ Workflow` button.
+2. Drag nodes from the left palette to the canvas.
+3. Drag node handles (dots) to connect to other nodes (create Edge).
 
-The core automation feature of ApiLens.
+### Execution
+- Click the `Run` button at the top right.
+- Running nodes blink, completing green for success or red for failure.
+- Check execution results per step in the bottom Log Panel.
 
-### Steps
-1. Click `+ Workflow` to open an empty canvas.
-2. **Add Nodes**: Drag Request nodes or Logic nodes (If, Loop, Delay) from the palette.
-3. **Connect**: Link the output port of one node to the input of another.
-4. **Data Mapping**: Use results from previous nodes (e.g., `{{node1.data.id}}`) as inputs for subsequent nodes.
-
-### Example: Signup & Profile Fetch
-1. **HTTP Request 1**: `POST /signup` (User Registration).
-2. **Set Variable**: Extract `token` from the response.
-3. **HTTP Request 2**: `GET /profile` (Set header `Authorization: Bearer {{token}}`).
-4. **Debug**: Output the final result.
+### Debugging Tips
+- **Inspector**: Click a node to view detailed Input/Output data in the right panel.
+- **Partial Run**: Disconnect or select specific nodes to run partial tests.
 
 ---
 
 ## 9. OpenAPI Import
-
-Quickly generate requests from existing Swagger/OpenAPI specifications.
-
-### How to Run
-1. Right-click a Workgroup -> Select `Import Swagger`.
-2. **Load**: Enter the `OpenAPI Spec URL` or upload a JSON/YAML file.
+### How to Import
+1. Right-click Workgroup -> Select `Import Swagger`.
+2. **Load URL**: Enter `swagger.json` URL and Load.
+3. **Load File**: Select a local file.
 
 ### Filtering & Selection
-Once loaded, a 3-pane layout appears:
-- **Left (Tags)**: List of API tags. Check/uncheck to filter.
-- **Center (Endpoints)**: Filtered list of APIs. Search by Path or Summary.
-- **Select**: Pick specific endpoints or use `Select All Filtered`.
+- **Tag Filter**: Check only desired tags (e.g., `User`, `Order`) on the left.
+- **Search**: Search by API Path or Summary in the top bar.
+- **Selection**: Select validation APIs via checkboxes in the list.
 
 ### Import Options
-- **Base URL**: Choose between using Environment Variable (`{{env.baseUrl}}`) or the fixed URL from the spec.
-- **Body Sample**: Decide whether to generate body examples based on Schema or use provided Examples.
-- **Auth**: Choose to auto-detect authentication types or ignore security settings.
+- **Base URL**: Choose to use Server URL from spec or substitute with environment variable (`{{env.baseUrl}}`).
+- **Auto-Generate Body**: Whether to automatically generate Request Body examples.
+- **Auth**: Whether to automatically include security schemes (API Key, etc.) in headers.
 
 ---
 
 ## 10. Theme & Settings
-- **Theme**: Toggle between Dark and Light modes via the top-right settings menu.
+### Dark / Light Switch
+- Top right menu -> Enter `Settings`.
+- Select Light / Dark / System in `Theme Mode`.
+
+### Other Settings
+- **Timeout**: Set request timeout duration (Default 30s).
+- **Logging**: Enable/Disable debug logs.
 
 ---
 
 ## 11. Troubleshooting
+### FAQ
+**Q. CORS Error occurs during REST request.**
+A. The Web version has CORS restrictions due to browser security policies. Use the Desktop app or allow CORS on the server.
 
-**Q. I get CORS errors on the Web version.**
-A. Browsers block cross-origin requests by default. The server needs to allow the origin (`Access-Control-Allow-Origin: *`), or you should use the Desktop version of ApiLens.
+**Q. Import Failed ("Invalid Format")**
+A. Ensure compliance with OpenAPI 3.0/3.1 specs. If YAML, try converting to JSON.
 
-**Q. WebSocket keeps disconnecting.**
-A. Check if your network firewall blocks WebSocket traffic. Also, verify the server's idle timeout settings.
-
-**Q. Some APIs are missing after Import.**
-A. We recommend OpenAPI 3.0+ (versions prior to 3.1). Check the parse logs for any error messages regarding specific definitions.
+**Q. Workgroup disappeared.**
+A. Clearing browser cache resets data (Web). Periodically Export important data for backup.
