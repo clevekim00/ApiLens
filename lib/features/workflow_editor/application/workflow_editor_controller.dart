@@ -6,6 +6,7 @@ import '../domain/models/workflow_edge.dart';
 class WorkflowEditorState {
   final String id;
   final String name;
+  final String? groupId; // Link to parent folder
   final List<WorkflowNode> nodes;
   final List<WorkflowEdge> edges;
   final String? selectedNodeId;
@@ -18,6 +19,7 @@ class WorkflowEditorState {
   const WorkflowEditorState({
     required this.id,
     this.name = 'Untitled Workflow',
+    this.groupId,
     this.nodes = const [],
     this.edges = const [],
     this.selectedNodeId,
@@ -31,6 +33,7 @@ class WorkflowEditorState {
   WorkflowEditorState copyWith({
     String? id,
     String? name,
+    String? groupId,
     List<WorkflowNode>? nodes,
     List<WorkflowEdge>? edges,
     String? selectedNodeId,
@@ -43,6 +46,7 @@ class WorkflowEditorState {
     return WorkflowEditorState(
       id: id ?? this.id,
       name: name ?? this.name,
+      groupId: groupId ?? this.groupId,
       nodes: nodes ?? this.nodes,
       edges: edges ?? this.edges,
       selectedNodeId: selectedNodeId ?? this.selectedNodeId,
@@ -63,8 +67,26 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     ],
   ));
   
-  void loadWorkflow(String id, String name, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
-    state = WorkflowEditorState(id: id, name: name, nodes: nodes, edges: edges, isDirty: false, lastSavedAt: DateTime.now());
+  void initNewWithGroup(String? groupId) {
+     state = WorkflowEditorState(
+      id: const Uuid().v4(),
+      name: 'Untitled Workflow',
+      groupId: groupId ?? 'no-workgroup',
+      nodes: [WorkflowNode(id: 'start', type: 'start', x: 100, y: 100)],
+      isDirty: false,
+    );
+  }
+
+  void loadWorkflow(String id, String name, List<WorkflowNode> nodes, List<WorkflowEdge> edges, {String? groupId}) {
+    state = WorkflowEditorState(
+        id: id, 
+        name: name, 
+        groupId: groupId,
+        nodes: nodes, 
+        edges: edges, 
+        isDirty: false, 
+        lastSavedAt: DateTime.now()
+    );
   }
   
   void clearWorkflow() {
@@ -140,6 +162,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
+      groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: id,
@@ -156,6 +179,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
+      groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: null, // Clear node selection
@@ -181,6 +205,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
+      groupId: state.groupId,
       nodes: newNodes,
       edges: newEdges,
       selectedNodeId: state.selectedNodeId == id ? null : state.selectedNodeId,
@@ -206,6 +231,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
+      groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: state.selectedNodeId,
@@ -234,6 +260,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
+      groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
       selectedNodeId: state.selectedNodeId,

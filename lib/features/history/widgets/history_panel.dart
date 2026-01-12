@@ -8,6 +8,7 @@ import '../../history/models/history_item.dart';
 import '../../request/providers/request_provider.dart';
 import '../../request/models/key_value_item.dart';
 import '../../request/models/request_model.dart'; // for AuthType enum mapping
+import '../../workgroup/presentation/widgets/workgroup_explorer.dart';
 
 class HistoryPanel extends ConsumerStatefulWidget {
   final VoidCallback onClose;
@@ -24,101 +25,129 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(historyNotifierProvider);
 
-    return Container(
-      width: 300,
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: Colors.grey.shade300)),
-        color: Theme.of(context).cardColor,
-      ),
-      child: Column(
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Text('History', style: Theme.of(context).textTheme.titleMedium),
-                const Spacer(),
-                IconButton(icon: const Icon(Icons.close), onPressed: widget.onClose),
+    return DefaultTabController(
+      length: 2,
+      child: Container(
+        width: 300,
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: Colors.grey.shade300)),
+          color: Theme.of(context).cardColor,
+        ),
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Text('Sidebar', style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  IconButton(icon: const Icon(Icons.close), onPressed: widget.onClose),
+                ],
+              ),
+            ),
+            
+            // Tabs
+            const TabBar(
+              labelColor: Colors.blue,
+              unselectedLabelColor: Colors.grey,
+              indicatorSize: TabBarIndicatorSize.label,
+              tabs: [
+                Tab(text: 'Explorer', icon: Icon(Icons.folder_open, size: 20)),
+                Tab(text: 'History', icon: Icon(Icons.history, size: 20)),
               ],
             ),
-          ),
-          
-          // Search
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Search URL/Method',
-                prefixIcon: Icon(Icons.search),
-                isDense: true,
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (val) {
-                ref.read(historyNotifierProvider.notifier).search(val);
-              },
-            ),
-          ),
-          
-          const Divider(),
+            
+            Expanded(
+              child: TabBarView(
+                children: [
+                   // Tab 1: Explorer
+                   const WorkgroupExplorer(),
 
-          // List
-          Expanded(
-            child: historyAsync.when(
-              data: (items) {
-                if (items.isEmpty) {
-                  return const Center(child: Text('No history items'));
-                }
-                return ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return ListTile(
-                      dense: true,
-                      title: Text(
-                        item.url.isEmpty ? 'No URL' : item.url,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            item.method,
-                            style: TextStyle(
-                              color: _getMethodColor(item.method),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                   // Tab 2: History (Existing Code wrapper)
+                   Column(
+                     children: [
+                        // Search
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              hintText: 'Search URL/Method',
+                              prefixIcon: Icon(Icons.search),
+                              isDense: true,
+                              border: OutlineInputBorder(),
                             ),
+                            onChanged: (val) {
+                              ref.read(historyNotifierProvider.notifier).search(val);
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Text('${item.statusCode}', style: TextStyle(
-                             color: item.statusCode >= 200 && item.statusCode < 300 ? Colors.green : Colors.red,
-                          )),
-                          const Spacer(),
-                          Text(
-                            DateFormat('MM/dd HH:mm').format(item.createdAt),
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                        
+                        const Divider(),
+
+                        // List
+                        Expanded(
+                          child: historyAsync.when(
+                            data: (items) {
+                              if (items.isEmpty) {
+                                return const Center(child: Text('No history items'));
+                              }
+                              return ListView.builder(
+                                itemCount: items.length,
+                                itemBuilder: (context, index) {
+                                  final item = items[index];
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(
+                                      item.url.isEmpty ? 'No URL' : item.url,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.w500),
+                                    ),
+                                    subtitle: Row(
+                                      children: [
+                                        Text(
+                                          item.method,
+                                          style: TextStyle(
+                                            color: _getMethodColor(item.method),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text('${item.statusCode}', style: TextStyle(
+                                           color: item.statusCode >= 200 && item.statusCode < 300 ? Colors.green : Colors.red,
+                                        )),
+                                        const Spacer(),
+                                        Text(
+                                          DateFormat('MM/dd HH:mm').format(item.createdAt),
+                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete_outline, size: 18),
+                                      onPressed: () {
+                                         ref.read(historyNotifierProvider.notifier).deleteHistory(item.id);
+                                      },
+                                    ),
+                                    onTap: () => _restoreHistory(item),
+                                  );
+                                },
+                              );
+                            },
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (err, _) => Center(child: Text('Error: $err')),
                           ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        onPressed: () {
-                           ref.read(historyNotifierProvider.notifier).deleteHistory(item.id);
-                        },
-                      ),
-                      onTap: () => _restoreHistory(item),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Center(child: Text('Error: $err')),
+                        ),
+                     ],
+                   ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

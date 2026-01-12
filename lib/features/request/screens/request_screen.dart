@@ -23,6 +23,7 @@ import '../../../../core/ui/components/app_tabs.dart';
 import '../../../../features/websocket/presentation/widgets/websocket_client_panel.dart';
 import '../../../../features/graphql/presentation/screens/graphql_client_tab.dart';
 import '../../workflow_editor/presentation/workflow_editor_screen.dart';
+import '../../workgroup/presentation/widgets/workgroup_selector.dart';
 
 class RequestScreen extends ConsumerStatefulWidget {
   const RequestScreen({super.key});
@@ -125,13 +126,15 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                             margin: const EdgeInsets.all(8),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  const MethodSelector(),
-                                  const SizedBox(width: 16),
-                                  Expanded(child: UrlInput()),
-                                ],
-                              ),
+                                child: Row(
+                                  children: [
+                                    const MethodSelector(),
+                                    const SizedBox(width: 16),
+                                    const WorkgroupSelector(), 
+                                    const SizedBox(width: 16),
+                                    Expanded(child: UrlInput()),
+                                  ],
+                                ),
                             ),
                           ),
                           

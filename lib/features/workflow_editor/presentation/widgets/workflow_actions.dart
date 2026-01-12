@@ -7,6 +7,12 @@ import '../../domain/models/workflow.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../data/workflow_repository.dart';
 import '../../../execution/application/workflow_runner_controller.dart';
+import '../../application/saved_workflow_controller.dart';
+import '../../../workgroup/application/workgroup_controller.dart';
+import '../../../workgroup/domain/models/workgroup_model.dart'; // optional if needed
+import '../../../../features/request/providers/request_provider.dart'; // for activeWorkgroupIdProvider if it's there? No it's in workgroup_controller.
+// Check where activeWorkgroupIdProvider is: workgroup_controller.dart
+
 
 class WorkflowActions {
   static Future<void> handleNew(BuildContext context, WidgetRef ref) async {
@@ -15,7 +21,8 @@ class WorkflowActions {
       final discard = await _showDiscardConfirm(context);
       if (!discard) return;
     }
-    ref.read(workflowEditorProvider.notifier).clearWorkflow();
+    final activeGroupId = ref.read(activeWorkgroupIdProvider);
+    ref.read(workflowEditorProvider.notifier).initNewWithGroup(activeGroupId);
   }
 
   static Future<void> handleSave(BuildContext context, WidgetRef ref, {required bool saveAs}) async {
@@ -34,8 +41,10 @@ class WorkflowActions {
         name: newName,
         nodes: state.nodes,
         edges: state.edges,
+        groupId: state.groupId, // Persist Group
       );
       await ref.read(workflowRepositoryProvider).save(workflow);
+      ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
       
       // Switch context to new file
       ref.read(workflowEditorProvider.notifier).saveAs(newId, newName);
@@ -50,8 +59,11 @@ class WorkflowActions {
         name: name,
         nodes: state.nodes,
         edges: state.edges,
+        groupId: state.groupId, // Persist Group
       );
       await ref.read(workflowRepositoryProvider).save(workflow);
+      ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
+
       ref.read(workflowEditorProvider.notifier).markSaved();
       
       if (context.mounted) {
@@ -66,19 +78,29 @@ class WorkflowActions {
       if (!discard) return;
     }
 
+    // Use SavedWorkflowController for cached list or fetch fresh
     final repo = ref.read(workflowRepositoryProvider);
-    final workflows = await repo.getAll();
+    final allWorkflows = await repo.getAll();
+    
+    // Filter by Active Group
+    final activeGroupId = ref.read(activeWorkgroupIdProvider);
+    final workflows = activeGroupId != null 
+        ? allWorkflows.where((w) => w.groupId == activeGroupId).toList()
+        : allWorkflows; // If no active group (e.g. initial), show all or just root?
+        // Logic: if activeGroupId is null, we might be in "No Workgroup" implicit context?
+        // But activeWorkgroupIdProvider usually returns 'no-workgroup' or ID. Null means no selection?
+        // Let's assume strict filtering if ID present.
 
     if (!context.mounted) return;
 
     final selected = await showDialog<Workflow>(
       context: context,
       builder: (_) => SimpleDialog(
-        title: const Text('Open Workflow'),
+        title: Text('Open Workflow ${activeGroupId != null ? "(Current Group)" : ""}'),
         children: [
           if (workflows.isEmpty) const Padding(
              padding: EdgeInsets.all(16), 
-             child: Text('No saved workflows found.'),
+             child: Text('No saved workflows in this group.'),
           ),
           SizedBox(
             width: 400,
@@ -103,7 +125,7 @@ class WorkflowActions {
 
     if (selected != null) {
       ref.read(workflowEditorProvider.notifier).loadWorkflow(
-        selected.id, selected.name, selected.nodes, selected.edges
+        selected.id, selected.name, selected.nodes, selected.edges, groupId: selected.groupId
       );
     }
   }

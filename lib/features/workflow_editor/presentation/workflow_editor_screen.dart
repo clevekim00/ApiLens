@@ -13,11 +13,43 @@ import 'widgets/workflow_canvas.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../../../core/ui/components/app_card.dart';
 
-class WorkflowEditorScreen extends ConsumerWidget {
-  const WorkflowEditorScreen({super.key});
+import '../../workgroup/application/workgroup_controller.dart';
+import '../../workflow_editor/data/workflow_repository.dart';
+
+class WorkflowEditorScreen extends ConsumerStatefulWidget {
+  final String? workflowIdToLoad;
+  const WorkflowEditorScreen({super.key, this.workflowIdToLoad});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WorkflowEditorScreen> createState() => _WorkflowEditorScreenState();
+}
+
+class _WorkflowEditorScreenState extends ConsumerState<WorkflowEditorScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initWorkflow());
+  }
+
+  Future<void> _initWorkflow() async {
+    final controller = ref.read(workflowEditorProvider.notifier);
+    if (widget.workflowIdToLoad != null) {
+       final repo = ref.read(workflowRepositoryProvider);
+       // We need a way to get a single workflow. Repository getAll returns list.
+       // Let's optimize later, for now filter from all.
+       final all = await repo.getAll();
+       final wf = all.where((w) => w.id == widget.workflowIdToLoad).firstOrNull;
+       if (wf != null) {
+         controller.loadWorkflow(wf.id, wf.name, wf.nodes, wf.edges, groupId: wf.groupId);
+       }
+    } else {
+       final activeGroupId = ref.read(activeWorkgroupIdProvider);
+       controller.initNewWithGroup(activeGroupId);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Determine canvas background based on theme brightness
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final canvasColor = isDark ? AppColorsDark.muted : AppColorsLight.muted;
