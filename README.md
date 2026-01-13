@@ -1,5 +1,13 @@
 # ApiLens
 
+<div align="center">
+  <img src="assets/apilens_icon.svg" alt="ApiLens Icon" width="128" />
+  <br/>
+  <img src="docs/assets/intro.png" alt="ApiLens Intro" width="100%" />
+</div>
+
+<br/>
+
 ApiLens는 REST, WebSocket, GraphQL을 하나의 워크플로우로 연결할 수 있는 데스크톱/웹 기반 API 도구입니다.
 
 ## 주요 기능
@@ -10,6 +18,26 @@ ApiLens는 REST, WebSocket, GraphQL을 하나의 워크플로우로 연결할 �
 - **Team Collaboration**: Workgroup 파일 Export/Import로 팀 공유
 - **Platform**: Desktop (macOS, Windows) 및 Web 지원
 - **Theme**: Light / Dark 테마 지원
+
+## Getting Started
+Send your first request in 5 minutes.
+
+- 📘 Guide: [docs/getting-started/first-request.ko.md](docs/getting-started/first-request.ko.md)
+- 📘 Guide (EN): [docs/getting-started/first-request.en.md](docs/getting-started/first-request.en.md)
+
+## Contributing
+We welcome contributions from the community.
+
+- 📘 Contributor Guide (KR): [docs/CONTRIBUTING.ko.md](docs/CONTRIBUTING.ko.md)
+- 📘 Contributor Guide (EN): [docs/CONTRIBUTING.en.md](docs/CONTRIBUTING.en.md)
+
+Quick start:
+```bash
+git clone https://github.com/apilens/apilens.git
+cd apilens
+flutter pub get
+flutter run
+```
 
 ## Quick Start
 1. **ApiLens 실행**: 애플리케이션을 실행합니다.

@@ -1,5 +1,11 @@
 # ApiLens 사용자 가이드
 
+<div align="center">
+  <img src="../assets/apilens_icon.svg" alt="ApiLens Icon" width="128" />
+  <br/>
+  <img src="assets/intro.png" alt="ApiLens Intro" width="100%" />
+</div>
+
 ## 1. 개요
 ### ApiLens란 무엇인가?
 **ApiLens**는 REST API, WebSocket, GraphQL을 단일 인터페이스에서 테스트하고, 이를 **Workflow**로 연결하여 복잡한 시나리오를 자동화할 수 있는 강력한 데스크톱 및 웹 기반 도구입니다.
@@ -17,6 +23,8 @@
 ---
 
 ## 2. 설치 및 실행
+![Home Screen](assets/screenshots/01_home.png)
+
 ### Desktop (macOS / Windows)
 1. 릴리즈 페이지에서 OS에 맞는 설치 파일(`.dmg`, `.exe`)을 다운로드합니다.
 2. 설치 후 애플리케이션을 실행합니다.
@@ -60,6 +68,8 @@ API 호출의 기본 단위입니다.
 ---
 
 ## 4. Workgroup 사용법
+![Workgroups Sidebar](assets/screenshots/02_workgroups.png)
+
 ### Workgroup 생성/선택
 - **생성**: 사이드바 상단의 `+` 버튼을 클릭하여 새 그룹 이름을 입력합니다.
 - **선택**: 사이드바에서 그룹을 클릭하면 활성화되며, 이후 생성되는 Request는 해당 그룹에 속하게 됩니다.
@@ -73,6 +83,8 @@ API 호출의 기본 단위입니다.
 - **삭제**: 그룹을 우클릭하여 삭제할 수 있습니다. (내부 데이터 보존 여부 선택 가능)
 
 ### Export / Import (팀 공유)
+![Export Import Menu](assets/screenshots/09_export_import.png)
+
 1. **Export**: Workgroup을 우클릭하고 `Export`를 선택하면 `.json` 파일로 저장됩니다.
 2. **Import**: 사이드바 상단 `Import` 버튼(또는 메뉴)을 통해 `.json` 파일을 불러옵니다.
    > **ID 충돌 방지**: Import 시 기존 데이터와 ID가 겹치면 자동으로 새 ID를 발급하여 충돌을 방지합니다.
@@ -80,6 +92,8 @@ API 호출의 기본 단위입니다.
 ---
 
 ## 5. REST Request Builder
+![REST Builder](assets/screenshots/04_request_builder_rest.png)
+
 ### 새 요청 만들기
 1. 상단 탭에서 `HTTP / REST` 선택.
 2. 메서드(GET, POST 등) 선택 및 URL 입력.
@@ -100,6 +114,8 @@ API 호출의 기본 단위입니다.
 ---
 
 ## 6. WebSocket
+![WebSocket Client](assets/screenshots/06_websocket_client.png)
+
 ### WebSocket Client 사용법
 1. 상단 탭에서 `WebSocket` 선택.
 2. URL(예: `wss://echo.websocket.org`) 입력 후 `Connect` 클릭.
@@ -116,6 +132,8 @@ API 호출의 기본 단위입니다.
 ---
 
 ## 7. GraphQL
+![GraphQL Client](assets/screenshots/05_request_builder_graphql.png)
+
 ### GraphQL Client 사용법
 1. 상단 탭에서 `GraphQL` 선택.
 2. Endpoint URL 입력.
@@ -129,12 +147,16 @@ Workflow에서 REST API로 인증 토큰을 받은 뒤, 이를 GraphQL 헤더(`A
 ---
 
 ## 8. Workflow Editor
+![Workflow Canvas](assets/screenshots/07_workflow_editor.png)
+
 ### 노드 추가/연결
 1. 상단 메뉴나 `+ Workflow` 버튼으로 에디터 진입.
 2. 좌측 팔레트에서 노드를 드래그하여 캔버스에 배치.
 3. 노드의 핸들(점)을 드래그하여 다른 노드와 연결(Edge 생성).
 
 ### 실행 방법
+![Run Logs](assets/screenshots/08_workflow_run_logs.png)
+
 - 우측 상단 `Run` 버튼을 클릭.
 - 실행 중인 노드는 테두리가 깜빡이며, 완료 시 초록색, 실패 시 빨간색으로 표시됩니다.
 - 하단 로그 패널에서 각 단계별 실행 결과를 확인합니다.
@@ -146,6 +168,8 @@ Workflow에서 REST API로 인증 토큰을 받은 뒤, 이를 GraphQL 헤더(`A
 ---
 
 ## 9. OpenAPI Import
+![OpenAPI Import](assets/screenshots/03_openapi_import.png)
+
 ### Import 방법
 1. Workgroup 우클릭 -> `Import Swagger` 선택.
 2. **URL 로드**: `swagger.json` URL 입력 후 Load.
@@ -164,6 +188,8 @@ Workflow에서 REST API로 인증 토큰을 받은 뒤, 이를 GraphQL 헤더(`A
 ---
 
 ## 10. 테마 및 환경 설정
+![Theme Settings](assets/screenshots/10_settings_theme.png)
+
 ### Dark / Light 전환
 - 우측 상단 메뉴 -> `Settings` 진입.
 - `Theme Mode`에서 Light / Dark / System 선택.

@@ -1,5 +1,11 @@
 # ApiLens User Guide
 
+<div align="center">
+  <img src="../assets/apilens_icon.svg" alt="ApiLens Icon" width="128" />
+  <br/>
+  <img src="assets/intro.png" alt="ApiLens Intro" width="100%" />
+</div>
+
 ## 1. Overview
 ### What is ApiLens?
 **ApiLens** is a powerful desktop and web-based tool that allows you to test REST APIs, WebSockets, and GraphQL in a single interface, and connect them into a **Workflow** to automate complex scenarios.
@@ -17,6 +23,8 @@
 ---
 
 ## 2. Installation & Execution
+![Home Screen](assets/screenshots/01_home.png)
+
 ### Desktop (macOS / Windows)
 1. Download the installer (`.dmg`, `.exe`) for your OS from the Releases page.
 2. Run the application after installation.
@@ -60,6 +68,8 @@ Manages global variables like `{{env.baseUrl}}` to easily switch between Develop
 ---
 
 ## 4. Using Workgroups
+![Workgroups Sidebar](assets/screenshots/02_workgroups.png)
+
 ### Create/Select Workgroup
 - **Create**: Click the `+` button at the top of the sidebar and enter a new group name.
 - **Select**: Click a group in the sidebar to activate it; subsequent Requests will belong to this group.
@@ -73,6 +83,8 @@ Manages global variables like `{{env.baseUrl}}` to easily switch between Develop
 - **Delete**: Right-click a group to delete it. (Option to keep internal data is available).
 
 ### Export / Import (Team Sharing)
+![Export Import Menu](assets/screenshots/09_export_import.png)
+
 1. **Export**: Right-click a Workgroup and select `Export` to save as a `.json` file.
 2. **Import**: Load `.json` files via the `Import` button (or menu) at the top of the sidebar.
    > **ID Conflict Prevention**: Automatically issues new IDs if imported data conflicts with existing IDs.
@@ -80,9 +92,11 @@ Manages global variables like `{{env.baseUrl}}` to easily switch between Develop
 ---
 
 ## 5. REST Request Builder
+![REST Builder](assets/screenshots/04_request_builder_rest.png)
+
 ### Create New Request
 1. Select `HTTP / REST` from the top tabs.
-2. Choos Method (GET, POST, etc.) and enter URL.
+2. Choose Method (GET, POST, etc.) and enter URL.
 
 ### Detailed Settings
 - **Params**: Enter Query Parameters as Key-Value pairs.
@@ -100,6 +114,8 @@ Saving a request (`Ctrl+S` / `Cmd+S`) saves it to the currently active Workgroup
 ---
 
 ## 6. WebSocket
+![WebSocket Client](assets/screenshots/06_websocket_client.png)
+
 ### Using WebSocket Client
 1. Select `WebSocket` from the top tabs.
 2. Enter URL (e.g., `wss://echo.websocket.org`) and click `Connect`.
@@ -116,6 +132,8 @@ WebSockets are powerful in Workflows as state is maintained.
 ---
 
 ## 7. GraphQL
+![GraphQL Client](assets/screenshots/05_request_builder_graphql.png)
+
 ### Using GraphQL Client
 1. Select `GraphQL` from the top tabs.
 2. Enter Endpoint URL.
@@ -129,12 +147,16 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 ---
 
 ## 8. Workflow Editor
+![Workflow Canvas](assets/screenshots/07_workflow_editor.png)
+
 ### Add/Connect Nodes
 1. Enter editor via top menu or `+ Workflow` button.
 2. Drag nodes from the left palette to the canvas.
 3. Drag node handles (dots) to connect to other nodes (create Edge).
 
 ### Execution
+![Run Logs](assets/screenshots/08_workflow_run_logs.png)
+
 - Click the `Run` button at the top right.
 - Running nodes blink, completing green for success or red for failure.
 - Check execution results per step in the bottom Log Panel.
@@ -146,6 +168,8 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 ---
 
 ## 9. OpenAPI Import
+![OpenAPI Import](assets/screenshots/03_openapi_import.png)
+
 ### How to Import
 1. Right-click Workgroup -> Select `Import Swagger`.
 2. **Load URL**: Enter `swagger.json` URL and Load.
@@ -164,6 +188,8 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 ---
 
 ## 10. Theme & Settings
+![Theme Settings](assets/screenshots/10_settings_theme.png)
+
 ### Dark / Light Switch
 - Top right menu -> Enter `Settings`.
 - Select Light / Dark / System in `Theme Mode`.
