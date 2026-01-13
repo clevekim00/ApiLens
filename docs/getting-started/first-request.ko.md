@@ -21,7 +21,7 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 1. 사이드바에서 **New Workgroup**(`+`)을 클릭합니다.
 2. 그룹 이름(예: `My First Project`)을 입력합니다.
 
-![Create Workgroup](../assets/getting-started/02_create_workgroup.png)
+<!-- ![Create Workgroup](../assets/getting-started/02_create_workgroup.png) -->
 
 ---
 
@@ -29,7 +29,7 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 1. 상단의 **New Request** 버튼을 클릭합니다.
 2. **HTTP / REST**를 선택합니다.
 
-![New Request](../assets/getting-started/03_new_request.png)
+<!-- ![New Request](../assets/getting-started/03_new_request.png) -->
 
 ---
 
@@ -38,14 +38,14 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 1. **Method**: `GET`으로 설정합니다.
 2. **URL**: `https://api.apilens.dev/health`를 입력합니다.
 
-![Enter URL](../assets/getting-started/04_enter_url.png)
+<!-- ![Enter URL](../assets/getting-started/04_enter_url.png) -->
 
 ---
 
 ## Step 5: 요청 보내기 (Send the request)
 준비가 되셨나요? **Send** 버튼을 클릭하세요.
 
-![Send](../assets/getting-started/05_send_request.png)
+<!-- ![Send](../assets/getting-started/05_send_request.png) -->
 
 ---
 
@@ -54,7 +54,7 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 1. **Status Code**: `200 OK`가 보이는지 확인하세요.
 2. **Body**: JSON 응답이 트리 형태로 표시됩니다.
 
-![Response](../assets/getting-started/06_view_response.png)
+<!-- ![Response](../assets/getting-started/06_view_response.png) -->
 
 ---
 
@@ -63,7 +63,7 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 1. `Ctrl+S` (macOS: `Cmd+S`)를 누르거나 저장 아이콘을 클릭합니다.
 2. 이름(예: `Health Check`)을 입력하고 방금 만든 Workgroup에 저장합니다.
 
-![Save](../assets/getting-started/07_save_request.png)
+<!-- ![Save](../assets/getting-started/07_save_request.png) -->
 
 ---
 
@@ -75,4 +75,4 @@ ApiLens를 실행하면 첫 요청을 기다리는 빈 작업 공간이 보입�
 - **Workflow**: 여러 요청을 연결하여 자동화하기
 - **WebSocket / GraphQL**: 다양한 프로토콜 탐험하기
 
-![Next](../assets/getting-started/08_next_steps.png)
+<!-- ![Next](../assets/getting-started/08_next_steps.png) -->
