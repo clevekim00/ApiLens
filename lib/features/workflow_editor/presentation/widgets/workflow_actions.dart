@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../domain/models/workflow.dart';
+import '../../domain/models/workflow_model.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../data/workflow_repository.dart';
 import '../../../execution/application/workflow_runner_controller.dart';
@@ -36,12 +36,13 @@ class WorkflowActions {
       final newId = const Uuid().v4();
       
       // Save new file
-      final workflow = Workflow(
+      final workflow = WorkflowModel(
         id: newId,
         name: newName,
         nodes: state.nodes,
         edges: state.edges,
         groupId: state.groupId, // Persist Group
+        lastSavedAt: DateTime.now(),
       );
       await ref.read(workflowRepositoryProvider).save(workflow);
       ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
@@ -54,12 +55,13 @@ class WorkflowActions {
       }
     } else {
       // Regular Save
-      final workflow = Workflow(
+      final workflow = WorkflowModel(
         id: id,
         name: name,
         nodes: state.nodes,
         edges: state.edges,
         groupId: state.groupId, // Persist Group
+        lastSavedAt: DateTime.now(),
       );
       await ref.read(workflowRepositoryProvider).save(workflow);
       ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
@@ -86,14 +88,11 @@ class WorkflowActions {
     final activeGroupId = ref.read(activeWorkgroupIdProvider);
     final workflows = activeGroupId != null 
         ? allWorkflows.where((w) => w.groupId == activeGroupId).toList()
-        : allWorkflows; // If no active group (e.g. initial), show all or just root?
-        // Logic: if activeGroupId is null, we might be in "No Workgroup" implicit context?
-        // But activeWorkgroupIdProvider usually returns 'no-workgroup' or ID. Null means no selection?
-        // Let's assume strict filtering if ID present.
+        : allWorkflows; 
 
     if (!context.mounted) return;
 
-    final selected = await showDialog<Workflow>(
+    final selected = await showDialog<WorkflowModel>(
       context: context,
       builder: (_) => SimpleDialog(
         title: Text('Open Workflow ${activeGroupId != null ? "(Current Group)" : ""}'),
@@ -216,17 +215,13 @@ class WorkflowActions {
   }
 
   static Future<void> handleExport(BuildContext context, WidgetRef ref) async {
-     // Optional per request ("다른 메뉴는 제거" -> Remove from menu bar app_menu_bar, but maybe keep action available?
-     // Re-reading: "Menu is exactly 2: Workflow, Settings". Export is NOT in the list.
-     // So I should remove Export from Menu. But I can keep the code here just in case, or remove it?
-     // "다른 메뉴는 제거" applies to visible menus.
-     // I'll keep the code but not expose it in AppMenuBar.
      final state = ref.read(workflowEditorProvider);
-     final workflow = Workflow(
+     final workflow = WorkflowModel(
        id: state.id,
        name: state.name,
        nodes: state.nodes,
        edges: state.edges,
+       lastSavedAt: DateTime.now(),
      );
      final jsonStr = ref.read(workflowRepositoryProvider).exportJson(workflow);
      await Clipboard.setData(ClipboardData(text: jsonStr));

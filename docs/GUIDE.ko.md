@@ -149,6 +149,8 @@ Workflow에서 REST API로 인증 토큰을 받은 뒤, 이를 GraphQL 헤더(`A
 ## 8. Workflow Editor
 ![Workflow Canvas](assets/screenshots/07_workflow_editor.png)
 
+> **상세 가이드**: [Visual Workflow 가이드 보러가기](WORKFLOW_GUIDE.ko.md)
+
 ### 노드 추가/연결
 1. 상단 메뉴나 `+ Workflow` 버튼으로 에디터 진입.
 2. 좌측 팔레트에서 노드를 드래그하여 캔버스에 배치.
@@ -161,9 +163,10 @@ Workflow에서 REST API로 인증 토큰을 받은 뒤, 이를 GraphQL 헤더(`A
 - 실행 중인 노드는 테두리가 깜빡이며, 완료 시 초록색, 실패 시 빨간색으로 표시됩니다.
 - 하단 로그 패널에서 각 단계별 실행 결과를 확인합니다.
 
-### 디버깅 팁
-- **Inspector**: 노드를 클릭하면 우측 패널에서 입력/출력 데이터를 상세히 볼 수 있습니다.
-- **Partial Run**: 연결을 끊거나 특정 노드만 선택하여 부분 테스트를 진행할 수 있습니다.
+### 주요 기능
+- **API Chaining**: `{{node.id.response.body}}` 문법으로 이전 응답값 참조.
+- **Conditional Branching**: 조건에 따른 흐름 제어.
+- **Local Persistence**: 작업 내용 로컬 저장.
 
 ---
 

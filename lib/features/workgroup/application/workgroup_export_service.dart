@@ -6,7 +6,7 @@ import '../data/workgroup_repository.dart';
 import '../../request/data/request_repository.dart';
 import '../../request/models/request_model.dart';
 import '../../workflow_editor/data/workflow_repository.dart';
-import '../../workflow_editor/domain/models/workflow.dart';
+import '../../workflow_editor/domain/models/workflow_model.dart';
 
 final workgroupExportServiceProvider = Provider((ref) => WorkgroupExportService(ref));
 
@@ -118,7 +118,7 @@ class WorkgroupExportService {
     // Import Workflows
     for (var w in workflowsJson) {
       if (w is Map<String, dynamic>) {
-         final newWorkflow = Workflow.fromJson(w).copyWith(
+         final newWorkflow = WorkflowModel.fromJson(w).copyWith(
            id: const Uuid().v4(),
            groupId: newGroupId, // Relink to new group
          );
