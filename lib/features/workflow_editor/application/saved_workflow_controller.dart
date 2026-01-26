@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/workflow_repository.dart';
-import '../domain/models/workflow.dart';
+import '../domain/models/workflow_model.dart';
 
-class SavedWorkflowController extends StateNotifier<List<Workflow>> {
+class SavedWorkflowController extends StateNotifier<List<WorkflowModel>> {
   final WorkflowRepository _repository;
 
   SavedWorkflowController(this._repository) : super([]) {
@@ -24,7 +24,7 @@ class SavedWorkflowController extends StateNotifier<List<Workflow>> {
   }
 }
 
-final savedWorkflowControllerProvider = StateNotifierProvider<SavedWorkflowController, List<Workflow>>((ref) {
+final savedWorkflowControllerProvider = StateNotifierProvider<SavedWorkflowController, List<WorkflowModel>>((ref) {
   final repo = ref.watch(workflowRepositoryProvider);
   return SavedWorkflowController(repo);
 });

@@ -10,6 +10,7 @@ import 'core/settings/settings_repository.dart';
 import 'features/websocket/data/websocket_config_repository.dart';
 import 'features/workgroup/data/workgroup_repository.dart';
 import 'features/request/data/request_repository.dart';
+import 'features/workflow_editor/data/workflow_repository.dart';
 import 'core/data/migration_service.dart';
 
 void main() async {
@@ -24,6 +25,7 @@ void main() async {
   // Initialize Data Layer (Hive Boxes)
   await WorkgroupRepository().init();
   await RequestRepository().init();
+  await WorkflowRepository().init();
 
   // Run Migrations (Seed & Fix Data)
   await MigrationService().run();

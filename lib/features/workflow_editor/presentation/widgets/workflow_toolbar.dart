@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../data/workflow_repository.dart';
-import '../../domain/models/workflow.dart';
+import '../../domain/models/workflow_model.dart';
 import 'workflow_actions.dart'; // Add this import
 
 import '../../data/sample_workflows.dart';
@@ -93,26 +93,29 @@ class WorkflowToolbar extends ConsumerWidget {
             tooltip: 'Save',
             icon: const Icon(Icons.save),
             onPressed: () async {
-               final wf = Workflow(
+               final wf = WorkflowModel(
                  id: state.id,
                  name: state.name,
                  nodes: state.nodes,
                  edges: state.edges,
-                 lastModified: DateTime.now(),
+                 lastSavedAt: DateTime.now(),
                );
                await repo.save(wf);
-               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Workflow Saved!')));
+               if (context.mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Workflow Saved!')));
+               }
             },
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (val) async {
                if (val == 'export') {
-                  final wf = Workflow(
+                  final wf = WorkflowModel(
                      id: state.id,
                      name: state.name,
                      nodes: state.nodes,
                      edges: state.edges,
+                     lastSavedAt: DateTime.now(),
                    );
                   final json = repo.exportJson(wf);
                   // Clipboard
@@ -144,8 +147,8 @@ class WorkflowToolbar extends ConsumerWidget {
 }
 
 class WorkflowListDialog extends StatelessWidget {
-  final List<Workflow> workflows;
-  final Function(Workflow) onLoad;
+  final List<WorkflowModel> workflows;
+  final Function(WorkflowModel) onLoad;
   final Function(String) onDelete;
 
   const WorkflowListDialog({super.key, required this.workflows, required this.onLoad, required this.onDelete});
@@ -165,7 +168,7 @@ class WorkflowListDialog extends StatelessWidget {
                 final wf = workflows[i];
                 return ListTile(
                   title: Text(wf.name),
-                  subtitle: Text(wf.lastModified?.toString().substring(0, 16) ?? '-'),
+                  subtitle: Text(wf.lastSavedAt.toString().substring(0, 16)),
                   onTap: () => onLoad(wf),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.grey),

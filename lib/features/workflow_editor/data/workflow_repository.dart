@@ -1,42 +1,51 @@
 import 'dart:convert';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../domain/models/workflow.dart';
-import 'workflow_storage.dart';
+import '../domain/models/workflow_model.dart';
 
 class WorkflowRepository {
-  final WorkflowStorage _storage;
+  static const String _boxName = 'workflows';
+  late Box<WorkflowModel> _box;
 
-  WorkflowRepository(this._storage);
-
-  Future<void> save(Workflow workflow) async {
-    await _storage.saveWorkflow(workflow);
+  Future<void> init() async {
+    // Note: Adapters should be registered in main.dart or a centralized init function
+    _box = await Hive.openBox<WorkflowModel>(_boxName);
   }
 
-  Future<List<Workflow>> getAll() async {
-    return await _storage.loadAllWorkflows();
+  List<WorkflowModel> getAll() {
+    return _box.values.toList();
+  }
+
+  List<WorkflowModel> getByGroup(String groupId) {
+    return _box.values.where((w) => w.groupId == groupId).toList();
+  }
+
+  WorkflowModel? get(String id) {
+    return _box.get(id);
+  }
+
+  Future<void> save(WorkflowModel workflow) async {
+    await _box.put(workflow.id, workflow);
   }
 
   Future<void> delete(String id) async {
-    await _storage.deleteWorkflow(id);
+    await _box.delete(id);
   }
   
-  // Export to JSON String
-  String exportJson(Workflow workflow) {
-    const encoder = JsonEncoder.withIndent('  ');
-    return encoder.convert(workflow.toJson());
+  Future<void> clear() async {
+    await _box.clear();
   }
 
-  // Import from JSON String
-  Workflow importJson(String jsonString) {
-    try {
-      final jsonMap = jsonDecode(jsonString);
-      return Workflow.fromJson(jsonMap);
-    } catch (e) {
-      throw Exception('Invalid Workflow JSON: $e');
-    }
+  String exportJson(WorkflowModel workflow) {
+    return jsonEncode(workflow.toJson());
+  }
+
+  WorkflowModel importJson(String jsonStr) {
+    final json = jsonDecode(jsonStr);
+    return WorkflowModel.fromJson(json);
   }
 }
 
 final workflowRepositoryProvider = Provider<WorkflowRepository>((ref) {
-  return WorkflowRepository(WorkflowStorage());
+  return WorkflowRepository();
 });

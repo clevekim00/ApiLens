@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../domain/models/workflow_node.dart';
 import '../domain/models/workflow_edge.dart';
+import '../data/workflow_repository.dart';
+import '../domain/models/workflow_model.dart';
 
 class WorkflowEditorState {
   final String id;
@@ -60,7 +62,9 @@ class WorkflowEditorState {
 }
 
 class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
-  WorkflowEditorController() : super(WorkflowEditorState(
+  final WorkflowRepository _repository;
+
+  WorkflowEditorController(this._repository) : super(WorkflowEditorState(
     id: const Uuid().v4(),
     nodes: [
         WorkflowNode(id: 'start', type: 'start', x: 100, y: 100),
@@ -96,6 +100,19 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       nodes: [WorkflowNode(id: 'start', type: 'start', x: 100, y: 100)],
       isDirty: false,
     );
+  }
+
+  Future<void> save() async {
+    final model = WorkflowModel(
+      id: state.id,
+      name: state.name,
+      groupId: state.groupId,
+      nodes: state.nodes,
+      edges: state.edges,
+      lastSavedAt: DateTime.now(),
+    );
+    await _repository.save(model);
+    state = state.copyWith(isDirty: false, lastSavedAt: model.lastSavedAt);
   }
 
   void saveAs(String newId, String newName) {
@@ -292,5 +309,6 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
 }
 
 final workflowEditorProvider = StateNotifierProvider<WorkflowEditorController, WorkflowEditorState>((ref) {
-  return WorkflowEditorController();
+  final repository = ref.watch(workflowRepositoryProvider);
+  return WorkflowEditorController(repository);
 });
