@@ -20,19 +20,15 @@ class WorkgroupSelector extends ConsumerWidget {
       return a.name.compareTo(b.name);
     });
 
+    // Ensure the selected value exists in the list to avoid Flutter assertion error
+    final bool valueExists = sortedGroups.any((g) => g.id == request.groupId);
+    final String? safeValue = valueExists ? request.groupId : (sortedGroups.isNotEmpty ? sortedGroups.first.id : null);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-      // decoration: BoxDecoration(
-      //   border: Border.all(color: Colors.grey.shade300),
-      //   borderRadius: BorderRadius.circular(4),
-      // ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: request.groupId, 
-          // If current groupId is not in list (deleted?), default to system root or null?
-          // Since we corrected models, it should be in list if loaded. 
-          // If not found, DropdownButton throws if value is not null and not in items.
-          // Handle safe value:
+          value: safeValue, 
           items: sortedGroups.map((g) {
             return DropdownMenuItem(
               value: g.id,

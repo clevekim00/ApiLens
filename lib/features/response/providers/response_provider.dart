@@ -61,7 +61,7 @@ class ResponseNotifier extends _$ResponseNotifier {
         ..statusCode = response.statusCode
         ..durationMs = response.durationMs;
       
-      ref.read(historyNotifierProvider.notifier).addToHistory(historyItem);
+      await ref.read(historyNotifierProvider.notifier).addToHistory(historyItem);
 
     } catch (e, st) {
       state = AsyncError(e, st);

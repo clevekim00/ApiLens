@@ -27,6 +27,7 @@ class KeyValueEditor extends StatelessWidget {
       children: [
         // List of existing items
         Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
              for (int i = 0; i < items.length; i++)
                AppKVRow(
@@ -45,20 +46,21 @@ class KeyValueEditor extends StatelessWidget {
         ),
         
         // Add Button
-        Container(
-          width: double.infinity,
-          height: 36,
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
-          ),
-          child: AppButton(
-            label: 'Add Item',
-            icon: const Icon(Icons.add, size: 14),
-            variant: AppButtonVariant.ghost,
-            onPressed: onAdd,
+        if (onAdd != null) 
+          Container(
             width: double.infinity,
+            height: 36,
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+            ),
+            child: AppButton(
+              label: 'Add Item',
+              icon: const Icon(Icons.add, size: 14),
+              variant: AppButtonVariant.ghost,
+              onPressed: onAdd,
+              width: double.infinity,
+            ),
           ),
-        ),
       ],
     );
   }

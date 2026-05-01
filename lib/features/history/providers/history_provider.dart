@@ -7,10 +7,8 @@ import '../repositories/history_repository.dart';
 part 'history_provider.g.dart';
 
 @riverpod
-HistoryRepository historyRepository(HistoryRepositoryRef ref) {
-  // We need the Isar instance initialized
-  final isar = ref.watch(isarDatabaseProvider).valueOrNull;
-  if (isar == null) throw UnimplementedError('Database not initialized');
+Future<HistoryRepository> historyRepository(HistoryRepositoryRef ref) async {
+  final isar = await ref.watch(isarDatabaseProvider.future);
   return HistoryRepository(isar);
 }
 
@@ -18,26 +16,25 @@ HistoryRepository historyRepository(HistoryRepositoryRef ref) {
 class HistoryNotifier extends _$HistoryNotifier {
   @override
   Future<List<HistoryItem>> build() async {
-    // Initial load
-    final repo = ref.watch(historyRepositoryProvider);
+    final repo = await ref.watch(historyRepositoryProvider.future);
     return repo.getHistory();
   }
 
   Future<void> addToHistory(HistoryItem item) async {
-    final repo = ref.read(historyRepositoryProvider);
+    final repo = await ref.read(historyRepositoryProvider.future);
     await repo.addHistory(item);
     // Refresh list
     ref.invalidateSelf();
   }
 
   Future<void> search(String query) async {
-    final repo = ref.read(historyRepositoryProvider);
+    final repo = await ref.read(historyRepositoryProvider.future);
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => repo.getHistory(query: query));
   }
 
   Future<void> deleteHistory(Id id) async {
-    final repo = ref.read(historyRepositoryProvider);
+    final repo = await ref.read(historyRepositoryProvider.future);
     await repo.deleteHistory(id);
     ref.invalidateSelf();
   }

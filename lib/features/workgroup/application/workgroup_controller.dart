@@ -16,10 +16,16 @@ class WorkgroupController extends StateNotifier<List<WorkgroupModel>> {
 
   Future<void> _load() async {
     final groups = _repository.getAll();
-    state = groups;
+    
+    // Ensure system root always exists in state
+    final hasSystemRoot = groups.any((g) => g.id == 'no-workgroup');
+    if (!hasSystemRoot) {
+      state = [WorkgroupModel.systemRoot(), ...groups];
+    } else {
+      state = groups;
+    }
+
     if (groups.isEmpty) {
-      // Seed Data could be added here or via a dedicated bootstrapper
-      // But adding it here ensures it appears on first run
       await _initSampleData();
     }
   }

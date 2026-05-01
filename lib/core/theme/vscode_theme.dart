@@ -36,8 +36,7 @@ class VSCodeColors {
 
 class VSCodeTheme {
   static TextTheme _buildTextTheme(Color primaryColor, Color secondaryColor) {
-    final baseFont = GoogleFonts.firaCode(); // Monospace for developer feel
-    final uiFont = GoogleFonts.inter();      // UI elements
+    final uiFont = _uiStyle();
 
     return TextTheme(
       displayLarge: uiFont.copyWith(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
@@ -79,7 +78,7 @@ class VSCodeTheme {
         foregroundColor: const Color(0xFFCCCCCC),
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFFCCCCCC)),
-        titleTextStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: const Color(0xFFCCCCCC)),
+        titleTextStyle: _uiStyle(fontSize: 14, fontWeight: FontWeight.w500, color: const Color(0xFFCCCCCC)),
       ),
 
       iconTheme: const IconThemeData(
@@ -105,7 +104,7 @@ class VSCodeTheme {
           borderRadius: BorderRadius.circular(2),
           borderSide: const BorderSide(color: VSCodeColors.accentBlue),
         ),
-        hintStyle: GoogleFonts.inter(color: VSCodeColors.darkTextSecondary, fontSize: 13),
+        hintStyle: _uiStyle(color: VSCodeColors.darkTextSecondary, fontSize: 13),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -114,14 +113,14 @@ class VSCodeTheme {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+          textStyle: _uiStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: VSCodeColors.darkText,
-          textStyle: GoogleFonts.inter(fontSize: 13),
+          textStyle: _uiStyle(fontSize: 13),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
         ),
@@ -139,8 +138,8 @@ class VSCodeTheme {
         unselectedLabelColor: VSCodeColors.darkTextSecondary,
         indicatorColor: VSCodeColors.accentBlue,
         dividerColor: VSCodeColors.darkBorder,
-        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: GoogleFonts.inter(fontSize: 13),
+        labelStyle: _uiStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: _uiStyle(fontSize: 13),
       ),
     );
   }
@@ -170,7 +169,7 @@ class VSCodeTheme {
         foregroundColor: VSCodeColors.lightText,
         elevation: 0,
         iconTheme: const IconThemeData(color: VSCodeColors.lightText),
-        titleTextStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: VSCodeColors.lightText),
+        titleTextStyle: _uiStyle(fontSize: 14, fontWeight: FontWeight.w500, color: VSCodeColors.lightText),
       ),
 
       iconTheme: const IconThemeData(
@@ -195,7 +194,7 @@ class VSCodeTheme {
           borderRadius: BorderRadius.circular(2),
           borderSide: const BorderSide(color: VSCodeColors.accentBlue),
         ),
-        hintStyle: GoogleFonts.inter(color: VSCodeColors.lightTextSecondary, fontSize: 13),
+        hintStyle: _uiStyle(color: VSCodeColors.lightTextSecondary, fontSize: 13),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -204,14 +203,14 @@ class VSCodeTheme {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+          textStyle: _uiStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ),
       
        textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: VSCodeColors.lightText,
-          textStyle: GoogleFonts.inter(fontSize: 13),
+          textStyle: _uiStyle(fontSize: 13),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
         ),
@@ -228,9 +227,29 @@ class VSCodeTheme {
         unselectedLabelColor: VSCodeColors.lightTextSecondary,
         indicatorColor: VSCodeColors.accentBlue,
         dividerColor: VSCodeColors.lightBorder,
-        labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: GoogleFonts.inter(fontSize: 13),
+        labelStyle: _uiStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: _uiStyle(fontSize: 13),
       ),
+    );
+  }
+
+  static TextStyle _uiStyle({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+  }) {
+    if (GoogleFonts.config.allowRuntimeFetching) {
+      return GoogleFonts.inter(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+      );
+    }
+
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
     );
   }
 }

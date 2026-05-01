@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 
 import '../../application/openapi_import_controller.dart';
 import '../../domain/models/openapi_operation_model.dart';
+import '../../../../core/ui/tokens/app_tokens.dart';
+import '../../../../core/ui/components/app_card.dart';
 
 class OpenApiImportScreen extends ConsumerStatefulWidget {
   final String targetGroupId;
@@ -48,15 +50,7 @@ class _OpenApiImportScreenState extends ConsumerState<OpenApiImportScreen> {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;
     
-    // Simple fetch for now, assuming public or reachable
-    try {
-       // Using Dio simply here, but ideally via a service
-       final response = await Dio().get(url);
-       final content = response.data is String ? response.data : jsonEncode(response.data);
-       ref.read(openApiImportControllerProvider.notifier).loadContent(content, baseUrlOverride: url);
-    } catch (e) {
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('URL Error: $e')));
-    }
+    await ref.read(openApiImportControllerProvider.notifier).loadFromUrl(url);
   }
 
   @override
@@ -64,90 +58,160 @@ class _OpenApiImportScreenState extends ConsumerState<OpenApiImportScreen> {
     final state = ref.watch(openApiImportControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Import from OpenAPI')),
-      body: Column(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: const Text('OpenAPI Specification Import'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
         children: [
-          // 1. Load Section (always visible or collapsible?)
-          // If parseResult is null, show big centered load area.
-          // If loaded, show compact bar or just the preview.
-          if (state.parseResult == null)
-            Expanded(
-              child: Center(
-                child: Container(
-                  width: 500,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.download, size: 48, color: Colors.blue),
-                      const SizedBox(height: 24),
-                      TextField(
-                        controller: _urlController,
-                        decoration: InputDecoration(
-                          labelText: 'OpenAPI Spec URL',
-                          border: const OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: _handleUrlLoad,
-                          ),
-                        ),
-                        onSubmitted: (_) => _handleUrlLoad(),
-                      ),
-                      const SizedBox(height: 16),
-                      const Row(children: [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("OR")), Expanded(child: Divider())]),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _handleFilePick,
-                        icon: const Icon(Icons.file_open),
-                        label: const Text('Upload JSON/YAML File'),
-                        style: ElevatedButton.styleFrom(
-                           minimumSize: const Size(double.infinity, 48)
-                        ),
-                      ),
-                      if (state.isLoading) const Padding(
-                         padding: EdgeInsets.only(top: 16),
-                         child: CircularProgressIndicator(),
-                      ),
-                      if (state.error != null) Padding(
-                         padding: const EdgeInsets.only(top: 16),
-                         child: Text(state.error!, style: const TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          else 
-            Expanded(
-              child: Row(
-                children: [
-                   // Left: Tags
-                   SizedBox(
-                     width: 250,
-                     child: _TagFilterList(
-                       activeTags: state.activeTags,
-                       allTags: _extractAllTags(state.parseResult!.operations),
-                       onToggle: ref.read(openApiImportControllerProvider.notifier).toggleTag,
-                     ),
-                   ),
-                   const VerticalDivider(width: 1),
-                   // Center: Endpoints
-                   Expanded(
-                     flex: 3,
-                     child: _EndpointListPanel(state: state),
-                   ),
-                   const VerticalDivider(width: 1),
-                   // Right: Options
-                   SizedBox(
-                     width: 300,
-                     child: _ImportOptionsPanel(
-                       options: state.options,
-                       onUpdate: ref.read(openApiImportControllerProvider.notifier).updateOptions,
-                     ),
-                   ),
-                ],
+          // Background Design Element
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               ),
             ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                if (state.parseResult == null)
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: AppCard(
+                          width: 500,
+                          padding: const EdgeInsets.all(32),
+                          backgroundColor: Theme.of(context).cardColor.withOpacity(0.8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.auto_awesome_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
+                              ),
+                              const SizedBox(height: 24),
+                              Text("Start Your Integration", style: Theme.of(context).textTheme.titleLarge),
+                              const SizedBox(height: 8),
+                              Text("Paste a Swagger URL or upload a spec file to begin", 
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColorsLight.mutedForeground)),
+                              const SizedBox(height: 32),
+                              TextField(
+                                controller: _urlController,
+                                decoration: InputDecoration(
+                                  labelText: 'Swagger UI or JSON/YAML URL',
+                                  hintText: 'http://localhost:8080/swagger-ui/index.html',
+                                  prefixIcon: const Icon(Icons.link),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.arrow_forward_rounded),
+                                    onPressed: _handleUrlLoad,
+                                  ),
+                                ),
+                                onSubmitted: (_) => _handleUrlLoad(),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  const Expanded(child: Divider()),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text("OR", style: Theme.of(context).textTheme.labelSmall),
+                                  ),
+                                  const Expanded(child: Divider()),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              FilledButton.icon(
+                                onPressed: _handleFilePick,
+                                icon: const Icon(Icons.upload_file_rounded),
+                                label: const Text('Choose Spec File'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 56),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                                ),
+                              ),
+                              if (state.isLoading) const Padding(
+                                 padding: EdgeInsets.only(top: 24),
+                                 child: CircularProgressIndicator(),
+                              ),
+                              if (state.error != null) Padding(
+                                 padding: const EdgeInsets.only(top: 24),
+                                 child: Container(
+                                   padding: const EdgeInsets.all(12),
+                                   decoration: BoxDecoration(
+                                     color: Colors.red.withOpacity(0.1),
+                                     borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                                   ),
+                                   child: Row(
+                                     children: [
+                                       const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                                       const SizedBox(width: 8),
+                                       Expanded(child: Text(state.error!, style: const TextStyle(color: Colors.red, fontSize: 13))),
+                                     ],
+                                   ),
+                                 ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else 
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                         // Left: Tags (Modernized)
+                         Container(
+                           width: 280,
+                           decoration: BoxDecoration(
+                             border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+                           ),
+                           child: _TagFilterList(
+                             activeTags: state.activeTags,
+                             allTags: _extractAllTags(state.parseResult!.operations),
+                             onToggle: ref.read(openApiImportControllerProvider.notifier).toggleTag,
+                           ),
+                         ),
+                         
+                         // Center: Endpoints
+                         Expanded(
+                           child: _EndpointListPanel(state: state),
+                         ),
+                         
+                         // Right: Options
+                         Container(
+                           width: 320,
+                           decoration: BoxDecoration(
+                             border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
+                           ),
+                           child: _ImportOptionsPanel(
+                             options: state.options,
+                             onUpdate: ref.read(openApiImportControllerProvider.notifier).updateOptions,
+                           ),
+                         ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: state.parseResult != null ? _buildBottomBar(context, ref, state) : null,
@@ -155,47 +219,88 @@ class _OpenApiImportScreenState extends ConsumerState<OpenApiImportScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, WidgetRef ref, OpenApiImportState state) {
+    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
-        children: [
-           Text('${state.selectedOperationIds.length} operations selected'),
-           const Spacer(),
-           TextButton(
-             onPressed: () => ref.read(openApiImportControllerProvider.notifier).loadContent(''), // Reset
-             child: const Text('Cancel / Reset'),
-           ),
-           const SizedBox(width: 16),
-           FilledButton(
-             onPressed: state.selectedOperationIds.isEmpty || state.isLoading 
-               ? null
-               : () async {
-                  final result = await ref.read(openApiImportControllerProvider.notifier).importSelected(widget.targetGroupId);
-                  if (context.mounted) {
-                     // Show summary dialog
-                     showDialog(context: context, builder: (_) => AlertDialog(
-                       title: const Text('Import Complete'),
-                       content: Text('Success: ${result['success']}\nErrors: ${result['error']}'),
-                       actions: [
-                         TextButton(
-                           onPressed: () { 
-                             Navigator.pop(context); // Close dialog
-                             Navigator.pop(context); // Close screen
-                           }, 
-                           child: const Text('Close'),
-                         )
-                       ],
-                     ));
-                  }
-               },
-             child: state.isLoading 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                : const Text('Import'),
-           ),
-        ],
+      child: SafeArea(
+        child: Row(
+          children: [
+             Column(
+               mainAxisSize: MainAxisSize.min,
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Text('${state.selectedOperationIds.length} operations selected', 
+                   style: theme.textTheme.titleMedium),
+                 Text('Targeting folder: ${widget.targetGroupId}', 
+                   style: theme.textTheme.labelSmall?.copyWith(color: AppColorsLight.mutedForeground)),
+               ],
+             ),
+             const Spacer(),
+             TextButton(
+               onPressed: () => ref.read(openApiImportControllerProvider.notifier).loadContent(''), // Reset
+               child: const Text('Reset Spec'),
+             ),
+             const SizedBox(width: 16),
+             FilledButton.tonalIcon(
+               onPressed: state.selectedOperationIds.isEmpty || state.isLoading 
+                 ? null
+                 : () async {
+                    final name = 'Workflow ${DateTime.now().toLocal().toString().split('.')[0]}';
+                    final workflowId = await ref.read(openApiImportControllerProvider.notifier).generateWorkflowFromSelected(name, widget.targetGroupId);
+                    if (context.mounted) {
+                       if (workflowId != null) {
+                         showDialog(context: context, builder: (_) => AlertDialog(
+                           title: const Text('Workflow Generated'),
+                           content: const Text('Successfully generated workflow from selected endpoints.'),
+                           actions: [
+                             TextButton(
+                               onPressed: () { 
+                                 Navigator.pop(context); // Close dialog
+                                 Navigator.pop(context); // Close screen
+                               }, 
+                               child: const Text('Done'),
+                             )
+                           ],
+                         ));
+                       } else {
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to generate workflow.')));
+                       }
+                    }
+                 },
+               icon: const Icon(Icons.account_tree_outlined, size: 18),
+               label: const Text('Create Workflow'),
+             ),
+             const SizedBox(width: 12),
+             FilledButton.icon(
+               onPressed: state.selectedOperationIds.isEmpty || state.isLoading 
+                 ? null
+                 : () async {
+                    final result = await ref.read(openApiImportControllerProvider.notifier).importSelected(widget.targetGroupId);
+                    if (context.mounted) {
+                       showDialog(context: context, builder: (_) => AlertDialog(
+                         title: const Text('Import Complete'),
+                         content: Text('Success: ${result['success']}\nErrors: ${result['error']}'),
+                         actions: [
+                           TextButton(
+                             onPressed: () { 
+                               Navigator.pop(context); // Close dialog
+                               Navigator.pop(context); // Close screen
+                             }, 
+                             child: const Text('Close'),
+                           )
+                         ],
+                       ));
+                    }
+                 },
+               icon: const Icon(Icons.download_rounded, size: 18),
+               label: const Text('Import Requests'),
+             ),
+          ],
+        ),
       ),
     );
   }
@@ -227,24 +332,33 @@ class _TagFilterList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(padding: EdgeInsets.all(8), child: Text("Tags", style: TextStyle(fontWeight: FontWeight.bold))),
+        Padding(
+          padding: EdgeInsets.all(AppTokens.s4), 
+          child: Text("Filter by Tags", style: Theme.of(context).textTheme.titleSmall)
+        ),
         Expanded(
           child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
             children: [
               CheckboxListTile(
-                title: const Text('All'),
+                title: const Text('All Endpoints'),
                 value: activeTags.isEmpty,
                 onChanged: (_) => onToggle('ALL'),
                 controlAffinity: ListTileControlAffinity.leading,
                 dense: true,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
               ),
-              const Divider(height: 1,),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Divider(height: 1),
+              ),
               ...sortedTags.map((tag) => CheckboxListTile(
-                title: Text(tag),
+                title: Text(tag, style: const TextStyle(fontSize: 13)),
                 value: activeTags.contains(tag),
                 onChanged: (_) => onToggle(tag),
                 controlAffinity: ListTileControlAffinity.leading,
                 dense: true,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
               )),
             ],
           ),
@@ -263,54 +377,68 @@ class _EndpointListPanel extends ConsumerWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(AppTokens.s4),
           child: TextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Search path, method, summary...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-              isDense: true,
+              hintStyle: const TextStyle(fontSize: 14),
+              prefixIcon: const Icon(Icons.search_rounded, size: 20),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+              filled: true,
+              fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             ),
             onChanged: (val) => ref.read(openApiImportControllerProvider.notifier).setSearchQuery(val),
           ),
         ),
-        Row(
-           children: [
-             Padding(
-               padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-               child: TextButton.icon(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
+          child: Row(
+             children: [
+               TextButton.icon(
                  onPressed: () => ref.read(openApiImportControllerProvider.notifier).toggleSelectAllFiltered(),
-                 icon: const Icon(Icons.select_all, size: 16),
-                 label: const Text('Select All Filtered'),
+                 icon: const Icon(Icons.checklist_rounded, size: 18),
+                 label: const Text('Select/Deselect All'),
+                 style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                ),
-             ),
-           ],
+               const Spacer(),
+               Text('${state.visibleOperations.length} shown', style: Theme.of(context).textTheme.labelSmall),
+             ],
+          ),
         ),
+        const Divider(height: 1),
         Expanded(
           child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: state.visibleOperations.length,
-            separatorBuilder: (_,__) => const Divider(height: 1),
+            separatorBuilder: (_,__) => const Divider(height: 1, indent: 54),
             itemBuilder: (context, index) {
                final op = state.visibleOperations[index];
                final isSelected = state.selectedOperationIds.contains(op.id);
                return ListTile(
                  leading: Checkbox(
                     value: isSelected,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                     onChanged: (_) => ref.read(openApiImportControllerProvider.notifier).toggleOperation(op.id),
                  ),
                  title: Row(
                    children: [
                      _MethodBadge(method: op.method),
-                     const SizedBox(width: 8),
-                     Expanded(child: Text(op.path, style: const TextStyle(fontWeight: FontWeight.w500))),
+                     const SizedBox(width: AppTokens.s3),
+                     Expanded(child: Text(op.path, 
+                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
                    ],
                  ),
-                 subtitle: Text(op.summary ?? op.operationId ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
-                 trailing: op.tags.isNotEmpty 
-                    ? Chip(label: Text(op.tags.first, style: const TextStyle(fontSize: 10)), padding: EdgeInsets.zero, visualDensity: VisualDensity.compact) 
-                    : null,
+                 subtitle: Padding(
+                   padding: const EdgeInsets.only(top: 4),
+                   child: Text(op.summary ?? op.operationId ?? '', 
+                     maxLines: 1, 
+                     overflow: TextOverflow.ellipsis,
+                     style: TextStyle(color: AppColorsLight.mutedForeground, fontSize: 12)),
+                 ),
                  onTap: () => ref.read(openApiImportControllerProvider.notifier).toggleOperation(op.id),
                  dense: true,
+                 hoverColor: Theme.of(context).hoverColor,
                );
             },
           ),
@@ -335,9 +463,14 @@ class _MethodBadge extends StatelessWidget {
       default: color = Colors.grey;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
-      child: Text(method, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12), 
+        borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+        border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+      ),
+      child: Text(method.toUpperCase(), 
+        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5)),
     );
   }
 }
@@ -351,10 +484,16 @@ class _ImportOptionsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppTokens.s5),
       children: [
-        const Text("Options", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        const SizedBox(height: 16),
+        Row(
+          children: [
+            Icon(Icons.settings_outlined, size: 20, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            const Text("Import Options", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        const SizedBox(height: 24),
         
         const Text("Base URL", style: TextStyle(fontWeight: FontWeight.bold)),
         RadioListTile<BaseUrlBehavior>(

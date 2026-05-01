@@ -89,22 +89,32 @@ class _WorkgroupExplorerState extends ConsumerState<WorkgroupExplorer> {
 
     return Column(
       children: [
-        // Toolbar
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Row(
             children: [
-              const Text('Explorer', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(width: 12),
+              Icon(Icons.folder_shared_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Workgroup Explorer',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.create_new_folder, size: 20),
+                icon: const Icon(Icons.create_new_folder_outlined, size: 18),
                 onPressed: () => _showCreateFolderDialog(context),
                 tooltip: 'New Folder',
+                visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                icon: const Icon(Icons.upload_file, size: 20),
+                icon: const Icon(Icons.import_export_rounded, size: 18),
                 onPressed: () => _importWorkgroup(context),
                 tooltip: 'Import Workgroup',
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
@@ -135,7 +145,6 @@ class _WorkgroupExplorerState extends ConsumerState<WorkgroupExplorer> {
             onWillAccept: (data) => true,
             onAccept: (requestId) {
                _stopAutoScroll();
-               // Move to System Default ('no-workgroup')
                ref.read(savedRequestControllerProvider.notifier).moveRequest(requestId, 'no-workgroup');
                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Moved to No Workgroup')));
             },
@@ -181,7 +190,7 @@ class _WorkgroupExplorerState extends ConsumerState<WorkgroupExplorer> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        withData: true, // Required for Web access to bytes
+        withData: true,
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -230,36 +239,41 @@ class _FolderTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get children folders
     final childrenFolders = ref.watch(folderChildrenProvider(folder.id));
-    // Get children requests
     final allRequests = ref.watch(savedRequestControllerProvider);
     final childrenRequests = allRequests.where((r) => r.groupId == folder.id).toList();
-
-    // Get children workflows
     final allWorkflows = ref.watch(savedWorkflowControllerProvider);
     final childrenWorkflows = allWorkflows.where((w) => w.groupId == folder.id).toList();
 
     return DragTarget<String>(
       builder: (context, candidates, rejects) {
         return ExpansionTile(
-          initiallyExpanded: folder.isSystem, // Auto expand system group
+          initiallyExpanded: folder.isSystem,
+          tilePadding: const EdgeInsets.only(left: 8, right: 4),
+          childrenPadding: const EdgeInsets.only(left: 16),
           leading: Icon(
-             folder.isSystem ? Icons.archive : Icons.folder, // Distinct icon for system
+             Icons.folder_rounded,
              size: 18, 
-             color: candidates.isNotEmpty ? Colors.blue : (folder.isSystem ? Colors.orangeAccent : Colors.blueGrey)
+             color: folder.isSystem 
+                ? Theme.of(context).colorScheme.secondary 
+                : Theme.of(context).colorScheme.primary.withOpacity(0.8),
           ),
-          title: Text(folder.name, style: TextStyle(
+          title: Text(folder.name, style: const TextStyle(
             fontSize: 13, 
-            fontWeight: folder.isSystem ? FontWeight.w600 : FontWeight.normal
+            fontWeight: FontWeight.w600
           )),
           trailing: PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 16),
+            icon: const Icon(Icons.more_horiz_rounded, size: 16),
+            padding: EdgeInsets.zero,
+            splashRadius: 16,
             itemBuilder: (_) => [
-              const PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
+              const PopupMenuItem<String>(value: 'new_workflow', child: Text('New Workflow')),
+              const PopupMenuItem<String>(value: 'import_swagger', child: Text('New Workflow from Swagger')),
               const PopupMenuItem<String>(value: 'export_json', child: Text('Export JSON')),
               if (!folder.isSystem) ...[
                 const PopupMenuItem<String>(value: 'rename', child: Text('Rename')),
+                const PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
+              ] else ...[
                 const PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
               ]
             ],
@@ -271,8 +285,6 @@ class _FolderTile extends ConsumerWidget {
               } else if (value == 'export_json') {
                  try {
                    final jsonString = await ref.read(workgroupExportServiceProvider).exportWorkgroup(folder.id);
-                   
-                   // Desktop Save Dialog
                    String? outputFile = await FilePicker.platform.saveFile(
                      dialogTitle: 'Export Workgroup',
                      fileName: '${folder.name}.apilens-workgroup.json',
@@ -284,18 +296,17 @@ class _FolderTile extends ConsumerWidget {
                       final file = File(outputFile);
                       await file.writeAsString(jsonString);
                       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to $outputFile')));
-                   } else {
-                      // User canceled
                    }
                  } catch (e) {
                     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export Failed: $e'), backgroundColor: Colors.red));
                  }
+              } else if (value == 'new_workflow') {
+                 _showCreateWorkflowDialog(context, ref, folder.id);
               } else if (value == 'import_swagger') {
                  _showSwaggerImportDialog(context, ref, folder.id);
               }
             },
           ),
-          childrenPadding: const EdgeInsets.only(left: 16),
           children: [
             ...childrenFolders.map((subFolder) => _FolderTile(folder: subFolder)),
             ...childrenRequests.map((req) => _RequestTile(req: req)),
@@ -306,8 +317,6 @@ class _FolderTile extends ConsumerWidget {
       onWillAccept: (requestId) => requestId != null, 
       onAccept: (requestId) {
         if (requestId.isNotEmpty) {
-           // We might need to differentiate between request and workflow logic later if dragging workflows is supported
-           // For now assume string is requestId, but if we support workflow drag we need type or prefix
            ref.read(savedRequestControllerProvider.notifier).moveRequest(requestId, folder.id);
            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Moved to ${folder.name}')));
         }
@@ -380,7 +389,40 @@ class _FolderTile extends ConsumerWidget {
 
 }
 
-// ... (existing imports)
+void _showCreateWorkflowDialog(BuildContext context, WidgetRef ref, String targetGroupId) {
+  final controller = TextEditingController(text: 'New Workflow');
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('New Workflow'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(labelText: 'Name'),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(
+          onPressed: () async {
+            if (controller.text.isNotEmpty) {
+              final id = await ref.read(savedWorkflowControllerProvider.notifier).createWorkflow(
+                name: controller.text, 
+                groupId: targetGroupId
+              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => WorkflowEditorScreen(workflowIdToLoad: id)
+                ));
+              }
+            }
+          },
+          child: const Text('Create'),
+        ),
+      ],
+    ),
+  );
+}
 
 class _DragPreview extends StatelessWidget {
   final String text;
@@ -419,7 +461,7 @@ class _DragPreview extends StatelessWidget {
 }
 
 class _RequestTile extends ConsumerWidget {
-  final dynamic req; // details
+  final dynamic req;
   
   const _RequestTile({required this.req});
   
@@ -435,14 +477,18 @@ class _RequestTile extends ConsumerWidget {
 
   Widget _buildTile(BuildContext context, WidgetRef ref) {
     return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.only(left: 12, right: 4),
+      horizontalTitleGap: 8,
       leading: const Icon(Icons.http, size: 16),
       title: Text(req.name, style: const TextStyle(fontSize: 13)),
       onTap: () {
         ref.read(requestNotifierProvider.notifier).restoreRequest(req);
       },
-      dense: true,
       trailing: PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert, size: 16),
+        icon: const Icon(Icons.more_horiz_rounded, size: 16),
+        padding: EdgeInsets.zero,
+        splashRadius: 16,
         itemBuilder: (_) => [
           const PopupMenuItem<String>(value: 'move_root', child: Text('Move to No Workgroup')),
           const PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
@@ -466,25 +512,36 @@ class _WorkflowTile extends ConsumerWidget {
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListTile(
-      leading: const Icon(Icons.account_tree_outlined, size: 16, color: Colors.purple),
-      title: Text(workflow.name, style: const TextStyle(fontSize: 13)),
-      onTap: () {
-         Navigator.push(context, MaterialPageRoute(
+    return Padding(
+      padding: const EdgeInsets.only(left: 20),
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.only(left: 12, right: 4),
+        horizontalTitleGap: 8,
+        leading: Icon(
+          Icons.account_tree_outlined, 
+          size: 16, 
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.6)
+        ),
+        title: Text(
+          workflow.name,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(
             builder: (_) => WorkflowEditorScreen(workflowIdToLoad: workflow.id)
-         ));
-      },
-      dense: true,
-      trailing: PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert, size: 16),
-        itemBuilder: (_) => [
-          const PopupMenuItem<String>(value: 'delete', child: Text('Delete')),
-        ],
-        onSelected: (value) {
-          if (value == 'delete') {
-             ref.read(savedWorkflowControllerProvider.notifier).deleteWorkflow(workflow.id);
-          }
+          ));
         },
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline_rounded, size: 14),
+          onPressed: () => ref.read(savedWorkflowControllerProvider.notifier).deleteWorkflow(workflow.id),
+          padding: EdgeInsets.zero,
+          splashRadius: 16,
+          visualDensity: VisualDensity.compact,
+        ),
+        hoverColor: Theme.of(context).hoverColor,
       ),
     );
   }

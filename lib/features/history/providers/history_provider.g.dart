@@ -11,7 +11,7 @@ String _$historyRepositoryHash() => r'c82ad2b499f9d49cd2cbc66097f5770d79125d96';
 /// See also [historyRepository].
 @ProviderFor(historyRepository)
 final historyRepositoryProvider =
-    AutoDisposeProvider<HistoryRepository>.internal(
+    AutoDisposeFutureProvider<HistoryRepository>.internal(
   historyRepository,
   name: r'historyRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -21,7 +21,7 @@ final historyRepositoryProvider =
   allTransitiveDependencies: null,
 );
 
-typedef HistoryRepositoryRef = AutoDisposeProviderRef<HistoryRepository>;
+typedef HistoryRepositoryRef = AutoDisposeFutureProviderRef<HistoryRepository>;
 String _$historyNotifierHash() => r'bd0103162a24b61bac02a3ad6ddbe680a5b16b56';
 
 /// See also [HistoryNotifier].

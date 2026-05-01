@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:yaml/yaml.dart';
 import 'package:uuid/uuid.dart';
 import '../../request/models/request_model.dart';
 import '../../request/models/key_value_item.dart';
@@ -20,12 +21,51 @@ class SwaggerParserService {
   OpenApiParseResult? parseToResult(String content) {
     if (content.trim().isEmpty) return null;
     try {
-      final map = jsonDecode(content);
-      return _parseJsonToResult(map);
+      // 1. Try JSON
+      if (content.trim().startsWith('{')) {
+        final map = jsonDecode(content);
+        return _parseJsonToResult(map);
+      }
+      
+      // 2. Try YAML
+      final yamlMap = loadYaml(content);
+      if (yamlMap is YamlMap) {
+        final map = _recursiveYamlToMap(yamlMap);
+        return _parseJsonToResult(map);
+      }
+      return null;
     } catch (e) {
-      print('JSON Decode Error: $e');
+      print('Parse Error: $e');
       return null;
     }
+  }
+
+  Map<String, dynamic> _recursiveYamlToMap(YamlMap yamlMap) {
+    final map = <String, dynamic>{};
+    yamlMap.forEach((key, value) {
+      if (value is YamlMap) {
+        map[key.toString()] = _recursiveYamlToMap(value);
+      } else if (value is YamlList) {
+        map[key.toString()] = _recursiveYamlToList(value);
+      } else {
+        map[key.toString()] = value;
+      }
+    });
+    return map;
+  }
+
+  List<dynamic> _recursiveYamlToList(YamlList yamlList) {
+    final list = <dynamic>[];
+    for (var item in yamlList) {
+      if (item is YamlMap) {
+        list.add(_recursiveYamlToMap(item));
+      } else if (item is YamlList) {
+        list.add(_recursiveYamlToList(item));
+      } else {
+        list.add(item);
+      }
+    }
+    return list;
   }
 
   OpenApiParseResult _parseJsonToResult(Map<String, dynamic> root) {

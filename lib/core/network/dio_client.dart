@@ -10,7 +10,7 @@ class DioClient {
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
-        responseType: ResponseType.plain, // We parse manually to avoid Dio errors on malformed JSON
+        responseType: ResponseType.bytes, // Decode manually so compressed/plain responses are handled consistently
         validateStatus: (status) => true, // Accept all status codes (4xx/5xx are valid responses)
       ),
     );

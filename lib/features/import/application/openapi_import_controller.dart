@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../domain/models/openapi_operation_model.dart';
 import 'swagger_parser_service.dart';
 import '../../request/data/request_repository.dart';
-import '../../workgroup/application/workgroup_controller.dart';
+import 'swagger_workflow_generator.dart';
+import '../../workflow_editor/data/workflow_repository.dart';
+import '../../request/application/saved_request_controller.dart';
+import '../../workflow_editor/application/saved_workflow_controller.dart';
 
 class OpenApiImportState {
   final bool isLoading;
@@ -64,7 +69,7 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final result = _parser.parseToResult(content);
-      if (result == null) throw Exception('Failed to parse content');
+      if (result == null) throw Exception('Failed to parse content. Ensure it is a valid OpenAPI JSON spec.');
 
       state = state.copyWith(
         isLoading: false,
@@ -74,6 +79,61 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loadFromUrl(String url) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final dio = Dio();
+      final response = await dio.get(url);
+      
+      String content = response.data is String ? response.data : jsonEncode(response.data);
+      String effectiveUrl = url;
+
+      // Check if it's HTML (likely Swagger UI)
+      final isHtml = content.trim().startsWith('<!DOCTYPE html>') || 
+                     content.toLowerCase().contains('<html');
+
+      if (isHtml) {
+        // Discovery Logic 1: Look for spec URL in the HTML (Standard Swagger UI pattern)
+        final regex = RegExp(r'''url\s*[:=]\s*["\']([^"\']+)["\']''');
+        final match = regex.firstMatch(content);
+        
+        String? discoveredUrl;
+        if (match != null) {
+          discoveredUrl = match.group(1);
+        } else {
+          // Discovery Logic 2: Try common relative paths for SpringDoc/Swagger
+          final commonPaths = ['/v3/api-docs', '/v2/api-docs', '/api-docs', '/swagger-resources'];
+          final baseUri = Uri.parse(url);
+          
+          for (final path in commonPaths) {
+            try {
+               final testUrl = baseUri.resolve(path).toString();
+               final testResp = await dio.get(testUrl);
+               // If it returns JSON, we found it!
+               final testContent = testResp.data is String ? testResp.data : jsonEncode(testResp.data);
+               if (testContent.trim().startsWith('{') || testContent.trim().startsWith('[')) {
+                  discoveredUrl = testUrl;
+                  break;
+               }
+            } catch (_) {}
+          }
+        }
+
+        if (discoveredUrl != null) {
+           effectiveUrl = Uri.parse(url).resolve(discoveredUrl).toString();
+           final specResponse = await dio.get(effectiveUrl);
+           content = specResponse.data is String ? specResponse.data : jsonEncode(specResponse.data);
+        } else {
+           throw Exception('Detected Swagger UI page, but could not find the raw API specification URL.');
+        }
+      }
+
+      await loadContent(content, baseUrlOverride: effectiveUrl);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Failed to load spec: ${e.toString()}');
     }
   }
 
@@ -192,7 +252,37 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
         }
       }
       
+      // Notify state update
+      _ref.read(savedRequestControllerProvider.notifier).refresh();
+      
       return {'success': success, 'skip': 0, 'error': error};
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<String?> generateWorkflowFromSelected(String name, String? targetGroupId) async {
+    final selectedOps = state.parseResult?.operations
+        .where((op) => state.selectedOperationIds.contains(op.id)).toList() ?? [];
+    
+    if (selectedOps.isEmpty) return null;
+
+    state = state.copyWith(isLoading: true);
+    try {
+      final baseUrl = state.parseResult?.baseUrl ?? '';
+      final generator = SwaggerWorkflowGenerator(parserService: _parser);
+      final workflow = generator.generateWorkflow(selectedOps, name, targetGroupId, state.options, baseUrl);
+      
+      final repo = _ref.read(workflowRepositoryProvider);
+      await repo.save(workflow);
+      
+      // Notify state update
+      _ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
+      
+      return workflow.id;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return null;
     } finally {
       state = state.copyWith(isLoading: false);
     }

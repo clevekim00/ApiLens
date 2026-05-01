@@ -68,7 +68,12 @@ class NodePalette extends ConsumerWidget {
             children: [
               Icon(icon, color: color),
               const SizedBox(width: 12),
-              Text(label),
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ),

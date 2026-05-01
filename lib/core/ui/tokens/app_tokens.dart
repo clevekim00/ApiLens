@@ -18,29 +18,51 @@ class AppTokens {
 
   // 3) Typography
   static TextTheme get textTheme {
-    // UI Font: System UI (Inter as proxi or default)
-    // Actually user said "system-ui (default TextTheme)" but let's use Inter for that clean look if possible,
-    // or just standard Flutter typography which defaults to system font on different OS.
-    // User said "UI 폰트: system-ui (기본 TextTheme)". So we will rely on ThemeData's default but maybe adjust sizes.
-    // However, to ensure "shadcn" feel, Inter is usually the go-to.
-    // Let's stick to standard Flutter TextTheme but with sizes defined.
-    // Actually user specified Font sizes: labelSm 12, body 14, bodyLg 16, title 18, titleLg 20
-    
     return TextTheme(
-      labelSmall: GoogleFonts.inter(fontSize: 12, height: 1.35),
-      bodyMedium: GoogleFonts.inter(fontSize: 14, height: 1.35), // body
-      bodyLarge: GoogleFonts.inter(fontSize: 16, height: 1.35),  // bodyLg
-      titleMedium: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600), // title
-      titleLarge: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600), // titleLg
-      // Fallbacks
-      labelMedium: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+      labelSmall: _uiStyle(fontSize: 12, height: 1.35),
+      bodyMedium: _uiStyle(fontSize: 14, height: 1.35),
+      bodyLarge: _uiStyle(fontSize: 16, height: 1.35),
+      titleMedium: _uiStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      titleLarge: _uiStyle(fontSize: 20, fontWeight: FontWeight.w600),
+      labelMedium: _uiStyle(fontSize: 12, fontWeight: FontWeight.w500),
     );
   }
 
   static TextStyle get monoStyle {
-    return GoogleFonts.firaCode(
-      fontSize: 13, // Standard code size
+    if (GoogleFonts.config.allowRuntimeFetching) {
+      return GoogleFonts.firaCode(
+        fontSize: 13,
+        height: 1.35,
+      );
+    }
+
+    return const TextStyle(
+      fontSize: 13,
       height: 1.35,
+      fontFamily: 'monospace',
+    );
+  }
+
+  static TextStyle _uiStyle({
+    double? fontSize,
+    double? height,
+    FontWeight? fontWeight,
+    Color? color,
+  }) {
+    if (GoogleFonts.config.allowRuntimeFetching) {
+      return GoogleFonts.inter(
+        fontSize: fontSize,
+        height: height,
+        fontWeight: fontWeight,
+        color: color,
+      );
+    }
+
+    return TextStyle(
+      fontSize: fontSize,
+      height: height,
+      fontWeight: fontWeight,
+      color: color,
     );
   }
 }

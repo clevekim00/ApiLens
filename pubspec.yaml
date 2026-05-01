@@ -16,6 +16,7 @@ dependencies:
   
   # Network
   dio: ^5.4.0
+  yaml: ^3.1.2
   
   # Database
   isar: ^3.1.0+1

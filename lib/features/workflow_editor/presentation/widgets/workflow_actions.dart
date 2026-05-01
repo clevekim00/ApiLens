@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import 'package:uuid/uuid.dart';
 import '../../domain/models/workflow.dart';
 import '../../application/workflow_editor_controller.dart';
@@ -229,9 +231,9 @@ class WorkflowActions {
        edges: state.edges,
      );
      final jsonStr = ref.read(workflowRepositoryProvider).exportJson(workflow);
-     await Clipboard.setData(ClipboardData(text: jsonStr));
+     
      if (context.mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('JSON copied to clipboard!')));
+       await _showExportDialog(context, ref, state.name, jsonStr);
      }
   }
 
@@ -306,6 +308,73 @@ class WorkflowActions {
          actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('OK')),
+         ],
+       )
+     );
+  }
+
+  static Future<void> _showExportDialog(BuildContext context, WidgetRef ref, String workflowName, String jsonStr) async {
+     await showDialog(
+       context: context,
+       builder: (context) => AlertDialog(
+         title: const Text('Export Workflow JSON'),
+         content: SizedBox(
+           width: 600,
+           height: 400,
+           child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               const Text('You can copy the JSON content below or save it as a file:'),
+               const SizedBox(height: 16),
+               Expanded(
+                 child: Container(
+                   padding: const EdgeInsets.all(8),
+                   decoration: BoxDecoration(
+                     color: Colors.grey.withOpacity(0.1),
+                     borderRadius: BorderRadius.circular(4),
+                   ),
+                   child: SingleChildScrollView(
+                     child: SelectableText(
+                       jsonStr,
+                       style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                     ),
+                   ),
+                 ),
+               ),
+             ],
+           ),
+         ),
+         actions: [
+           TextButton(
+             onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: jsonStr));
+                if (context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard!')));
+                }
+             }, 
+             child: const Text('Copy to Clipboard')
+           ),
+           TextButton(
+             onPressed: () async {
+                String? outputFile = await FilePicker.platform.saveFile(
+                  dialogTitle: 'Save Workflow JSON',
+                  fileName: '$workflowName.json',
+                  allowedExtensions: ['json'],
+                  type: FileType.custom,
+                );
+                
+                if (outputFile != null) {
+                   final file = File(outputFile);
+                   await file.writeAsString(jsonStr);
+                   if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to $outputFile')));
+                      Navigator.pop(context);
+                   }
+                }
+             }, 
+             child: const Text('Save to File')
+           ),
+           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
          ],
        )
      );

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../features/request/models/request_model.dart';
 import 'dio_client.dart';
@@ -69,7 +70,7 @@ class ApiService {
       );
 
       final duration = response.extra['duration'] as int? ?? 0;
-      final rawBody = response.data.toString();
+      final rawBody = _decodeResponseBody(response);
       
       dynamic jsonBody;
       try {
@@ -104,5 +105,37 @@ class ApiService {
         error: e.toString(),
       );
     }
+  }
+
+  String _decodeResponseBody(Response<dynamic> response) {
+    final data = response.data;
+    if (data == null) return '';
+    if (data is String) return data;
+
+    if (data is List<int>) {
+      final bytes = List<int>.from(data);
+      final encoding = response.headers.value(Headers.contentEncodingHeader);
+      final decodedBytes = _decodeCompressedBytes(bytes, encoding);
+      return utf8.decode(decodedBytes, allowMalformed: true);
+    }
+
+    return data.toString();
+  }
+
+  List<int> _decodeCompressedBytes(List<int> bytes, String? encoding) {
+    if (encoding == null || encoding.isEmpty) return bytes;
+
+    try {
+      if (encoding.contains('gzip')) {
+        return gzip.decode(bytes);
+      }
+      if (encoding.contains('deflate')) {
+        return zlib.decode(bytes);
+      }
+    } catch (_) {
+      // Fall back to raw bytes if decompression fails.
+    }
+
+    return bytes;
   }
 }
