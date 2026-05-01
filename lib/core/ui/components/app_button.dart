@@ -1,14 +1,7 @@
-
 import 'package:flutter/material.dart';
 import '../tokens/app_tokens.dart';
 
-enum AppButtonVariant {
-  primary,
-  secondary,
-  ghost,
-  destructive,
-  outline
-}
+enum AppButtonVariant { primary, secondary, ghost, destructive, outline }
 
 class AppButton extends StatelessWidget {
   final String label;
@@ -35,9 +28,9 @@ class AppButton extends StatelessWidget {
     // We map variants to specific ButtonStyles
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     ButtonStyle style;
-    
+
     switch (variant) {
       case AppButtonVariant.primary:
         style = ElevatedButton.styleFrom(
@@ -54,7 +47,7 @@ class AppButton extends StatelessWidget {
         );
         break;
       case AppButtonVariant.ghost:
-         style = TextButton.styleFrom(
+        style = TextButton.styleFrom(
           foregroundColor: colorScheme.onSurface,
         );
         break;
@@ -75,13 +68,17 @@ class AppButton extends StatelessWidget {
 
     // Common Overrides
     style = style.copyWith(
-      minimumSize: MaterialStateProperty.all(const Size(64, 36)), // Height 36
-      padding: MaterialStateProperty.all(padding ?? const EdgeInsets.symmetric(horizontal: 16)),
-      shape: MaterialStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd))
+      minimumSize: WidgetStateProperty.all(const Size(64, 34)),
+      padding: WidgetStateProperty.all(
+        padding ?? const EdgeInsets.symmetric(horizontal: AppTokens.s4),
       ),
-      textStyle: MaterialStateProperty.all(
-        AppTokens.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        ),
+      ),
+      textStyle: WidgetStateProperty.all(
+        AppTokens.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
 
@@ -98,21 +95,24 @@ class AppButton extends StatelessWidget {
     if (width != null) {
       return SizedBox(
         width: width,
-        height: 36,
+        height: 34,
         child: _buildButton(style, childWidget),
       );
     }
-    
-    return SizedBox(height: 36, child: _buildButton(style, childWidget));
+
+    return SizedBox(height: 34, child: _buildButton(style, childWidget));
   }
-  
+
   Widget _buildButton(ButtonStyle style, Widget child) {
     if (variant == AppButtonVariant.outline) {
-      return OutlinedButton(onPressed: disabled ? null : onPressed, style: style, child: child);
+      return OutlinedButton(
+          onPressed: disabled ? null : onPressed, style: style, child: child);
     } else if (variant == AppButtonVariant.ghost) {
-      return TextButton(onPressed: disabled ? null : onPressed, style: style, child: child);
+      return TextButton(
+          onPressed: disabled ? null : onPressed, style: style, child: child);
     } else {
-      return ElevatedButton(onPressed: disabled ? null : onPressed, style: style, child: child);
+      return ElevatedButton(
+          onPressed: disabled ? null : onPressed, style: style, child: child);
     }
   }
 }

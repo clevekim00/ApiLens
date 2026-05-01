@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../tokens/app_tokens.dart';
 import 'app_input.dart';
@@ -65,16 +64,16 @@ class _AppKVRowState extends State<AppKVRow> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Use AppTokens.s1 (4.0) or similar? 
-    // Spec says "row height 36", "hover background = accent", "divider bottom = border"
-    
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: Container(
-        height: 36,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        height: 38,
         decoration: BoxDecoration(
-          color: _isHovering ? theme.colorScheme.secondary.withOpacity(0.5) : null, // using secondary as accent alias or explicit accent
+          color: _isHovering
+              ? theme.colorScheme.primary.withValues(alpha: 0.055)
+              : Colors.transparent,
           border: Border(bottom: BorderSide(color: theme.dividerColor)),
         ),
         child: Row(
@@ -87,15 +86,14 @@ class _AppKVRowState extends State<AppKVRow> {
                   value: widget.isEnabled,
                   onChanged: (v) => widget.onEnabledChanged(v ?? false),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  // Custom shape for shadcn look?
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  visualDensity: VisualDensity.compact,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+                  ),
                 ),
               ),
             ),
-            // Vertical Divider
             VerticalDivider(width: 1, color: theme.dividerColor),
-            
-            // Key Input (Flex 1)
             Expanded(
               flex: 1,
               child: AppInput(
@@ -103,23 +101,10 @@ class _AppKVRowState extends State<AppKVRow> {
                 onChanged: widget.onKeyChanged,
                 hintText: widget.keyHint,
                 mono: true,
-                // Remove borders for seamless table look? 
-                // "key/value input(mono)" - usually in VSCode tables they are seamless until focused.
-                // AppInput uses standard decoration which has borders.
-                // To look like a table row, maybe we want borderless input?
-                // But Prompt says "focus ring 느낌을 border로 표현".
-                // Let's rely on AppInput's styling. Usually detailed table rows have inputs.
-                // If it looks too cluttered with full borders in every cell, we might need a "ghost" input variant.
-                // For now, let's just use AppInput. If it has full borders, it might look like a grid.
-                // Wait, "AppKVRow... row height 36". AppInput height defaults to TextField height which might be > 36 strict if padding.
-                // AppInput has isDense=true.
+                borderless: true,
               ),
             ),
-            
-            // Vertical Divider
             VerticalDivider(width: 1, color: theme.dividerColor),
-
-            // Value Input (Flex 2)
             Expanded(
               flex: 2,
               child: AppInput(
@@ -127,11 +112,12 @@ class _AppKVRowState extends State<AppKVRow> {
                 onChanged: widget.onValueChanged,
                 hintText: widget.valueHint,
                 mono: true,
+                borderless: true,
               ),
             ),
-            
-            // Delete Icon
-            if (_isHovering || _keyController.text.isNotEmpty || _valueController.text.isNotEmpty)
+            if (_isHovering ||
+                _keyController.text.isNotEmpty ||
+                _valueController.text.isNotEmpty)
               SizedBox(
                 width: 36,
                 child: AppButton(

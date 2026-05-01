@@ -331,3 +331,41 @@ GraphQL:
 6. 데이터 계층 저장소 전략 문서화 및 migration 테스트 추가
 
 제품 관점에서는 3번과 4번이 체감 개선이 가장 큽니다. 기술 관점에서는 1번과 2번이 앞으로의 변경 속도를 지켜줍니다. 지금 ApiLens는 "기능을 더 넣어야 하는 단계"라기보다 "있는 기능을 작업 도구답게 연결하고 신뢰도를 높이는 단계"에 와 있습니다.
+
+## 10. 2026-05-01 UI 리팩터링 진행 현황
+
+이번 리팩터링에서는 Request, Response, Workgroup, History, WebSocket, GraphQL, Workflow Editor의 화면 구조를 "작업형 API 도구" 방향으로 정리했습니다. 핵심 목표는 화면을 예쁘게 꾸미는 것보다 반복 작업 속도, 정보 밀도, 좁은 화면 대응, 응답/로그 가독성을 개선하는 것이었습니다.
+
+완료된 항목:
+
+- Request 화면을 좌측 Workgroup/History sidebar, 중앙 요청 편집기, 응답 패널 구조로 재배치
+- 좁은 화면에서 Request sidebar가 접히고 drawer로 열리도록 반응형 처리
+- Response Viewer를 metric/status 중심 헤더, Body/Headers 탭, empty/loading/error 상태가 있는 패널로 정리
+- Headers, Params, Auth, Body 편집 UI를 compact form/table/card 스타일로 통일
+- Workgroup Explorer와 History Panel을 개발자 도구형 list/card 밀도로 정리
+- Environment/Workgroup selector를 작은 toolbar 컨트롤로 정돈
+- WebSocket 화면을 connection panel, message log, composer panel 중심으로 재구성
+- GraphQL 화면을 endpoint/action bar, query/variables editor, response panel 구조로 정리
+- Workflow Editor의 toolbar, Node Palette, Inspector, Debug Panel을 패널형 UI로 통일
+- Workflow Editor 좁은 화면에서 Canvas 아래에 Nodes/Inspector/Debug tab panel이 배치되도록 반응형 처리
+- Node Palette에서 클릭 추가와 canvas drag/drop 추가를 모두 지원
+- Response Viewer에 body 검색, 검색 결과 highlight, body/header 복사, header 필터 추가
+- WebSocket Message Log에 payload 검색, sent/received/system 방향 필터, payload 복사 추가
+- 주요 UI 변경에 대한 smoke test를 보강하고 기존 widget/network 회귀 테스트를 통과
+- Response Viewer body 검색과 header 필터에 대한 위젯 회귀 테스트 추가
+
+현재 남은 UI 개선 후보:
+
+- 실제 기기/브라우저 크기별 시각 QA: 390px, 768px, 1280px, 1440px 이상
+- Response Viewer의 JSON tree 접기/펼치기 세부 제어, copy path 기능
+- GraphQL schema introspection/docs explorer와 variables validation
+- WebSocket 로그 pin, export 기능
+- Workflow Canvas zoom controls, minimap, fit-to-screen, node alignment guide
+- 공통 컴포넌트 추출: `AppToolbar`, `AppSplitPane`, `AppStatusChip`, `AppEmptyState`, `AppCodeEditorShell`
+- OpenAPI Import 화면의 table/preview 중심 재설계
+
+검증 기준:
+
+- `dart analyze`로 변경 UI 파일 전체 정적 분석 통과
+- `flutter test test/widget_test.dart test/smoke/app_smoke_test.dart test/network_test.dart test/response_viewer_test.dart` 회귀 테스트 통과
+- `git diff --check`로 공백/패치 위생 검사 통과

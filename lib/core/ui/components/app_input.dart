@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../tokens/app_tokens.dart';
 
@@ -16,6 +15,7 @@ class AppInput extends StatelessWidget {
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
+  final bool borderless;
 
   const AppInput({
     super.key,
@@ -32,6 +32,7 @@ class AppInput extends StatelessWidget {
     this.onEditingComplete,
     this.onSubmitted,
     this.focusNode,
+    this.borderless = false,
   });
 
   @override
@@ -54,7 +55,14 @@ class AppInput extends StatelessWidget {
         hintText: hintText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
-        isDense: true, 
+        isDense: true,
+        filled: borderless ? false : null,
+        border: borderless ? InputBorder.none : null,
+        enabledBorder: borderless ? InputBorder.none : null,
+        focusedBorder: borderless ? InputBorder.none : null,
+        contentPadding: borderless
+            ? const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: 0)
+            : null,
       ),
     );
   }
