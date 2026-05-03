@@ -117,6 +117,10 @@ void main() {
 
     expect(find.byKey(const Key('canvas_workflow')), findsOneWidget,
         reason: 'Workflow Canvas failed to load');
+    expect(find.byKey(const Key('btn_canvas_fit')), findsOneWidget,
+        reason: 'Workflow Canvas fit control missing');
+    expect(find.byKey(const Key('canvas_minimap')), findsOneWidget,
+        reason: 'Workflow Canvas minimap missing');
   });
 
   testWidgets('Smoke Test: Request sidebar collapses on narrow screens',

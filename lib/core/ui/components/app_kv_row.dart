@@ -69,7 +69,7 @@ class _AppKVRowState extends State<AppKVRow> {
       onExit: (_) => setState(() => _isHovering = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
-        height: 38,
+        height: 32,
         decoration: BoxDecoration(
           color: _isHovering
               ? theme.colorScheme.primary.withValues(alpha: 0.055)

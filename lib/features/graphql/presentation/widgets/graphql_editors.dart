@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/ui/components/app_code_editor_shell.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 
 class CodeEditor extends StatefulWidget {
@@ -45,76 +46,13 @@ class _CodeEditorState extends State<CodeEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final lineCount = _controller.text.isEmpty
-        ? 1
-        : '\n'.allMatches(_controller.text).length + 1;
-    final lineNumbers =
-        List.generate(lineCount, (index) => '${index + 1}').join('\n');
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          theme.brightness == Brightness.dark
-              ? Colors.black.withValues(alpha: 0.12)
-              : Colors.white.withValues(alpha: 0.50),
-          theme.scaffoldBackgroundColor,
-        ),
-        border: Border.all(color: theme.dividerColor),
-        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: 46,
-              padding: const EdgeInsets.only(
-                top: AppTokens.s3,
-                right: AppTokens.s2,
-              ),
-              alignment: Alignment.topRight,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(right: BorderSide(color: theme.dividerColor)),
-              ),
-              child: Text(
-                lineNumbers,
-                textAlign: TextAlign.right,
-                style: AppTokens.monoStyle.copyWith(
-                  fontSize: 12,
-                  height: 1.5,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.38),
-                ),
-              ),
-            ),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                maxLines: null,
-                expands: true,
-                style: AppTokens.monoStyle.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  height: 1.5,
-                ),
-                decoration: InputDecoration(
-                  hintText: widget.hint,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(AppTokens.s3),
-                  filled: false,
-                ),
-                onChanged: (value) {
-                  widget.onChanged(value);
-                  setState(() {});
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+    return AppCodeEditorShell(
+      controller: _controller,
+      hint: widget.hint,
+      onChanged: (value) {
+        widget.onChanged(value);
+        setState(() {});
+      },
     );
   }
 }
@@ -142,19 +80,109 @@ class GraphQLQueryEditor extends ConsumerWidget {
 class GraphQLVariablesEditor extends ConsumerWidget {
   final String variables;
   final ValueChanged<String> onChanged;
+  final String? validationError;
+  final VoidCallback onFormat;
 
   const GraphQLVariablesEditor({
     super.key,
     required this.variables,
     required this.onChanged,
+    required this.validationError,
+    required this.onFormat,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CodeEditor(
-      initialValue: variables,
-      onChanged: onChanged,
-      hint: '{\n  "id": "1"\n}',
+    final theme = Theme.of(context);
+    final hasError = validationError != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.only(bottom: AppTokens.s2),
+          child: Wrap(
+            spacing: AppTokens.s2,
+            runSpacing: AppTokens.s2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _ValidationStatusChip(
+                hasError: hasError,
+                message: validationError ?? 'Variables JSON is valid',
+              ),
+              TextButton.icon(
+                onPressed: onFormat,
+                icon: const Icon(Icons.auto_fix_high_outlined, size: 16),
+                label: const Text('Format JSON'),
+              ),
+              Text(
+                'Variables must be a JSON object.',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: CodeEditor(
+            initialValue: variables,
+            onChanged: onChanged,
+            hint: '{\n  "id": "1"\n}',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ValidationStatusChip extends StatelessWidget {
+  final bool hasError;
+  final String message;
+
+  const _ValidationStatusChip({
+    required this.hasError,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = hasError ? theme.colorScheme.error : Colors.green;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 360),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.s2,
+        vertical: AppTokens.s1,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            hasError ? Icons.error_outline : Icons.check_circle_outline,
+            size: 15,
+            color: color,
+          ),
+          const SizedBox(width: AppTokens.s1),
+          Flexible(
+            child: Text(
+              message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

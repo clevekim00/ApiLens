@@ -79,13 +79,13 @@ class NodeWidget extends StatelessWidget {
         top = step * (i + 1);
       }
       
-      // Fine tune for visual center (port height 12)
-      top -= 6.0;
+      // Fine tune for visual center (port height 10)
+      top -= 5.0;
 
       widgets.add(
         Positioned(
-          left: isInput ? -6 : null,
-          right: isInput ? null : -6,
+          left: isInput ? -5 : null,
+          right: isInput ? null : -5,
           top: top,
           child: GestureDetector(
             onTapDown: (details) {
@@ -114,11 +114,11 @@ class NodeWidget extends StatelessWidget {
     if (key == 'false') color = Colors.orange;
 
     return Container(
-      width: 12,
-      height: 12,
+      width: 10,
+      height: 10,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: color, width: 2),
+        border: Border.all(color: color, width: 1.5),
         shape: BoxShape.circle,
       ),
     );
@@ -181,11 +181,11 @@ class NodeWidget extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 160,
-        height: 80,
+        width: 140,
+        height: 56,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: borderColor,
             width: borderWidth,
@@ -196,23 +196,23 @@ class NodeWidget extends StatelessWidget {
           children: [
             // Header
             Container(
-              height: 32,
+              height: 20,
               decoration: BoxDecoration(
                 color: nodeColor.withOpacity(0.2),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(11),
-                  topRight: Radius.circular(11),
+                  topLeft: Radius.circular(9),
+                  topRight: Radius.circular(9),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Row(
                 children: [
-                  Icon(icon, size: 16, color: nodeColor),
-                  const SizedBox(width: 8),
+                  Icon(icon, size: 12, color: nodeColor),
+                  const SizedBox(width: 4),
                   Text(
                     node.type.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: nodeColor,
                     ),
@@ -223,13 +223,13 @@ class NodeWidget extends StatelessWidget {
             // Body
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 6.0),
                 child: Center(
                   child: Text(
                     node.data['name'] ?? 'Node ${node.id}',
                     style: TextStyle(
                       color: colorScheme.onSurface,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

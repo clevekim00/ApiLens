@@ -17,6 +17,7 @@ import '../../environments/widgets/environment_selector.dart';
 import '../../../../core/utils/curl_parser.dart';
 import '../../../../core/utils/curl_exporter.dart';
 import '../../settings/screens/settings_screen.dart';
+import '../application/saved_request_controller.dart';
 
 import '../../../../features/websocket/presentation/widgets/websocket_client_panel.dart';
 import '../../../../features/graphql/presentation/screens/graphql_client_tab.dart';
@@ -324,6 +325,15 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
               ],
             );
 
+            final saveButton = OutlinedButton.icon(
+              onPressed: () {
+                final currentRequest = ref.read(requestNotifierProvider);
+                ref.read(savedRequestControllerProvider.notifier).saveRequest(currentRequest);
+              },
+              icon: const Icon(Icons.save, size: 16),
+              label: const Text('Save'),
+            );
+
             if (isCompact) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -338,6 +348,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                   const SizedBox(height: AppTokens.s2),
                   Row(
                     children: [
+                      const EnvironmentSelector(),
+                      const Spacer(),
+                      saveButton,
+                      const SizedBox(width: AppTokens.s2),
                       Expanded(child: sendButton),
                       const SizedBox(width: AppTokens.s2),
                       requestActions,
@@ -352,6 +366,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                 const MethodSelector(key: Key('selector_method')),
                 const SizedBox(width: AppTokens.s2),
                 const Expanded(child: UrlInput(key: Key('input_url_bar'))),
+                const SizedBox(width: AppTokens.s2),
+                const EnvironmentSelector(),
+                const SizedBox(width: AppTokens.s2),
+                saveButton,
                 const SizedBox(width: AppTokens.s2),
                 sendButton,
                 const SizedBox(width: AppTokens.s1),
@@ -457,8 +475,6 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           WorkgroupSelector(),
-          SizedBox(width: AppTokens.s2),
-          EnvironmentSelector(),
         ],
       ),
     );

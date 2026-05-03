@@ -33,73 +33,59 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
     final historyAsync = ref.watch(historyNotifierProvider);
     final theme = Theme.of(context);
 
-    return DefaultTabController(
-      length: 2,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          border: Border(right: BorderSide(color: theme.dividerColor)),
-          color: theme.canvasColor,
-        ),
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.s3,
-                vertical: AppTokens.s2,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.view_sidebar_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: AppTokens.s2),
-                  Text(
-                    'Workspace',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (widget.showCloseButton)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: widget.onClose,
-                      tooltip: 'Close Sidebar',
-                      visualDensity: VisualDensity.compact,
-                    ),
-                ],
-              ),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: theme.dividerColor)),
+        color: theme.canvasColor,
+      ),
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.s3,
+              vertical: AppTokens.s2,
             ),
-
-            // Tabs
-            TabBar(
-              labelColor: theme.colorScheme.primary,
-              unselectedLabelColor:
-                  theme.colorScheme.onSurface.withValues(alpha: 0.65),
-              indicatorSize: TabBarIndicatorSize.label,
-              tabs: const [
-                Tab(text: 'Explorer', icon: Icon(Icons.folder_open, size: 20)),
-                Tab(text: 'History', icon: Icon(Icons.history, size: 20)),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.view_sidebar_outlined,
+                  color: theme.colorScheme.primary,
+                  size: 18,
+                ),
+                const SizedBox(width: AppTokens.s2),
+                Text(
+                  'Workspace',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                if (widget.showCloseButton)
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: widget.onClose,
+                    tooltip: 'Close Sidebar',
+                    visualDensity: VisualDensity.compact,
+                  ),
               ],
             ),
-
-            Expanded(
-              child: TabBarView(
-                children: [
-                  // Tab 1: Explorer
-                  const WorkgroupExplorer(),
-
-                  _buildHistoryTab(historyAsync, theme),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          const Divider(height: 1),
+          // Top: Workgroup Explorer
+          const Expanded(
+            flex: 5,
+            child: WorkgroupExplorer(),
+          ),
+          const Divider(height: 1, thickness: 4),
+          // Bottom: History
+          Expanded(
+            flex: 4,
+            child: _buildHistoryTab(historyAsync, theme),
+          ),
+        ],
       ),
     );
   }

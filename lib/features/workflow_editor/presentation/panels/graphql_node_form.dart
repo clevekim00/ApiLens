@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../../domain/models/node_config.dart';
+import '../../../graphql/application/graphql_controller.dart';
 import '../../../graphql/presentation/widgets/graphql_editors.dart';
 import '../../../../core/ui/components/app_input.dart';
 
@@ -34,22 +37,38 @@ class _GraphQLNodeFormState extends State<GraphQLNodeForm> {
     _query = widget.config.query;
     _variables = widget.config.variablesJson;
   }
-  
+
   void _save() {
     final newConfig = GraphQLNodeConfig(
-       mode: widget.config.mode,
-       endpoint: _endpointCtrl.text,
-       storeAs: _storeAsCtrl.text,
-       query: _query,
-       variablesJson: _variables,
-       headers: widget.config.headers, // Preserve existing
-       auth: widget.config.auth, // Preserve existing
+      mode: widget.config.mode,
+      endpoint: _endpointCtrl.text,
+      storeAs: _storeAsCtrl.text,
+      query: _query,
+      variablesJson: _variables,
+      headers: widget.config.headers, // Preserve existing
+      auth: widget.config.auth, // Preserve existing
     );
     widget.onSave(newConfig);
   }
 
+  void _formatVariables() {
+    final validationError = validateVariablesJson(_variables);
+    if (validationError != null) {
+      setState(() {});
+      return;
+    }
+
+    final formatted = const JsonEncoder.withIndent('  ').convert(
+      jsonDecode(_variables.trim().isEmpty ? '{}' : _variables),
+    );
+    setState(() => _variables = formatted);
+    _save();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final variablesError = validateVariablesJson(_variables);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -61,34 +80,39 @@ class _GraphQLNodeFormState extends State<GraphQLNodeForm> {
           hintText: 'https://api.example.com/graphql',
         ),
         const SizedBox(height: 12),
-        const Text('Store Result As (Context Key)', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Store Result As (Context Key)',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         AppInput(
           controller: _storeAsCtrl,
-           onChanged: (_) => _save(),
-           hintText: 'gqlResult',
+          onChanged: (_) => _save(),
+          hintText: 'gqlResult',
         ),
         const SizedBox(height: 16),
-        const Text('Query Template', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Query Template',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         SizedBox(
           height: 150,
           child: GraphQLQueryEditor(
             query: _query,
             onChanged: (val) {
-               _query = val;
-               _save();
+              _query = val;
+              _save();
             },
           ),
         ),
         const SizedBox(height: 8),
-        const Text('Variables Template (JSON)', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Variables Template (JSON)',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         SizedBox(
-          height: 100,
+          height: 190,
           child: GraphQLVariablesEditor(
             variables: _variables,
+            validationError: variablesError,
+            onFormat: _formatVariables,
             onChanged: (val) {
-               _variables = val;
-               _save();
+              setState(() => _variables = val);
+              _save();
             },
           ),
         ),

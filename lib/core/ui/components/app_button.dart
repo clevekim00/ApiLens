@@ -82,14 +82,27 @@ class AppButton extends StatelessWidget {
       ),
     );
 
-    final childWidget = Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (icon != null) icon!,
-        if (icon != null && label.isNotEmpty) const SizedBox(width: 8),
-        if (label.isNotEmpty) Text(label),
-      ],
+    final childWidget = LayoutBuilder(
+      builder: (context, constraints) {
+        final canConstrainText = constraints.maxWidth.isFinite;
+        final labelText = Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+        );
+
+        return Row(
+          mainAxisSize: canConstrainText ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) icon!,
+            if (icon != null && label.isNotEmpty) const SizedBox(width: 8),
+            if (label.isNotEmpty)
+              canConstrainText ? Flexible(child: labelText) : labelText,
+          ],
+        );
+      },
     );
 
     if (width != null) {

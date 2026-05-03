@@ -15,7 +15,13 @@ void main() {
         'x-request-id': ['abc-123'],
       },
       body: '{"message":"alpha beta alpha"}',
-      jsonBody: {'message': 'alpha beta alpha'},
+      jsonBody: {
+        'message': 'alpha beta alpha',
+        'user': {'id': 7, 'name': 'Ada'},
+        'items': [
+          {'id': 'first'}
+        ],
+      },
       durationMs: 42,
       sizeBytes: 32,
     );
@@ -36,6 +42,18 @@ void main() {
 
     expect(find.text('200 OK'), findsOneWidget);
     expect(find.text('Search ready'), findsOneWidget);
+    expect(find.byTooltip(r'Copy path $.message'), findsOneWidget);
+    expect(find.byTooltip(r'Copy path $.user.id'), findsOneWidget);
+
+    await tester.tap(find.text('Collapse all'));
+    await tester.pump();
+
+    expect(find.byTooltip(r'Copy path $.user.id'), findsNothing);
+
+    await tester.tap(find.text('Expand all'));
+    await tester.pump();
+
+    expect(find.byTooltip(r'Copy path $.user.id'), findsOneWidget);
 
     await tester.enterText(
         find.widgetWithText(TextField, 'Search body'), 'alpha');

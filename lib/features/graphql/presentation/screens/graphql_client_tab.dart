@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/models/response_model.dart';
 import '../../../../core/ui/components/app_button.dart';
+import '../../../../core/ui/components/app_empty_state.dart';
 import '../../../../core/ui/components/app_input.dart';
+import '../../../../core/ui/components/app_split_pane.dart';
+import '../../../../core/ui/components/app_status_chip.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../../response/widgets/response_viewer.dart';
 import '../../application/graphql_controller.dart';
@@ -57,6 +60,7 @@ class _GraphQLClientTabState extends ConsumerState<GraphQLClientTab> {
                 _EndpointBar(
                   endpointController: _endpointController,
                   isLoading: state.isLoading,
+                  validationError: state.variablesValidationError,
                   onEndpointChanged: controller.updateEndpoint,
                   onExecute: controller.executeRequest,
                   onClear: controller.clearRequest,
@@ -73,6 +77,13 @@ class _GraphQLClientTabState extends ConsumerState<GraphQLClientTab> {
                                 state: state,
                                 onQueryChanged: controller.updateQuery,
                                 onVariablesChanged: controller.updateVariables,
+                                onFormatVariables:
+                                    controller.formatVariablesJson,
+                                onFetchSchema: controller.fetchSchema,
+                                onSchemaSearchChanged:
+                                    controller.setSchemaSearchQuery,
+                                onSchemaTypeSelected:
+                                    controller.selectSchemaType,
                               ),
                             ),
                             const SizedBox(width: AppTokens.s3),
@@ -90,6 +101,13 @@ class _GraphQLClientTabState extends ConsumerState<GraphQLClientTab> {
                                 state: state,
                                 onQueryChanged: controller.updateQuery,
                                 onVariablesChanged: controller.updateVariables,
+                                onFormatVariables:
+                                    controller.formatVariablesJson,
+                                onFetchSchema: controller.fetchSchema,
+                                onSchemaSearchChanged:
+                                    controller.setSchemaSearchQuery,
+                                onSchemaTypeSelected:
+                                    controller.selectSchemaType,
                               ),
                             ),
                             const SizedBox(height: AppTokens.s3),
@@ -112,6 +130,7 @@ class _GraphQLClientTabState extends ConsumerState<GraphQLClientTab> {
 class _EndpointBar extends StatelessWidget {
   final TextEditingController endpointController;
   final bool isLoading;
+  final String? validationError;
   final ValueChanged<String> onEndpointChanged;
   final VoidCallback onExecute;
   final VoidCallback onClear;
@@ -119,6 +138,7 @@ class _EndpointBar extends StatelessWidget {
   const _EndpointBar({
     required this.endpointController,
     required this.isLoading,
+    required this.validationError,
     required this.onEndpointChanged,
     required this.onExecute,
     required this.onClear,
@@ -148,7 +168,8 @@ class _EndpointBar extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.play_arrow, size: 16),
-              onPressed: isLoading ? null : onExecute,
+              onPressed:
+                  isLoading || validationError != null ? null : onExecute,
               variant: AppButtonVariant.primary,
             );
             final clearButton = AppButton(
@@ -163,6 +184,10 @@ class _EndpointBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   input,
+                  if (validationError != null) ...[
+                    const SizedBox(height: AppTokens.s2),
+                    _ValidationBadge(message: validationError!),
+                  ],
                   const SizedBox(height: AppTokens.s2),
                   Row(
                     children: [
@@ -178,6 +203,10 @@ class _EndpointBar extends StatelessWidget {
             return Row(
               children: [
                 Expanded(child: input),
+                if (validationError != null) ...[
+                  const SizedBox(width: AppTokens.s2),
+                  Flexible(child: _ValidationBadge(message: validationError!)),
+                ],
                 const SizedBox(width: AppTokens.s2),
                 executeButton,
                 const SizedBox(width: AppTokens.s1),
@@ -195,11 +224,19 @@ class _EditorPanel extends StatelessWidget {
   final GraphQLState state;
   final ValueChanged<String> onQueryChanged;
   final ValueChanged<String> onVariablesChanged;
+  final VoidCallback onFormatVariables;
+  final VoidCallback onFetchSchema;
+  final ValueChanged<String> onSchemaSearchChanged;
+  final ValueChanged<String?> onSchemaTypeSelected;
 
   const _EditorPanel({
     required this.state,
     required this.onQueryChanged,
     required this.onVariablesChanged,
+    required this.onFormatVariables,
+    required this.onFetchSchema,
+    required this.onSchemaSearchChanged,
+    required this.onSchemaTypeSelected,
   });
 
   @override
@@ -207,19 +244,20 @@ class _EditorPanel extends StatelessWidget {
     return DecoratedBox(
       decoration: _panelDecoration(context),
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Column(
           children: [
             const _PanelHeader(
               icon: Icons.code_outlined,
               title: 'GraphQL Document',
-              subtitle: 'Query and variables',
+              subtitle: 'Query, variables, and schema',
               trailing: SizedBox(
-                width: 220,
+                width: 320,
                 child: TabBar(
                   tabs: [
                     Tab(text: 'Query'),
                     Tab(text: 'Variables'),
+                    Tab(text: 'Schema'),
                   ],
                 ),
               ),
@@ -239,7 +277,18 @@ class _EditorPanel extends StatelessWidget {
                     padding: const EdgeInsets.all(AppTokens.s3),
                     child: GraphQLVariablesEditor(
                       variables: state.activeConfig.variablesJson,
+                      validationError: state.variablesValidationError,
                       onChanged: onVariablesChanged,
+                      onFormat: onFormatVariables,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(AppTokens.s3),
+                    child: _SchemaExplorerPanel(
+                      state: state,
+                      onFetchSchema: onFetchSchema,
+                      onSearchChanged: onSchemaSearchChanged,
+                      onTypeSelected: onSchemaTypeSelected,
                     ),
                   ),
                 ],
@@ -247,6 +296,521 @@ class _EditorPanel extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SchemaExplorerPanel extends StatelessWidget {
+  final GraphQLState state;
+  final VoidCallback onFetchSchema;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<String?> onTypeSelected;
+
+  const _SchemaExplorerPanel({
+    required this.state,
+    required this.onFetchSchema,
+    required this.onSearchChanged,
+    required this.onTypeSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.schema == null &&
+        !state.isSchemaLoading &&
+        state.schemaError == null) {
+      return AppEmptyState(
+        icon: Icons.schema_outlined,
+        title: 'Schema explorer',
+        message:
+            'Fetch the endpoint schema to browse types, fields, arguments, and enums.',
+        action: AppButton(
+          label: 'Fetch schema',
+          icon: const Icon(Icons.cloud_download_outlined, size: 16),
+          onPressed: onFetchSchema,
+          variant: AppButtonVariant.primary,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SchemaToolbar(
+          state: state,
+          onFetchSchema: onFetchSchema,
+          onSearchChanged: onSearchChanged,
+        ),
+        const SizedBox(height: AppTokens.s3),
+        Expanded(
+          child: _buildSchemaBody(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSchemaBody(BuildContext context) {
+    if (state.isSchemaLoading) {
+      return const AppEmptyState(
+        icon: Icons.sync,
+        title: 'Fetching schema...',
+        message: 'Running GraphQL introspection against the active endpoint.',
+      );
+    }
+
+    if (state.schemaError != null) {
+      return AppEmptyState(
+        icon: Icons.error_outline,
+        title: 'Schema fetch failed',
+        message: state.schemaError!,
+        action: AppButton(
+          label: 'Retry',
+          icon: const Icon(Icons.refresh, size: 16),
+          onPressed: onFetchSchema,
+        ),
+      );
+    }
+
+    final types = graphQLSchemaTypes(state);
+    final selectedType = selectedGraphQLSchemaType(state);
+    if (types.isEmpty || selectedType == null) {
+      return const AppEmptyState(
+        icon: Icons.filter_alt_off_outlined,
+        title: 'No matching schema types',
+        message: 'Try a different schema search term.',
+      );
+    }
+
+    return AppSplitPane(
+      breakpoint: 760,
+      primaryFlex: 4,
+      secondaryFlex: 5,
+      primary: _SchemaTypeList(
+        types: types,
+        selectedName: selectedType['name']?.toString(),
+        onTypeSelected: onTypeSelected,
+      ),
+      secondary: _SchemaTypePreview(type: selectedType),
+    );
+  }
+}
+
+class _SchemaToolbar extends StatelessWidget {
+  final GraphQLState state;
+  final VoidCallback onFetchSchema;
+  final ValueChanged<String> onSearchChanged;
+
+  const _SchemaToolbar({
+    required this.state,
+    required this.onFetchSchema,
+    required this.onSearchChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final totalTypes = graphQLSchemaTypes(
+      state.copyWith(schemaSearchQuery: ''),
+    ).length;
+    final visibleTypes = graphQLSchemaTypes(state).length;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 620;
+        final search = _SchemaSearchField(
+          value: state.schemaSearchQuery,
+          hintText: 'Search schema types',
+          onChanged: onSearchChanged,
+        );
+        final fetch = AppButton(
+          label: state.isSchemaLoading ? 'Fetching...' : 'Fetch schema',
+          icon: state.isSchemaLoading
+              ? const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.cloud_download_outlined, size: 16),
+          onPressed: state.isSchemaLoading ? null : onFetchSchema,
+        );
+        final count = AppStatusChip(
+          label: '$visibleTypes / $totalTypes types',
+          icon: Icons.schema_outlined,
+          tone: AppStatusTone.info,
+        );
+
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              search,
+              const SizedBox(height: AppTokens.s2),
+              Row(
+                children: [
+                  count,
+                  const Spacer(),
+                  fetch,
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: search),
+            const SizedBox(width: AppTokens.s2),
+            count,
+            const SizedBox(width: AppTokens.s2),
+            fetch,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SchemaSearchField extends StatefulWidget {
+  final String value;
+  final String hintText;
+  final ValueChanged<String> onChanged;
+
+  const _SchemaSearchField({
+    required this.value,
+    required this.hintText,
+    required this.onChanged,
+  });
+
+  @override
+  State<_SchemaSearchField> createState() => _SchemaSearchFieldState();
+}
+
+class _SchemaSearchFieldState extends State<_SchemaSearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SchemaSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != _controller.text) {
+      _controller.text = widget.value;
+      _controller.selection = TextSelection.collapsed(
+        offset: _controller.text.length,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppInput(
+      controller: _controller,
+      hintText: widget.hintText,
+      prefixIcon: const Icon(Icons.search, size: 18),
+      onChanged: widget.onChanged,
+    );
+  }
+}
+
+class _SchemaTypeList extends StatelessWidget {
+  final List<Map<String, dynamic>> types;
+  final String? selectedName;
+  final ValueChanged<String?> onTypeSelected;
+
+  const _SchemaTypeList({
+    required this.types,
+    required this.selectedName,
+    required this.onTypeSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: _panelDecoration(context),
+      child: ListView.separated(
+        itemCount: types.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: theme.dividerColor),
+        itemBuilder: (context, index) {
+          final type = types[index];
+          final name = type['name']?.toString() ?? '(anonymous)';
+          final kind = type['kind']?.toString() ?? 'TYPE';
+          final selected = selectedName == name;
+
+          return ListTile(
+            selected: selected,
+            dense: true,
+            title: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+              ),
+            ),
+            subtitle: Text(kind),
+            trailing: _fieldCountChip(type),
+            onTap: () => onTypeSelected(name),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _fieldCountChip(Map<String, dynamic> type) {
+    final count = _schemaMembers(type).length;
+    return AppStatusChip(
+      label: '$count',
+      dense: true,
+      tone: AppStatusTone.neutral,
+    );
+  }
+}
+
+class _SchemaTypePreview extends StatelessWidget {
+  final Map<String, dynamic> type;
+
+  const _SchemaTypePreview({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final members = _schemaMembers(type);
+
+    return DecoratedBox(
+      decoration: _panelDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppTokens.s3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: AppTokens.s2,
+                  runSpacing: AppTokens.s1,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      type['name']?.toString() ?? '(anonymous)',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    AppStatusChip(
+                      label: type['kind']?.toString() ?? 'TYPE',
+                      dense: true,
+                      tone: AppStatusTone.info,
+                    ),
+                  ],
+                ),
+                if ((type['description'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: AppTokens.s2),
+                  Text(
+                    type['description'].toString(),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.70),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Divider(height: 1, color: theme.dividerColor),
+          Expanded(
+            child: members.isEmpty
+                ? const AppEmptyState(
+                    icon: Icons.short_text_outlined,
+                    title: 'No members',
+                    message:
+                        'This schema type does not expose fields, inputs, or enum values.',
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(AppTokens.s3),
+                    itemCount: members.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppTokens.s2),
+                    itemBuilder: (context, index) {
+                      return _SchemaMemberCard(member: members[index]);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SchemaMemberCard extends StatelessWidget {
+  final Map<String, dynamic> member;
+
+  const _SchemaMemberCard({required this.member});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final args =
+        (member['args'] as List?)?.whereType<Map>().toList() ?? const [];
+
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.s3),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          theme.colorScheme.primary.withValues(alpha: 0.025),
+          theme.colorScheme.surface,
+        ),
+        border: Border.all(color: theme.dividerColor),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: AppTokens.s2,
+            runSpacing: AppTokens.s1,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                member['name']?.toString() ?? '(member)',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              AppStatusChip(
+                label: _typeLabel(member['type']),
+                dense: true,
+                tone: AppStatusTone.neutral,
+              ),
+              if (member['isDeprecated'] == true)
+                const AppStatusChip(
+                  label: 'deprecated',
+                  dense: true,
+                  tone: AppStatusTone.warning,
+                ),
+            ],
+          ),
+          if ((member['description'] ?? '').toString().isNotEmpty) ...[
+            const SizedBox(height: AppTokens.s1),
+            Text(
+              member['description'].toString(),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+              ),
+            ),
+          ],
+          if (args.isNotEmpty) ...[
+            const SizedBox(height: AppTokens.s2),
+            Wrap(
+              spacing: AppTokens.s1,
+              runSpacing: AppTokens.s1,
+              children: args.map((arg) {
+                return AppStatusChip(
+                  label: '${arg['name']}: ${_typeLabel(arg['type'])}',
+                  dense: true,
+                  tone: AppStatusTone.info,
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+List<Map<String, dynamic>> _schemaMembers(Map<String, dynamic> type) {
+  final fields = type['fields'];
+  if (fields is List && fields.isNotEmpty) {
+    return fields.whereType<Map>().map(_stringKeyedMap).toList();
+  }
+
+  final inputFields = type['inputFields'];
+  if (inputFields is List && inputFields.isNotEmpty) {
+    return inputFields.whereType<Map>().map(_stringKeyedMap).toList();
+  }
+
+  final enumValues = type['enumValues'];
+  if (enumValues is List && enumValues.isNotEmpty) {
+    return enumValues.whereType<Map>().map(_stringKeyedMap).toList();
+  }
+
+  return const [];
+}
+
+Map<String, dynamic> _stringKeyedMap(Map<dynamic, dynamic> value) {
+  return value.map((key, dynamic item) => MapEntry(key.toString(), item));
+}
+
+String _typeLabel(dynamic rawType) {
+  if (rawType is! Map) return 'value';
+
+  final kind = rawType['kind']?.toString();
+  final name = rawType['name']?.toString();
+  final nestedType = rawType['ofType'];
+  final nestedLabel = nestedType is Map ? _typeLabel(nestedType) : null;
+
+  if (kind == 'NON_NULL') return '${nestedLabel ?? name ?? 'value'}!';
+  if (kind == 'LIST') return '[${nestedLabel ?? name ?? 'value'}]';
+  if (name != null && name.isNotEmpty) return name;
+  return nestedLabel ?? kind ?? 'value';
+}
+
+class _ValidationBadge extends StatelessWidget {
+  final String message;
+
+  const _ValidationBadge({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 360),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.s2,
+        vertical: AppTokens.s1,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error.withValues(alpha: 0.08),
+        border: Border.all(
+          color: theme.colorScheme.error.withValues(alpha: 0.24),
+        ),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline, size: 15, color: theme.colorScheme.error),
+          const SizedBox(width: AppTokens.s1),
+          Flexible(
+            child: Text(
+              message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

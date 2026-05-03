@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_json_view/flutter_json_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/models/response_model.dart';
@@ -49,7 +48,7 @@ class _ResponseContent extends StatelessWidget {
         _ResponseSummaryBar(response: response),
         Expanded(
           child: DefaultTabController(
-            length: 2,
+            length: 4,
             child: Column(
               children: [
                 DecoratedBox(
@@ -68,6 +67,8 @@ class _ResponseContent extends StatelessWidget {
                     tabs: [
                       const Tab(text: 'Body'),
                       Tab(text: 'Headers (${response.headers.length})'),
+                      const Tab(text: 'Cookies'),
+                      const Tab(text: 'Timeline'),
                     ],
                   ),
                 ),
@@ -76,6 +77,8 @@ class _ResponseContent extends StatelessWidget {
                     children: [
                       _ResponseBodyTab(response: response),
                       _ResponseHeadersTab(response: response),
+                      const Center(child: Text('Cookies not supported yet')),
+                      const Center(child: Text('Timeline not supported yet')),
                     ],
                   ),
                 ),
@@ -282,45 +285,317 @@ class _ResponseBodyTabState extends State<_ResponseBodyTab> {
   }
 }
 
-class _JsonBodyView extends StatelessWidget {
+class _JsonBodyView extends StatefulWidget {
   final dynamic jsonBody;
 
   const _JsonBodyView({required this.jsonBody});
+
+  @override
+  State<_JsonBodyView> createState() => _JsonBodyViewState();
+}
+
+class _JsonBodyViewState extends State<_JsonBodyView> {
+  final Set<String> _collapsedPaths = {};
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final rows = <_JsonTreeRowData>[];
+    _buildRows(
+      rows: rows,
+      value: widget.jsonBody,
+      path: r'$',
+      label: r'$',
+      depth: 0,
+    );
+
+    return ColoredBox(
+      color: _codeBackground(context),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.s3,
+              vertical: AppTokens.s2,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.72),
+              border: Border(bottom: BorderSide(color: theme.dividerColor)),
+            ),
+            child: Row(
+              children: [
+                _TinyMetric(
+                  icon: Icons.account_tree_outlined,
+                  label: '${rows.length} nodes',
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => setState(_collapsedPaths.clear),
+                  icon: const Icon(Icons.unfold_more, size: 16),
+                  label: const Text('Expand all'),
+                ),
+                const SizedBox(width: AppTokens.s1),
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _collapsedPaths
+                        ..clear()
+                        ..addAll(
+                          _collectExpandablePaths(widget.jsonBody)
+                              .where((path) => path != r'$'),
+                        );
+                    });
+                  },
+                  icon: const Icon(Icons.unfold_less, size: 16),
+                  label: const Text('Collapse all'),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppTokens.s3),
+              itemCount: rows.length,
+              itemBuilder: (context, index) {
+                return _JsonTreeRow(
+                  row: rows[index],
+                  onToggle: rows[index].isExpandable
+                      ? () => _toggleCollapsed(rows[index].path)
+                      : null,
+                  onCopyPath: () => _copyToClipboard(
+                    context,
+                    rows[index].path,
+                    'JSON path',
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleCollapsed(String path) {
+    setState(() {
+      if (_collapsedPaths.contains(path)) {
+        _collapsedPaths.remove(path);
+      } else {
+        _collapsedPaths.add(path);
+      }
+    });
+  }
+
+  void _buildRows({
+    required List<_JsonTreeRowData> rows,
+    required dynamic value,
+    required String path,
+    required String label,
+    required int depth,
+  }) {
+    final expandable = _isExpandable(value);
+    final collapsed = _collapsedPaths.contains(path);
+
+    rows.add(
+      _JsonTreeRowData(
+        path: path,
+        label: label,
+        value: value,
+        depth: depth,
+        isExpandable: expandable,
+        isCollapsed: collapsed,
+      ),
+    );
+
+    if (!expandable || collapsed) return;
+
+    if (value is Map) {
+      final entries = value.entries.toList()
+        ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+      for (final entry in entries) {
+        final key = entry.key.toString();
+        _buildRows(
+          rows: rows,
+          value: entry.value,
+          path: _objectPath(path, key),
+          label: key,
+          depth: depth + 1,
+        );
+      }
+      return;
+    }
+
+    if (value is List) {
+      for (var index = 0; index < value.length; index++) {
+        _buildRows(
+          rows: rows,
+          value: value[index],
+          path: '$path[$index]',
+          label: '[$index]',
+          depth: depth + 1,
+        );
+      }
+    }
+  }
+
+  Set<String> _collectExpandablePaths(dynamic value, [String path = r'$']) {
+    final paths = <String>{};
+    if (!_isExpandable(value)) return paths;
+
+    paths.add(path);
+    if (value is Map) {
+      for (final entry in value.entries) {
+        paths.addAll(
+          _collectExpandablePaths(
+              entry.value, _objectPath(path, entry.key.toString())),
+        );
+      }
+    } else if (value is List) {
+      for (var index = 0; index < value.length; index++) {
+        paths.addAll(_collectExpandablePaths(value[index], '$path[$index]'));
+      }
+    }
+    return paths;
+  }
+}
+
+class _JsonTreeRowData {
+  final String path;
+  final String label;
+  final dynamic value;
+  final int depth;
+  final bool isExpandable;
+  final bool isCollapsed;
+
+  const _JsonTreeRowData({
+    required this.path,
+    required this.label,
+    required this.value,
+    required this.depth,
+    required this.isExpandable,
+    required this.isCollapsed,
+  });
+}
+
+class _JsonTreeRow extends StatelessWidget {
+  final _JsonTreeRowData row;
+  final VoidCallback? onToggle;
+  final VoidCallback onCopyPath;
+
+  const _JsonTreeRow({
+    required this.row,
+    required this.onToggle,
+    required this.onCopyPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final valueKind = _jsonKind(row.value);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onToggle,
+        borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+        child: Padding(
+          padding: EdgeInsets.only(left: row.depth * 14.0),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 32),
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.s1),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 26,
+                  child: row.isExpandable
+                      ? IconButton(
+                          tooltip:
+                              row.isCollapsed ? 'Expand node' : 'Collapse node',
+                          onPressed: onToggle,
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            row.isCollapsed
+                                ? Icons.chevron_right
+                                : Icons.expand_more,
+                            size: 18,
+                          ),
+                        )
+                      : Icon(
+                          Icons.circle,
+                          size: 5,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.24),
+                        ),
+                ),
+                const SizedBox(width: AppTokens.s1),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
+                  child: SelectableText(
+                    row.label,
+                    maxLines: 1,
+                    style: AppTokens.monoStyle.copyWith(
+                      color: row.depth == 0
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTokens.s2),
+                _JsonKindBadge(kind: valueKind),
+                const SizedBox(width: AppTokens.s2),
+                Expanded(
+                  child: SelectableText(
+                    _jsonPreview(row.value),
+                    maxLines: 1,
+                    style: AppTokens.monoStyle.copyWith(
+                      color: _valueColor(context, row.value),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onCopyPath,
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Copy path ${row.path}',
+                  icon: const Icon(Icons.copy_all_outlined, size: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _JsonKindBadge extends StatelessWidget {
+  final String kind;
+
+  const _JsonKindBadge({required this.kind});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
-      width: double.infinity,
-      color: _codeBackground(context),
-      padding: const EdgeInsets.all(AppTokens.s4),
-      child: JsonView.map(
-        _jsonAsMap(jsonBody),
-        theme: JsonViewTheme(
-          backgroundColor: Colors.transparent,
-          keyStyle: AppTokens.monoStyle.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w600,
-          ),
-          stringStyle: AppTokens.monoStyle.copyWith(color: Colors.green),
-          intStyle: AppTokens.monoStyle.copyWith(color: Colors.orange),
-          doubleStyle: AppTokens.monoStyle.copyWith(color: Colors.orange),
-          boolStyle: AppTokens.monoStyle.copyWith(color: Colors.purpleAccent),
-          defaultTextStyle: AppTokens.monoStyle.copyWith(
-            color: theme.colorScheme.onSurface,
-          ),
+      height: 20,
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.s1),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        kind,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
-  }
-
-  Map<String, dynamic> _jsonAsMap(dynamic jsonBody) {
-    if (jsonBody is Map<String, dynamic>) return jsonBody;
-    if (jsonBody is Map) {
-      return jsonBody.map((key, value) => MapEntry(key.toString(), value));
-    }
-    return {'data': jsonBody};
   }
 }
 
@@ -900,6 +1175,52 @@ Color _codeBackground(BuildContext context) {
       : Colors.white.withValues(alpha: 0.55);
 
   return Color.alphaBlend(tint, theme.scaffoldBackgroundColor);
+}
+
+bool _isExpandable(dynamic value) {
+  return (value is Map && value.isNotEmpty) ||
+      (value is List && value.isNotEmpty);
+}
+
+String _objectPath(String parent, String key) {
+  final safeIdentifier = RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
+  if (safeIdentifier.hasMatch(key)) return '$parent.$key';
+
+  final escapedKey = key.replaceAll('\\', r'\\').replaceAll("'", r"\'");
+  return "$parent['$escapedKey']";
+}
+
+String _jsonKind(dynamic value) {
+  if (value is Map) return 'object';
+  if (value is List) return 'array';
+  if (value is String) return 'string';
+  if (value is num) return 'number';
+  if (value is bool) return 'bool';
+  if (value == null) return 'null';
+  return 'value';
+}
+
+String _jsonPreview(dynamic value) {
+  if (value is Map) {
+    if (value.isEmpty) return '{}';
+    return '{${value.length} keys}';
+  }
+  if (value is List) {
+    if (value.isEmpty) return '[]';
+    return '[${value.length} items]';
+  }
+  if (value is String) return jsonEncode(value);
+  if (value == null) return 'null';
+  return value.toString();
+}
+
+Color _valueColor(BuildContext context, dynamic value) {
+  final theme = Theme.of(context);
+  if (value is String) return Colors.green;
+  if (value is num) return Colors.orange;
+  if (value is bool) return Colors.purpleAccent;
+  if (value == null) return theme.colorScheme.onSurface.withValues(alpha: 0.48);
+  return theme.colorScheme.onSurface.withValues(alpha: 0.78);
 }
 
 int _countMatches(String source, String query) {

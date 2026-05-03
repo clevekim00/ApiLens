@@ -14,7 +14,7 @@ class DebugPanel extends ConsumerWidget {
     final runner = ref.watch(workflowRunnerProvider);
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Column(
         children: [
           _DebugHeader(
@@ -27,6 +27,7 @@ class DebugPanel extends ConsumerWidget {
               children: [
                 _LogView(),
                 _ContextView(),
+                Center(child: Text('Variables not supported yet')),
               ],
             ),
           ),
@@ -68,11 +69,12 @@ class _DebugHeader extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 260,
+            width: 340,
             child: TabBar(
               tabs: [
-                Tab(text: 'Logs ($logCount)'),
-                Tab(text: 'Context ($resultCount)'),
+                Tab(text: 'Run Logs ($logCount)'),
+                Tab(text: 'Node Output ($resultCount)'),
+                const Tab(text: 'Variables'),
               ],
             ),
           ),

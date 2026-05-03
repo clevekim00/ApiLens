@@ -350,22 +350,31 @@ GraphQL:
 - Workflow Editor 좁은 화면에서 Canvas 아래에 Nodes/Inspector/Debug tab panel이 배치되도록 반응형 처리
 - Node Palette에서 클릭 추가와 canvas drag/drop 추가를 모두 지원
 - Response Viewer에 body 검색, 검색 결과 highlight, body/header 복사, header 필터 추가
+- Response Viewer JSON body를 접기/펼치기 가능한 tree UI로 교체하고 노드별 JSONPath 복사 추가
 - WebSocket Message Log에 payload 검색, sent/received/system 방향 필터, payload 복사 추가
+- WebSocket Message Log에 메시지 pin, pinned-only 필터, 현재 필터 결과 JSON export-to-clipboard 추가
+- Workflow Canvas에 zoom in/out, reset, fit-to-screen, minimap 오버레이 추가
+- GraphQL Variables JSON 실시간 validation, format JSON 액션, 실행 전 invalid JSON 차단 추가
+- Workflow Editor의 GraphQL 노드 폼에도 동일한 variables validation UI 연결
+- GraphQL Schema Explorer 추가: endpoint introspection, type 검색, field/input/enum preview, argument type 표시
+- OpenAPI Import 화면을 tag filter, operation table, operation preview/options 패널 구조로 재설계
+- OpenAPI Import 좁은 화면에서 tag filter가 상단 compact strip으로 접히고 table/preview가 세로로 재배치되도록 처리
+- 공통 UI 컴포넌트 추출: `AppSplitPane`, `AppStatusChip`, `AppEmptyState`, `AppToolbar`, `AppCodeEditorShell`
 - 주요 UI 변경에 대한 smoke test를 보강하고 기존 widget/network 회귀 테스트를 통과
 - Response Viewer body 검색과 header 필터에 대한 위젯 회귀 테스트 추가
+- GraphQL variables validation과 실행 차단에 대한 회귀 테스트 추가
+- 모바일/태블릿/데스크톱 폭 QA용 `test/ui_size_qa_test.dart` 추가
 
-현재 남은 UI 개선 후보:
+추가 고도화 후보:
 
-- 실제 기기/브라우저 크기별 시각 QA: 390px, 768px, 1280px, 1440px 이상
-- Response Viewer의 JSON tree 접기/펼치기 세부 제어, copy path 기능
-- GraphQL schema introspection/docs explorer와 variables validation
-- WebSocket 로그 pin, export 기능
-- Workflow Canvas zoom controls, minimap, fit-to-screen, node alignment guide
-- 공통 컴포넌트 추출: `AppToolbar`, `AppSplitPane`, `AppStatusChip`, `AppEmptyState`, `AppCodeEditorShell`
-- OpenAPI Import 화면의 table/preview 중심 재설계
+- Response Viewer JSON tree의 copy value, path breadcrumb, 대용량 JSON virtualization 고도화
+- WebSocket 로그 파일 저장 export, pinned message persistence
+- Workflow Canvas node alignment guide, snap-to-grid 토글
+- OpenAPI Import에서 `$ref` resolution, securitySchemes to Auth, multipart/form-data sample 생성 강화
+- GraphQL schema explorer에서 root query/mutation 빠른 삽입, field docs breadcrumb, query builder 연계
 
 검증 기준:
 
 - `dart analyze`로 변경 UI 파일 전체 정적 분석 통과
-- `flutter test test/widget_test.dart test/smoke/app_smoke_test.dart test/network_test.dart test/response_viewer_test.dart` 회귀 테스트 통과
+- `flutter test test/widget_test.dart test/smoke/app_smoke_test.dart test/network_test.dart test/response_viewer_test.dart test/graphql_validation_test.dart test/ui_size_qa_test.dart` 회귀 테스트 통과
 - `git diff --check`로 공백/패치 위생 검사 통과

@@ -13,15 +13,16 @@ class OpenApiImportState {
   final bool isLoading;
   final String? error;
   final OpenApiParseResult? parseResult;
-  
+
   // Filters and Selection
   final Set<String> activeTags; // Empty = All, otherwise specific tags
   final String searchQuery;
   final Set<String> selectedOperationIds;
-  
+  final String? previewOperationId;
+
   // Options
   final ImportOptions options;
-  
+
   // Computed (could be getter but keeping simple)
   final List<OpenApiOperation> visibleOperations;
 
@@ -32,6 +33,7 @@ class OpenApiImportState {
     this.activeTags = const {},
     this.searchQuery = '',
     this.selectedOperationIds = const {},
+    this.previewOperationId,
     this.options = const ImportOptions(),
     this.visibleOperations = const [],
   });
@@ -43,16 +45,23 @@ class OpenApiImportState {
     Set<String>? activeTags,
     String? searchQuery,
     Set<String>? selectedOperationIds,
+    String? previewOperationId,
     ImportOptions? options,
     List<OpenApiOperation>? visibleOperations,
+    bool clearError = false,
+    bool clearParseResult = false,
+    bool clearPreviewOperation = false,
   }) {
     return OpenApiImportState(
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      parseResult: parseResult ?? this.parseResult,
+      error: clearError ? null : error ?? this.error,
+      parseResult: clearParseResult ? null : parseResult ?? this.parseResult,
       activeTags: activeTags ?? this.activeTags,
       searchQuery: searchQuery ?? this.searchQuery,
       selectedOperationIds: selectedOperationIds ?? this.selectedOperationIds,
+      previewOperationId: clearPreviewOperation
+          ? null
+          : previewOperationId ?? this.previewOperationId,
       options: options ?? this.options,
       visibleOperations: visibleOperations ?? this.visibleOperations,
     );
@@ -63,19 +72,34 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
   final SwaggerParserService _parser;
   final Ref _ref;
 
-  OpenApiImportController(this._ref, this._parser) : super(const OpenApiImportState());
+  OpenApiImportController(this._ref, this._parser)
+      : super(const OpenApiImportState());
 
   Future<void> loadContent(String content, {String? baseUrlOverride}) async {
-    state = state.copyWith(isLoading: true, error: null);
+    if (content.trim().isEmpty) {
+      state = const OpenApiImportState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final result = _parser.parseToResult(content);
-      if (result == null) throw Exception('Failed to parse content. Ensure it is a valid OpenAPI JSON spec.');
+      if (result == null) {
+        throw Exception(
+          'Failed to parse content. Ensure it is a valid OpenAPI JSON spec.',
+        );
+      }
 
       state = state.copyWith(
         isLoading: false,
         parseResult: result,
+        activeTags: const {},
+        searchQuery: '',
         visibleOperations: result.operations,
         selectedOperationIds: {}, // Reset selection
+        previewOperationId:
+            result.operations.isEmpty ? null : result.operations.first.id,
+        clearError: true,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -83,57 +107,73 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
   }
 
   Future<void> loadFromUrl(String url) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final dio = Dio();
       final response = await dio.get(url);
-      
-      String content = response.data is String ? response.data : jsonEncode(response.data);
+
+      String content =
+          response.data is String ? response.data : jsonEncode(response.data);
       String effectiveUrl = url;
 
       // Check if it's HTML (likely Swagger UI)
-      final isHtml = content.trim().startsWith('<!DOCTYPE html>') || 
-                     content.toLowerCase().contains('<html');
+      final isHtml = content.trim().startsWith('<!DOCTYPE html>') ||
+          content.toLowerCase().contains('<html');
 
       if (isHtml) {
         // Discovery Logic 1: Look for spec URL in the HTML (Standard Swagger UI pattern)
         final regex = RegExp(r'''url\s*[:=]\s*["\']([^"\']+)["\']''');
         final match = regex.firstMatch(content);
-        
+
         String? discoveredUrl;
         if (match != null) {
           discoveredUrl = match.group(1);
         } else {
           // Discovery Logic 2: Try common relative paths for SpringDoc/Swagger
-          final commonPaths = ['/v3/api-docs', '/v2/api-docs', '/api-docs', '/swagger-resources'];
+          final commonPaths = [
+            '/v3/api-docs',
+            '/v2/api-docs',
+            '/api-docs',
+            '/swagger-resources',
+          ];
           final baseUri = Uri.parse(url);
-          
+
           for (final path in commonPaths) {
             try {
-               final testUrl = baseUri.resolve(path).toString();
-               final testResp = await dio.get(testUrl);
-               // If it returns JSON, we found it!
-               final testContent = testResp.data is String ? testResp.data : jsonEncode(testResp.data);
-               if (testContent.trim().startsWith('{') || testContent.trim().startsWith('[')) {
-                  discoveredUrl = testUrl;
-                  break;
-               }
+              final testUrl = baseUri.resolve(path).toString();
+              final testResp = await dio.get(testUrl);
+              // If it returns JSON, we found it.
+              final testContent = testResp.data is String
+                  ? testResp.data
+                  : jsonEncode(testResp.data);
+              if (testContent.trim().startsWith('{') ||
+                  testContent.trim().startsWith('[')) {
+                discoveredUrl = testUrl;
+                break;
+              }
             } catch (_) {}
           }
         }
 
         if (discoveredUrl != null) {
-           effectiveUrl = Uri.parse(url).resolve(discoveredUrl).toString();
-           final specResponse = await dio.get(effectiveUrl);
-           content = specResponse.data is String ? specResponse.data : jsonEncode(specResponse.data);
+          effectiveUrl = Uri.parse(url).resolve(discoveredUrl).toString();
+          final specResponse = await dio.get(effectiveUrl);
+          content = specResponse.data is String
+              ? specResponse.data
+              : jsonEncode(specResponse.data);
         } else {
-           throw Exception('Detected Swagger UI page, but could not find the raw API specification URL.');
+          throw Exception(
+            'Detected Swagger UI page, but could not find the raw API specification URL.',
+          );
         }
       }
 
       await loadContent(content, baseUrlOverride: effectiveUrl);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Failed to load spec: ${e.toString()}');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load spec: ${e.toString()}',
+      );
     }
   }
 
@@ -164,9 +204,9 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
       // Tag Filter
       if (tags.isNotEmpty) {
         if (op.tags.isEmpty) {
-           if (!tags.contains('(Untagged)')) return false;
+          if (!tags.contains('(Untagged)')) return false;
         } else {
-           if (!op.tags.any((t) => tags.contains(t))) return false;
+          if (!op.tags.any((t) => tags.contains(t))) return false;
         }
       }
 
@@ -174,19 +214,32 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
       if (query.isNotEmpty) {
         final q = query.toLowerCase();
         final match = op.path.toLowerCase().contains(q) ||
-                      op.method.toLowerCase().contains(q) ||
-                      (op.summary?.toLowerCase().contains(q) ?? false) ||
-                      (op.operationId?.toLowerCase().contains(q) ?? false);
+            op.method.toLowerCase().contains(q) ||
+            (op.summary?.toLowerCase().contains(q) ?? false) ||
+            (op.operationId?.toLowerCase().contains(q) ?? false);
         if (!match) return false;
       }
       return true;
     }).toList();
 
+    final previewStillVisible =
+        filtered.any((op) => op.id == state.previewOperationId);
+
     state = state.copyWith(
       activeTags: tags,
       searchQuery: query,
       visibleOperations: filtered,
+      previewOperationId: previewStillVisible
+          ? state.previewOperationId
+          : filtered.isEmpty
+              ? null
+              : filtered.first.id,
+      clearPreviewOperation: filtered.isEmpty,
     );
+  }
+
+  void selectPreviewOperation(String id) {
+    state = state.copyWith(previewOperationId: id);
   }
 
   void toggleOperation(String id) {
@@ -202,7 +255,7 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
   void toggleSelectAllFiltered() {
     final visibleIds = state.visibleOperations.map((e) => e.id).toSet();
     final selected = {...state.selectedOperationIds};
-    
+
     // Check if all visible are selected
     final allVisibleSelected = visibleIds.every((id) => selected.contains(id));
 
@@ -221,8 +274,10 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
   Future<Map<String, int>> importSelected(String targetGroupId) async {
     // Return stats: {success, skip, error}
     final selectedOps = state.parseResult?.operations
-        .where((op) => state.selectedOperationIds.contains(op.id)).toList() ?? [];
-    
+            .where((op) => state.selectedOperationIds.contains(op.id))
+            .toList() ??
+        [];
+
     if (selectedOps.isEmpty) return {'success': 0, 'skip': 0, 'error': 0};
 
     state = state.copyWith(isLoading: true);
@@ -239,46 +294,58 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
 
     try {
       final repo = _ref.read(requestRepositoryProvider);
-      
+
       for (var op in selectedOps) {
         try {
-          final req = _parser.convertOperationToRequest(op, state.options, baseUrl);
+          final req =
+              _parser.convertOperationToRequest(op, state.options, baseUrl);
           final reqWithGroup = req.copyWith(groupId: targetGroupId);
-          
+
           await repo.save(reqWithGroup);
           success++;
         } catch (_) {
           error++;
         }
       }
-      
+
       // Notify state update
       _ref.read(savedRequestControllerProvider.notifier).refresh();
-      
+
       return {'success': success, 'skip': 0, 'error': error};
     } finally {
       state = state.copyWith(isLoading: false);
     }
   }
 
-  Future<String?> generateWorkflowFromSelected(String name, String? targetGroupId) async {
+  Future<String?> generateWorkflowFromSelected(
+    String name,
+    String? targetGroupId,
+  ) async {
     final selectedOps = state.parseResult?.operations
-        .where((op) => state.selectedOperationIds.contains(op.id)).toList() ?? [];
-    
+            .where((op) => state.selectedOperationIds.contains(op.id))
+            .toList() ??
+        [];
+
     if (selectedOps.isEmpty) return null;
 
     state = state.copyWith(isLoading: true);
     try {
       final baseUrl = state.parseResult?.baseUrl ?? '';
       final generator = SwaggerWorkflowGenerator(parserService: _parser);
-      final workflow = generator.generateWorkflow(selectedOps, name, targetGroupId, state.options, baseUrl);
-      
+      final workflow = generator.generateWorkflow(
+        selectedOps,
+        name,
+        targetGroupId,
+        state.options,
+        baseUrl,
+      );
+
       final repo = _ref.read(workflowRepositoryProvider);
       await repo.save(workflow);
-      
+
       // Notify state update
       _ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
-      
+
       return workflow.id;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -289,6 +356,24 @@ class OpenApiImportController extends StateNotifier<OpenApiImportState> {
   }
 }
 
-final openApiImportControllerProvider = StateNotifierProvider.autoDispose<OpenApiImportController, OpenApiImportState>((ref) {
+OpenApiOperation? selectedOpenApiPreviewOperation(OpenApiImportState state) {
+  final previewId = state.previewOperationId;
+  if (previewId == null) return null;
+
+  for (final operation in state.visibleOperations) {
+    if (operation.id == previewId) return operation;
+  }
+
+  final operations =
+      state.parseResult?.operations ?? const <OpenApiOperation>[];
+  for (final operation in operations) {
+    if (operation.id == previewId) return operation;
+  }
+
+  return null;
+}
+
+final openApiImportControllerProvider = StateNotifierProvider.autoDispose<
+    OpenApiImportController, OpenApiImportState>((ref) {
   return OpenApiImportController(ref, SwaggerParserService());
 });

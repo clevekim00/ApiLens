@@ -33,6 +33,8 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
   bool _prettyPrintJson = false;
   _MessageLogFilter _logFilter = _MessageLogFilter.all;
   String _logQuery = '';
+  final Set<String> _pinnedMessageIds = {};
+  bool _showPinnedOnly = false;
 
   @override
   void dispose() {
@@ -89,6 +91,8 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
                                 searchController: _logFilterController,
                                 query: _logQuery,
                                 filter: _logFilter,
+                                pinnedMessageIds: _pinnedMessageIds,
+                                showPinnedOnly: _showPinnedOnly,
                                 onQueryChanged: (value) {
                                   setState(() => _logQuery = value);
                                 },
@@ -99,6 +103,10 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
                                 onFilterChanged: (value) {
                                   setState(() => _logFilter = value);
                                 },
+                                onPinnedOnlyChanged: (value) {
+                                  setState(() => _showPinnedOnly = value);
+                                },
+                                onTogglePin: _togglePinnedMessage,
                                 onClear: () => ref
                                     .read(webSocketClientProvider.notifier)
                                     .clearLog(),
@@ -129,6 +137,8 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
                                 searchController: _logFilterController,
                                 query: _logQuery,
                                 filter: _logFilter,
+                                pinnedMessageIds: _pinnedMessageIds,
+                                showPinnedOnly: _showPinnedOnly,
                                 onQueryChanged: (value) {
                                   setState(() => _logQuery = value);
                                 },
@@ -139,6 +149,10 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
                                 onFilterChanged: (value) {
                                   setState(() => _logFilter = value);
                                 },
+                                onPinnedOnlyChanged: (value) {
+                                  setState(() => _showPinnedOnly = value);
+                                },
+                                onTogglePin: _togglePinnedMessage,
                                 onClear: () => ref
                                     .read(webSocketClientProvider.notifier)
                                     .clearLog(),
@@ -167,6 +181,16 @@ class _WebSocketClientPanelState extends ConsumerState<WebSocketClientPanel> {
         );
       },
     );
+  }
+
+  void _togglePinnedMessage(String id) {
+    setState(() {
+      if (_pinnedMessageIds.contains(id)) {
+        _pinnedMessageIds.remove(id);
+      } else {
+        _pinnedMessageIds.add(id);
+      }
+    });
   }
 
   Future<void> _loadConfigUrl(String id) async {
@@ -310,9 +334,13 @@ class _LogPanel extends StatelessWidget {
   final TextEditingController searchController;
   final String query;
   final _MessageLogFilter filter;
+  final Set<String> pinnedMessageIds;
+  final bool showPinnedOnly;
   final ValueChanged<String> onQueryChanged;
   final VoidCallback onQueryClear;
   final ValueChanged<_MessageLogFilter> onFilterChanged;
+  final ValueChanged<bool> onPinnedOnlyChanged;
+  final ValueChanged<String> onTogglePin;
   final VoidCallback onClear;
 
   const _LogPanel({
@@ -321,16 +349,28 @@ class _LogPanel extends StatelessWidget {
     required this.searchController,
     required this.query,
     required this.filter,
+    required this.pinnedMessageIds,
+    required this.showPinnedOnly,
     required this.onQueryChanged,
     required this.onQueryClear,
     required this.onFilterChanged,
+    required this.onPinnedOnlyChanged,
+    required this.onTogglePin,
     required this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final filteredMessages = _filterMessages(session.messages, filter, query);
+    final filteredMessages = _filterMessages(
+      session.messages,
+      filter,
+      query,
+      pinnedMessageIds: pinnedMessageIds,
+      showPinnedOnly: showPinnedOnly,
+    );
+    final pinnedCount =
+        session.messages.where((m) => pinnedMessageIds.contains(m.id)).length;
 
     return DecoratedBox(
       decoration: _panelDecoration(context),
@@ -339,11 +379,24 @@ class _LogPanel extends StatelessWidget {
           _PanelHeader(
             icon: Icons.receipt_long_outlined,
             title: 'Message Log',
-            subtitle: '${session.messages.length} messages',
-            trailing: TextButton.icon(
-              onPressed: session.messages.isEmpty ? null : onClear,
-              icon: const Icon(Icons.delete_sweep_outlined, size: 16),
-              label: const Text('Clear'),
+            subtitle:
+                '${session.messages.length} messages / $pinnedCount pinned',
+            trailing: Wrap(
+              spacing: AppTokens.s1,
+              children: [
+                TextButton.icon(
+                  onPressed: filteredMessages.isEmpty
+                      ? null
+                      : () => _exportMessages(context, filteredMessages),
+                  icon: const Icon(Icons.ios_share_outlined, size: 16),
+                  label: const Text('Export'),
+                ),
+                TextButton.icon(
+                  onPressed: session.messages.isEmpty ? null : onClear,
+                  icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                  label: const Text('Clear'),
+                ),
+              ],
             ),
           ),
           Divider(height: 1, color: theme.dividerColor),
@@ -351,11 +404,14 @@ class _LogPanel extends StatelessWidget {
             controller: searchController,
             query: query,
             filter: filter,
+            pinnedCount: pinnedCount,
+            showPinnedOnly: showPinnedOnly,
             visibleCount: filteredMessages.length,
             totalCount: session.messages.length,
             onChanged: onQueryChanged,
             onClear: onQueryClear,
             onFilterChanged: onFilterChanged,
+            onPinnedOnlyChanged: onPinnedOnlyChanged,
           ),
           Divider(height: 1, color: theme.dividerColor),
           Expanded(
@@ -374,7 +430,12 @@ class _LogPanel extends StatelessWidget {
                         separatorBuilder: (_, __) =>
                             const SizedBox(height: AppTokens.s2),
                         itemBuilder: (context, index) {
-                          return _MessageCard(message: filteredMessages[index]);
+                          final message = filteredMessages[index];
+                          return _MessageCard(
+                            message: message,
+                            pinned: pinnedMessageIds.contains(message.id),
+                            onTogglePin: () => onTogglePin(message.id),
+                          );
                         },
                       ),
           ),
@@ -388,21 +449,27 @@ class _LogTools extends StatelessWidget {
   final TextEditingController controller;
   final String query;
   final _MessageLogFilter filter;
+  final int pinnedCount;
+  final bool showPinnedOnly;
   final int visibleCount;
   final int totalCount;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
   final ValueChanged<_MessageLogFilter> onFilterChanged;
+  final ValueChanged<bool> onPinnedOnlyChanged;
 
   const _LogTools({
     required this.controller,
     required this.query,
     required this.filter,
+    required this.pinnedCount,
+    required this.showPinnedOnly,
     required this.visibleCount,
     required this.totalCount,
     required this.onChanged,
     required this.onClear,
     required this.onFilterChanged,
+    required this.onPinnedOnlyChanged,
   });
 
   @override
@@ -438,17 +505,27 @@ class _LogTools extends StatelessWidget {
           final filterChips = Wrap(
             spacing: AppTokens.s1,
             runSpacing: AppTokens.s1,
-            children: _MessageLogFilter.values.map((value) {
-              return ChoiceChip(
-                label: Text(value.label),
-                selected: filter == value,
-                onSelected: (_) => onFilterChanged(value),
-              );
-            }).toList(),
+            children: [
+              ..._MessageLogFilter.values.map((value) {
+                return ChoiceChip(
+                  label: Text(value.label),
+                  selected: filter == value,
+                  onSelected: (_) => onFilterChanged(value),
+                );
+              }),
+              FilterChip(
+                avatar: const Icon(Icons.push_pin_outlined, size: 14),
+                label: Text('Pinned $pinnedCount'),
+                selected: showPinnedOnly,
+                onSelected: pinnedCount == 0
+                    ? null
+                    : (value) => onPinnedOnlyChanged(value),
+              ),
+            ],
           );
 
           final count = Text(
-            hasQuery || filter != _MessageLogFilter.all
+            hasQuery || filter != _MessageLogFilter.all || showPinnedOnly
                 ? '$visibleCount of $totalCount shown'
                 : '$totalCount messages',
             style: theme.textTheme.labelMedium?.copyWith(
@@ -578,8 +655,14 @@ class _ComposerPanel extends StatelessWidget {
 
 class _MessageCard extends StatelessWidget {
   final WebSocketMessage message;
+  final bool pinned;
+  final VoidCallback onTogglePin;
 
-  const _MessageCard({required this.message});
+  const _MessageCard({
+    required this.message,
+    required this.pinned,
+    required this.onTogglePin,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -590,10 +673,15 @@ class _MessageCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppTokens.s3),
       decoration: BoxDecoration(
         color: Color.alphaBlend(
-          color.withValues(alpha: 0.045),
+          (pinned ? Colors.amber : color)
+              .withValues(alpha: pinned ? 0.075 : 0.045),
           theme.colorScheme.surface,
         ),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
+        border: Border.all(
+          color: pinned
+              ? Colors.amber.withValues(alpha: 0.46)
+              : color.withValues(alpha: 0.22),
+        ),
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
       ),
       child: Column(
@@ -608,6 +696,15 @@ class _MessageCard extends StatelessWidget {
                 style: theme.textTheme.labelMedium,
               ),
               const Spacer(),
+              IconButton(
+                tooltip: pinned ? 'Unpin message' : 'Pin message',
+                icon: Icon(
+                  pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                  size: 16,
+                  color: pinned ? Colors.amber.shade700 : null,
+                ),
+                onPressed: onTogglePin,
+              ),
               IconButton(
                 tooltip: 'Copy payload',
                 icon: const Icon(Icons.copy_outlined, size: 16),
@@ -899,11 +996,17 @@ enum _MessageLogFilter {
 List<WebSocketMessage> _filterMessages(
   List<WebSocketMessage> messages,
   _MessageLogFilter filter,
-  String query,
-) {
+  String query, {
+  required Set<String> pinnedMessageIds,
+  required bool showPinnedOnly,
+}) {
   final normalizedQuery = query.trim().toLowerCase();
 
   return messages.where((message) {
+    if (showPinnedOnly && !pinnedMessageIds.contains(message.id)) {
+      return false;
+    }
+
     final directionMatches = switch (filter) {
       _MessageLogFilter.all => true,
       _MessageLogFilter.sent =>
@@ -923,6 +1026,22 @@ List<WebSocketMessage> _filterMessages(
             .toLowerCase()
             .contains(normalizedQuery);
   }).toList();
+}
+
+Future<void> _exportMessages(
+  BuildContext context,
+  List<WebSocketMessage> messages,
+) async {
+  final jsonText = const JsonEncoder.withIndent('  ').convert(
+    messages.map((message) => message.toJson()).toList(),
+  );
+  await Clipboard.setData(ClipboardData(text: jsonText));
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+        content: Text('${messages.length} messages exported to clipboard')),
+  );
 }
 
 Future<void> _copyToClipboard(
