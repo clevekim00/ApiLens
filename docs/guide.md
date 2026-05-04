@@ -1,81 +1,212 @@
-# ApiLens (👁️) - 사용자 가이드
+# ApiLens User Guide
 
-**"API에 집중하고, 소음은 걷어내세요 (Focus on the API, not the noise)."**
+<div align="center">
+  <img src="../assets/apilens_icon.svg" alt="ApiLens Icon" width="128" />
+  <br/>
+  <img src="assets/intro.png" alt="ApiLens Intro" width="100%" />
+</div>
 
-ApiLens는 Flutter로 구축된 고성능 REST API 테스팅 도구입니다. 직관적인 UI, 강력한 워크플로우 자동화, 그리고 시각적으로 풍부한 응답 분석 기능을 제공합니다.
+## 1. Overview
+### What is ApiLens?
+**ApiLens** is a powerful desktop and web-based tool that allows you to test REST APIs, WebSockets, and GraphQL in a single interface, and connect them into a **Workflow** to automate complex scenarios.
 
----
+### Problems Solved
+- **Fragmented Tools**: Solves the issue of managing REST (Postman), WebSocket (wscat), and automation scripts (Python) separately.
+- **Collaboration Difficulties**: Easily share API specs and test scenarios via a single file (`.json`).
+- **Complex Testing**: Configure sequential scenarios like "Receive token after login -> Connect WebSocket" without writing code.
 
-## 🎨 새로운 브랜딩: ApiLens
-기존의 'API Tester'에서 **ApiLens**로 완전히 리브랜딩되었습니다.
-- **프리미엄 다크 모드**: Deep Blue와 Cyan 컬러 팔레트를 사용하여 개발자의 눈이 편안한 환경을 제공합니다.
-- **새로운 아이콘**: 현대적이고 전문가적인 감각의 새로운 앱 아이콘이 적용되었습니다.
-
-![ApiLens App Icon](../assets/apilens_app_icon.png)
-
----
-
-## 🚀 핵심 기능
-
-### 1. 컬렉션 관리 & 자동 저장
-- **자동 동기화**: 모든 컬렉션과 요청 데이터는 실시간으로 로컬 저장소에 저장되며, 앱 실행 시 자동으로 로드됩니다. 별도의 임포트/익스포트 과정 없이도 작업 내역이 보존됩니다.
-- **직관적인 편집**: 컬렉션 이름을 클릭하여 즉시 수정하거나, ✏️ 버튼을 통해 요청 이름을 빠르게 변경할 수 있습니다.
-
-### 2. 비주얼 워크플로우 에디터 (Flow Editor)
-단순한 리스트 기반의 실행을 넘어, 복잡한 API 시퀀스를 그래프 형식으로 설계할 수 있습니다.
-
-- **인터랙티브 노드**: API 요청과 로직 노드(If/Else, Log)를 캔버스에 드래그하여 배치합니다.
-- **결과 세그먼트**: 실행이 완료된 노드는 카드 하단에 'Header'와 'Body' 세그먼트가 나타나며, 이를 클릭하면 즉시 결과 팝업이 표시됩니다.
-- **로직 분기**: 응답 상태 코드나 데이터에 따라 실행 흐름을 제어하는 If/Else 노드를 지원합니다.
-
-![Visual Workflow Editor](node_results.png)
-*노드 실행 결과 세그먼트와 상세 팝업 탐색*
+### Target Audience
+- **Backend/Frontend Developers** developing and testing APIs.
+- **QA Engineers** requiring API scenario verification.
+- **System Architects** dealing with multiple protocols (HTTP, WS, GQL).
 
 ---
 
-## 📊 전문적인 응답 분석
+## 2. Installation & Execution
+![Home Screen](assets/screenshots/01_home.png)
 
-ApiLens는 응답 데이터를 더 깊이 있고 직관적으로 분석할 수 있는 최적의 도구를 제공합니다.
+### Desktop (macOS / Windows)
+1. Download the installer (`.dmg`, `.exe`) for your OS from the Releases page.
+2. Run the application after installation.
+3. The local DB (Hive/Isar) initializes immediately without extra configuration.
 
-### 1. 인터랙티브 JSON 트리 뷰
-`application/json` 타입의 응답은 자동으로 트리 구조로 렌더링됩니다. 거대한 JSON 데이터도 효율적으로 접고 펼치며 원하는 정보를 빠르게 찾을 수 있습니다.
+### Web
+1. Visit the hosted URL (e.g., `apilens.app`).
+2. Data is stored using the browser's local storage (IndexedDB).
+   > **Note**: Clearing browser cache may result in data loss, so export important data frequently.
 
-### 2. 깔끔한 헤더 테이블
-복잡한 HTTP 헤더 정보를 단순 텍스트가 아닌, 정렬된 키-값 테이블 형식으로 제공하여 가독성을 극대화했습니다.
-
-### 3. 상태 메트릭 배지
-HTTP 상태 코드, 응답 시간(ms), 콘텐츠 크기(B/KB)를 컬러 배지로 표시하여 요청의 건강 상태를 한눈에 파악할 수 있습니다.
-
-![Professional Response View](response_headers.png)
-*깔끔하게 정리된 헤더 테이블과 메트릭 정보*
-
----
-
-## 🔗 배치 실행 및 결과 탭
-리스트 모드에서 컬렉션 전체를 실행할 때, 각 요청의 결과를 개별적으로 분석할 수 있는 강력한 뷰를 제공합니다.
-
-- **탭 방식 인터페이스**: 여러 요청이 실행되면 우측 패널에 각 요청별 탭이 생성됩니다.
-- **독립적인 결과 보존**: 각 탭은 위에서 설명한 JSON 트리와 헤더 테이블 기능을 모두 포함하고 있어, 여러 요청의 결과를 실시간으로 스위칭하며 비교할 수 있습니다.
-
-![Batch Results View](batch_results.png)
-*컬렉션 배치 실행 후 탭별로 구분된 상세 결과*
+### Connecting to Test Backend
+You can run a backend server locally for ApiLens development and testing.
+```bash
+# Run backend server (Node/Python depending on project)
+npm run start:server
+```
+Typically uses `http://localhost:3000` or `ws://localhost:8080`.
 
 ---
 
-## 📟 통합 콘솔 & 로그
-워크플로우 실행 중 발생하는 모든 이벤트와 커스텀 로그를 하단 콘솔 창에서 실시간으로 확인할 수 있습니다.
-- **변수 치환 지원**: `{{response.body.id}}`와 같은 패턴을 사용하여 동적인 데이터를 로그로 출력할 수 있습니다.
+## 3. Core Concepts
+### Request
+The basic unit of API calls.
+- **REST**: Supports HTTP methods like GET, POST, PUT, DELETE. Configurable Params, Headers, Body.
+- **WebSocket**: Connect, Send Message, Wait for Message.
+- **GraphQL**: Execute Query/Mutation and generic Variables support.
+
+### Workflow
+A flowchart connecting multiple Requests as Nodes.
+- **Start Node**: execution entry point.
+- **Request Node**: Performs REST/GQL requests.
+- **WebSocket Node**: Handles connection and message I/O.
+- **Delay/Script Node**: Waits or performs simple value transformations.
+
+### Workgroup
+A project-level folder concept. Isolates Requests and Workflows just like folders in a local file system.
+
+### Environment
+Manages global variables like `{{env.baseUrl}}` to easily switch between Development/Production environments. (Currently under development)
 
 ---
 
-## 📦 빌드 및 실행
-ApiLens는 macOS, Windows 및 웹 환경을 지원합니다.
+## 4. Using Workgroups
+![Workgroups Sidebar](assets/screenshots/02_workgroups.png)
 
-- **macOS 빌드**: `flutter build macos --release`
-- **웹 서빙**: `python3 -m http.server 8080 --directory build/web`
+### Create/Select Workgroup
+- **Create**: Click the `+` button at the top of the sidebar and enter a new group name.
+- **Select**: Click a group in the sidebar to activate it; subsequent Requests will belong to this group.
+
+### no-workgroup (System Group)
+- Items created without selecting a group are saved in `System Default` or `No Workgroup`.
+- Accessible at the top of the sidebar.
+
+### Management & Move
+- **Move**: Drag and drop Requests to move them to another Workgroup.
+- **Delete**: Right-click a group to delete it. (Option to keep internal data is available).
+
+### Export / Import (Team Sharing)
+![Export Import Menu](assets/screenshots/09_export_import.png)
+
+1. **Export**: Right-click a Workgroup and select `Export` to save as a `.json` file.
+2. **Import**: Load `.json` files via the `Import` button (or menu) at the top of the sidebar.
+   > **ID Conflict Prevention**: Automatically issues new IDs if imported data conflicts with existing IDs.
 
 ---
 
-## ✅ 개발자 정보
-- **GitHub**: [https://github.com/clevekim00/ApiLens](https://github.com/clevekim00/ApiLens)
-- **Copyright**: © 2026 clevekim. MIT License.
+## 5. REST Request Builder
+![REST Builder](assets/screenshots/04_request_builder_rest.png)
+
+### Create New Request
+1. Select `HTTP / REST` from the top tabs.
+2. Choose Method (GET, POST, etc.) and enter URL.
+
+### Detailed Settings
+- **Params**: Enter Query Parameters as Key-Value pairs.
+- **Headers**: Set headers like `Content-Type`, `Authorization`.
+- **Body**: Select JSON, Text, Form Data, etc. JSON supports syntax highlighting.
+- **Auth**: Easy configuration for Basic, Bearer Token, etc.
+
+### Execution & Results
+- Click `Send` to view response results (Status, Time, Size, Body) in the right (or bottom) panel.
+- JSON responses are formatted in a Tree View for readability.
+
+### Relation to Workgroup
+Saving a request (`Ctrl+S` / `Cmd+S`) saves it to the currently active Workgroup.
+
+---
+
+## 6. WebSocket
+![WebSocket Client](assets/screenshots/06_websocket_client.png)
+
+### Using WebSocket Client
+1. Select `WebSocket` from the top tabs.
+2. Enter URL (e.g., `wss://echo.websocket.org`) and click `Connect`.
+3. Green status indicator appears upon success.
+4. Enter message and click `Send`.
+5. Send/Receive logs are displayed in real-time.
+
+### Use in Workflow
+WebSockets are powerful in Workflows as state is maintained.
+- **ws_connect Node**: Establishes connection and returns Session ID.
+- **ws_send Node**: Sends message to a specific session.
+- **ws_wait Node**: Waits until a specific message or pattern is received (for test verification).
+
+---
+
+## 7. GraphQL
+![GraphQL Client](assets/screenshots/05_request_builder_graphql.png)
+
+### Using GraphQL Client
+1. Select `GraphQL` from the top tabs.
+2. Enter Endpoint URL.
+3. Write Query/Mutation in the left editor.
+4. Enter JSON variables in the bottom Variables tab if needed.
+5. Click `Execute`.
+
+### REST → GraphQL Integration
+In a Workflow, obtain an auth token via REST API, then inject it into GraphQL Headers (`Authorization: Bearer {{token}}`).
+
+---
+
+## 8. Workflow Editor
+![Workflow Canvas](assets/screenshots/07_workflow_editor.png)
+
+### Add/Connect Nodes
+1. Enter editor via top menu or `+ Workflow` button.
+2. Drag nodes from the left palette to the canvas.
+3. Drag node handles (dots) to connect to other nodes (create Edge).
+
+### Execution
+![Run Logs](assets/screenshots/08_workflow_run_logs.png)
+
+- Click the `Run` button at the top right.
+- Running nodes blink, completing green for success or red for failure.
+- Check execution results per step in the bottom Log Panel.
+
+### Debugging Tips
+- **Inspector**: Click a node to view detailed Input/Output data in the right panel.
+- **Partial Run**: Disconnect or select specific nodes to run partial tests.
+
+---
+
+## 9. OpenAPI Import
+![OpenAPI Import](assets/screenshots/03_openapi_import.png)
+
+### How to Import
+1. Right-click Workgroup -> Select `Import Swagger`.
+2. **Load URL**: Enter `swagger.json` URL and Load.
+3. **Load File**: Select a local file.
+
+### Filtering & Selection
+- **Tag Filter**: Check only desired tags (e.g., `User`, `Order`) on the left.
+- **Search**: Search by API Path or Summary in the top bar.
+- **Selection**: Select validation APIs via checkboxes in the list.
+
+### Import Options
+- **Base URL**: Choose to use Server URL from spec or substitute with environment variable (`{{env.baseUrl}}`).
+- **Auto-Generate Body**: Whether to automatically generate Request Body examples.
+- **Auth**: Whether to automatically include security schemes (API Key, etc.) in headers.
+
+---
+
+## 10. Theme & Settings
+![Theme Settings](assets/screenshots/10_settings_theme.png)
+
+### Dark / Light Switch
+- Top right menu -> Enter `Settings`.
+- Select Light / Dark / System in `Theme Mode`.
+
+### Other Settings
+- **Timeout**: Set request timeout duration (Default 30s).
+- **Logging**: Enable/Disable debug logs.
+
+---
+
+## 11. Troubleshooting
+### FAQ
+**Q. CORS Error occurs during REST request.**
+A. The Web version has CORS restrictions due to browser security policies. Use the Desktop app or allow CORS on the server.
+
+**Q. Import Failed ("Invalid Format")**
+A. Ensure compliance with OpenAPI 3.0/3.1 specs. If YAML, try converting to JSON.
+
+**Q. Workgroup disappeared.**
+A. Clearing browser cache resets data (Web). Periodically Export important data for backup.

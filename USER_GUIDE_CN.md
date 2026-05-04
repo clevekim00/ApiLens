@@ -1,0 +1,14 @@
+# ApiLens 用户指南
+
+## 1. 导入 API 规范
+- **Swagger URL**: 粘贴 Swagger UI 地址，ApiLens 将自动发现规范。
+- **本地文件**: 直接上传 `JSON` 或 `YAML` 格式的 OpenAPI 文件。
+- **过滤**: 使用基于标签的过滤，仅选择所需的端点。
+
+## 2. 工作流编辑器
+- **节点**: 开始、API 请求、条件和结束节点。
+- **连接**: 在端口之间拖动线条以定义执行流。
+- **变量**: 使用 `$.responses.nodeId.body.path` 在请求之间传递数据。
+
+---
+其他语言: [English](USER_GUIDE.md) | [한국어](USER_GUIDE_KO.md)

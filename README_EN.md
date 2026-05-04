@@ -11,41 +11,20 @@
 ApiLens is a desktop/web-based API tool that connects REST, WebSocket, and GraphQL into a single workflow.
 
 ## Key Features
-- **Multi-Client**: REST / WebSocket / GraphQL Client support
-- **Workflow Editor**: Automate complex API scenarios by connecting nodes
-- **Workgroup System**: Isolate and manage projects
-- **OpenAPI Import**: Supports tag filtering and selective import
-- **Team Collaboration**: Share projects via Workgroup Export/Import
-- **Platform**: Supports Desktop (macOS, Windows) and Web
-- **Theme**: Light / Dark theme support
-
-## Getting Started
-Send your first request in 5 minutes.
-
-- 📘 Guide: [docs/getting-started/first-request.ko.md](docs/getting-started/first-request.ko.md)
-- 📘 Guide (EN): [docs/getting-started/first-request.en.md](docs/getting-started/first-request.en.md)
-
-## Contributing
-We welcome contributions from the community.
-
-- 📘 Contributor Guide (KR): [docs/CONTRIBUTING.ko.md](docs/CONTRIBUTING.ko.md)
-- 📘 Contributor Guide (EN): [docs/CONTRIBUTING.en.md](docs/CONTRIBUTING.en.md)
-
-Quick start:
-```bash
-git clone https://github.com/apilens/apilens.git
-cd apilens
-flutter pub get
-flutter run
-```
+- **Multi-Client**: Support for REST / WebSocket / GraphQL Clients.
+- **Workflow Editor**: Connect complex API scenarios with nodes and automate them.
+- **Workgroup System**: Isolate and manage projects individually.
+- **OpenAPI Import**: Filter by tags and selectively import endpoints.
+- **Team Collaboration**: Share workgroups via Export/Import JSON.
+- **Platform**: Supports Desktop (macOS, Windows, Linux), Mobile (Android, iOS/iPad), and Web.
+- **Theme**: Premium Light / Dark themes.
 
 ## Quick Start
-1. **Launch ApiLens**: Run the application.
-2. **Create Workgroup**: Click `+` in the sidebar to create a new group.
-3. **OpenAPI Import**: Right-click group -> `Import Swagger` to load specs.
-4. **Run Request**: Select a request and click `Send`.
-5. **Create Workflow**: Click `+ Workflow` to chain and execute multiple requests.
+1. **Launch ApiLens**: Open the application.
+2. **Create Workgroup**: Click the `+` button in the sidebar to create a new group.
+3. **Import OpenAPI**: Right-click group -> `Import Swagger` to load specifications.
+4. **Run Request**: Select a request from the list and click `Send`.
+5. **Create Workflow**: Click `+ Workflow` to connect multiple requests.
 
-## Documentation
-For more details, please refer to the official guide.
-- **User Guide**: [docs/GUIDE.en.md](docs/GUIDE.en.md)
+---
+Other languages: [한국어](README_KO.md) | [中文](README_CN.md)
