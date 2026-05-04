@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'core/ui/theme/app_theme_light.dart';
 import 'core/ui/theme/app_theme_dark.dart';
 import 'core/widgets/splash_screen.dart';
 import 'core/settings/settings_repository.dart';
+import 'core/l10n/app_localizations.dart';
 
 import 'features/websocket/data/websocket_config_repository.dart';
 import 'features/workgroup/data/workgroup_repository.dart';
@@ -71,7 +74,9 @@ class ApiTesterApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(settingsProvider);
+    final settings = ref.watch(settingsProvider);
+    final themeMode = settings.themeMode;
+    final locale = ref.read(settingsProvider.notifier).getLocale();
 
     return MaterialApp(
       title: 'ApiLens',
@@ -79,6 +84,18 @@ class ApiTesterApp extends ConsumerWidget {
       theme: AppThemeLight.themeData,
       darkTheme: AppThemeDark.themeData,
       themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ko'),
+        Locale('zh'),
+      ],
       home: const SplashScreen(),
     );
   }

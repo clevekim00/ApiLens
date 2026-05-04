@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 class SettingsRepository {
   static const String _boxName = 'settings_box';
   static const String _themeKey = 'theme_mode';
+  static const String _languageKey = 'language';
   static const String _lastWsConfigIdKey = 'last_selected_ws_config_id';
   
   late Box _box;
@@ -29,6 +30,17 @@ class SettingsRepository {
     await _box.put(_themeKey, value);
   }
 
+  // --- Language ---
+  String getLanguage() {
+    if (!_box.isOpen) return 'en';
+    // Default to platform language if not set, handled by controller
+    return _box.get(_languageKey) as String? ?? 'auto';
+  }
+
+  Future<void> setLanguage(String languageCode) async {
+    await _box.put(_languageKey, languageCode);
+  }
+
   // --- WebSocket ---
   String? getLastSelectedWsConfigId() {
     if (!_box.isOpen) return null;
@@ -45,19 +57,48 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository();
 });
 
-// StateNotifier for reactivity (Theme only for now)
-class SettingsController extends StateNotifier<ThemeMode> {
-  final SettingsRepository _repository;
+// State classes for settings
+class SettingsState {
+  final ThemeMode themeMode;
+  final String language;
 
-  SettingsController(this._repository) : super(_repository.getThemeMode());
+  SettingsState({required this.themeMode, required this.language});
 
-  Future<void> setThemeMode(ThemeMode mode) async {
-    await _repository.setThemeMode(mode);
-    state = mode;
+  SettingsState copyWith({ThemeMode? themeMode, String? language}) {
+    return SettingsState(
+      themeMode: themeMode ?? this.themeMode,
+      language: language ?? this.language,
+    );
   }
 }
 
-final settingsProvider = StateNotifierProvider<SettingsController, ThemeMode>((ref) {
+// StateNotifier for reactivity
+class SettingsController extends StateNotifier<SettingsState> {
+  final SettingsRepository _repository;
+
+  SettingsController(this._repository)
+      : super(SettingsState(
+          themeMode: _repository.getThemeMode(),
+          language: _repository.getLanguage(),
+        ));
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _repository.setThemeMode(mode);
+    state = state.copyWith(themeMode: mode);
+  }
+
+  Future<void> setLanguage(String languageCode) async {
+    await _repository.setLanguage(languageCode);
+    state = state.copyWith(language: languageCode);
+  }
+
+  Locale? getLocale() {
+    if (state.language == 'auto') return null;
+    return Locale(state.language);
+  }
+}
+
+final settingsProvider = StateNotifierProvider<SettingsController, SettingsState>((ref) {
   final repo = ref.watch(settingsRepositoryProvider);
   return SettingsController(repo);
 });

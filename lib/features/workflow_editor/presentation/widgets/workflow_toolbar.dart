@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../application/workflow_editor_controller.dart';
@@ -72,6 +73,7 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
         final compact = constraints.maxWidth < 860;
         final veryCompact = constraints.maxWidth < 640;
 
+    final l10n = AppLocalizations.of(context);
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
           child: Row(
@@ -144,33 +146,33 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
               if (!veryCompact)
                 _ToolbarAction(
                   icon: Icons.science_outlined,
-                  label: 'Samples',
+                  label: l10n.translate('samples'),
                   compact: compact,
                   onPressed: () => _showSamplesDialog(context),
                 ),
               const SizedBox(width: AppTokens.s1),
               _ToolbarAction(
                 icon: Icons.add,
-                label: 'New',
+                label: l10n.translate('new'),
                 compact: compact,
                 onPressed: () => WorkflowActions.handleNew(context, ref),
               ),
               _ToolbarAction(
                 icon: Icons.folder_open_outlined,
-                label: 'Open',
+                label: l10n.translate('open'),
                 compact: compact,
                 onPressed: () => WorkflowActions.handleOpen(context, ref),
               ),
               _ToolbarAction(
                 icon: Icons.save_outlined,
-                label: 'Save',
+                label: l10n.translate('save'),
                 compact: compact,
                 onPressed: () =>
                     WorkflowActions.handleSave(context, ref, saveAs: false),
               ),
               _ToolbarAction(
                 icon: Icons.play_arrow_rounded,
-                label: 'Run',
+                label: l10n.translate('run'),
                 compact: compact,
                 emphasized: true,
                 onPressed: () => WorkflowActions.handleRun(context, ref),
@@ -191,13 +193,14 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
   }
 
   Future<void> _showSamplesDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return showDialog<void>(
       context: context,
       builder: (dialogContext) {
         final theme = Theme.of(dialogContext);
 
         return AlertDialog(
-          title: const Text('Load Sample Workflow'),
+          title: Text(l10n.translate('samples')),
           content: SizedBox(
             width: 460,
             child: ListView.separated(
@@ -284,8 +287,9 @@ class _SaveStateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final color = isDirty ? Colors.orange : Colors.green;
-    final label = isDirty ? 'Unsaved' : _savedLabel(lastSavedAt);
+    final label = isDirty ? l10n.translate('unsaved') : _savedLabel(lastSavedAt, l10n);
 
     return Container(
       height: 24,
@@ -312,11 +316,11 @@ class _SaveStateBadge extends StatelessWidget {
     );
   }
 
-  String _savedLabel(DateTime? dateTime) {
+  String _savedLabel(DateTime? dateTime, AppLocalizations l10n) {
     if (dateTime == null) return 'Not saved';
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    return 'Saved $hour:$minute';
+    return '${l10n.translate('saved')} $hour:$minute';
   }
 }
 
@@ -389,6 +393,7 @@ class _WorkflowOverflowMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<_WorkflowMenuAction>(
       tooltip: 'Workflow actions',
       icon: const Icon(Icons.more_horiz),
@@ -406,13 +411,13 @@ class _WorkflowOverflowMenu extends StatelessWidget {
       },
       itemBuilder: (context) => [
         if (showSamples)
-          const PopupMenuItem(
+          PopupMenuItem(
             value: _WorkflowMenuAction.samples,
-            child: Text('Samples'),
+            child: Text(l10n.translate('samples')),
           ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: _WorkflowMenuAction.saveAs,
-          child: Text('Save as'),
+          child: Text(l10n.translate('save_as')),
         ),
         const PopupMenuDivider(),
         const PopupMenuItem(

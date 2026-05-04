@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
 import '../ui/tokens/app_tokens.dart';
 import '../../features/request/screens/request_screen.dart';
 import '../../features/workflow_editor/presentation/workflow_editor_screen.dart';
@@ -8,6 +9,7 @@ import '../../features/environments/widgets/environment_selector.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/workgroup/presentation/widgets/workgroup_explorer.dart';
 import '../../features/history/widgets/history_panel.dart';
+import '../../features/help/screens/help_screen.dart';
 
 class MainWorkspaceScreen extends ConsumerStatefulWidget {
   const MainWorkspaceScreen({super.key});
@@ -55,6 +57,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   }
 
   Widget _buildTopNavigationBar(BuildContext context, ThemeData theme, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4),
@@ -79,11 +82,11 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           // Navigation Tabs
           Row(
             children: [
-              _buildNavTab('Requests', 0, theme),
+              _buildNavTab(l10n.translate('requests'), 0, theme),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab('Workflows', 1, theme),
+              _buildNavTab(l10n.translate('workflows'), 1, theme),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab('Import', 2, theme),
+              _buildNavTab(l10n.translate('import'), 2, theme),
             ],
           ),
           const Spacer(),
@@ -95,6 +98,15 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                 child: EnvironmentSelector(),
               ),
               const SizedBox(width: AppTokens.s3),
+              IconButton(
+                icon: const Icon(Icons.help_outline, size: 20),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HelpScreen()),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.settings_outlined, size: 20),
                 onPressed: () {
@@ -142,6 +154,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   }
 
   Widget _buildSidebar(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: 280,
       child: ColoredBox(
@@ -156,7 +169,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                   Icon(Icons.folder_open, size: 18, color: theme.colorScheme.onSurfaceVariant),
                   const SizedBox(width: AppTokens.s2),
                   Text(
-                    'Explorer',
+                    l10n.translate('explorer'),
                     style: theme.textTheme.titleMedium?.copyWith(fontSize: 14),
                   ),
                   const Spacer(),
@@ -175,7 +188,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                 height: 32,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Filter requests...',
+                    hintText: l10n.translate('filter_requests'),
                     prefixIcon: const Icon(Icons.filter_list, size: 16),
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     border: OutlineInputBorder(
@@ -196,7 +209,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
             Padding(
               padding: const EdgeInsets.all(AppTokens.s3),
               child: Text(
-                'HISTORY',
+                l10n.translate('history'),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   letterSpacing: 0.5,

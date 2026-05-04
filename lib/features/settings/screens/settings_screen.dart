@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apilens/core/settings/settings_repository.dart';
+import 'package:apilens/core/l10n/app_localizations.dart';
 
-// Simple provider for settings
-// In a real app, use shared_preferences or Isar
-final timeoutProvider = StateProvider<int>((ref) => 30000); // 30s default
+final timeoutProvider = StateProvider<int>((ref) => 30000);
 final loggingProvider = StateProvider<bool>((ref) => true);
 
 class SettingsScreen extends ConsumerWidget {
@@ -14,15 +13,17 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timeout = ref.watch(timeoutProvider);
     final logging = ref.watch(loggingProvider);
-    final themeMode = ref.watch(settingsProvider);
+    final settings = ref.watch(settingsProvider);
+    final themeMode = settings.themeMode;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       key: const Key('screen_settings'),
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.translate('settings'))),
       body: ListView(
         children: [
           ListTile(
-            title: const Text('Theme Mode'),
+            title: Text(l10n.translate('theme')),
             subtitle: Text(themeMode.name.toUpperCase()),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -46,6 +47,26 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.system),
                 ),
               ],
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            title: Text(l10n.translate('language')),
+            subtitle: Text(_getLanguageName(settings.language)),
+            trailing: DropdownButton<String>(
+              value: settings.language,
+              underline: const SizedBox(),
+              items: const [
+                DropdownMenuItem(value: 'auto', child: Text('Auto (System)')),
+                DropdownMenuItem(value: 'en', child: Text('English')),
+                DropdownMenuItem(value: 'ko', child: Text('한국어')),
+                DropdownMenuItem(value: 'zh', child: Text('中文')),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  ref.read(settingsProvider.notifier).setLanguage(val);
+                }
+              },
             ),
           ),
           const Divider(),
@@ -76,5 +97,15 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _getLanguageName(String code) {
+    switch (code) {
+      case 'en': return 'English';
+      case 'ko': return '한국어';
+      case 'zh': return '中文';
+      case 'auto': return 'Auto (System)';
+      default: return code;
+    }
   }
 }

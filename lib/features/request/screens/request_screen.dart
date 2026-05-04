@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../providers/request_provider.dart';
 import '../../response/providers/response_provider.dart';
 import '../../response/widgets/response_viewer.dart';
@@ -492,15 +493,16 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
   }
 
   Widget _buildEditorHeader({required bool useStackedHeader}) {
-    const tabBar = TabBar(
+    final l10n = AppLocalizations.of(context);
+    final tabBar = TabBar(
       isScrollable: true,
       tabAlignment: TabAlignment.start,
       tabs: [
-        Tab(text: 'Params'),
-        Tab(text: 'Auth'),
-        Tab(text: 'Headers'),
-        Tab(text: 'Body'),
-        Tab(text: 'Scripts'),
+        Tab(text: l10n.translate('params')),
+        Tab(text: l10n.translate('auth')),
+        Tab(text: l10n.translate('headers')),
+        Tab(text: l10n.translate('body')),
+        Tab(text: l10n.translate('scripts')),
       ],
     );
 
@@ -515,7 +517,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     );
 
     if (useStackedHeader) {
-      return const Column(
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
@@ -535,7 +537,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
       );
     }
 
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppTokens.s3),
       child: Row(
         children: [
@@ -595,10 +597,11 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
 
   void _showImportDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Import cURL'),
+        title: Text(l10n.translate('import_curl')),
         content: TextField(
           controller: controller,
           maxLines: 5,
@@ -608,7 +611,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(l10n.translate('cancel'))),
           ElevatedButton(
             onPressed: () {
               final model = CurlParser.parse(controller.text);
@@ -636,10 +639,11 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     final curl = CurlExporter.export(request);
     final controller = TextEditingController(text: curl);
 
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Export cURL'),
+        title: Text(l10n.translate('export_curl')),
         content: TextField(
           controller: controller,
           maxLines: 5,
@@ -648,7 +652,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close')),
+              child: Text(l10n.translate('close'))),
           ElevatedButton(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: curl));

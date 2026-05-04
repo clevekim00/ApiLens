@@ -11,7 +11,8 @@ class AppMenuBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(settingsProvider);
+    final settings = ref.watch(settingsProvider);
+    final themeMode = settings.themeMode;
     // ignore: unused_local_variable
     final workflowState = ref.watch(workflowEditorProvider);
 
