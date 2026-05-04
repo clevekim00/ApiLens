@@ -1435,7 +1435,14 @@ class _ImportBottomBar extends ConsumerWidget {
         AppTokens.s3,
       ),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: theme.colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
         border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
       child: SafeArea(
@@ -1448,12 +1455,19 @@ class _ImportBottomBar extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${state.selectedOperationIds.length} operations selected',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: [
+                    Icon(Icons.layers, size: 16, color: theme.colorScheme.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${state.selectedOperationIds.length} operations selected',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 2),
                 Text(
                   'Target folder: $targetGroupId',
                   style: theme.textTheme.labelSmall?.copyWith(

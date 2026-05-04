@@ -48,15 +48,19 @@ class KeyValueEditor extends StatelessWidget {
                   keyText: items[i].key,
                   valueText: items[i].value,
                   isEnabled: items[i].isEnabled,
+                  descriptionText: items[i].description ?? '',
                   onKeyChanged: (val) =>
                       onUpdate(i, items[i].copyWith(key: val)),
                   onValueChanged: (val) =>
                       onUpdate(i, items[i].copyWith(value: val)),
                   onEnabledChanged: (val) =>
                       onUpdate(i, items[i].copyWith(isEnabled: val)),
+                  onDescriptionChanged: (val) =>
+                      onUpdate(i, items[i].copyWith(description: val)),
                   onDelete: () => onRemove(i),
                   keyHint: keyLabel,
                   valueHint: valueLabel,
+                  descriptionHint: 'Description',
                 ),
             SizedBox(
               width: double.infinity,
@@ -120,6 +124,14 @@ class _TableHeader extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
               child: Text(valueLabel.toUpperCase(), style: labelStyle),
+            ),
+          ),
+          VerticalDivider(width: 1, color: theme.dividerColor),
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
+              child: Text('DESCRIPTION', style: labelStyle),
             ),
           ),
           const SizedBox(width: 36),

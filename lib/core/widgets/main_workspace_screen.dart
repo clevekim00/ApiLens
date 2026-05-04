@@ -1,0 +1,215 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../ui/tokens/app_tokens.dart';
+import '../../features/request/screens/request_screen.dart';
+import '../../features/workflow_editor/presentation/workflow_editor_screen.dart';
+import '../../features/import/presentation/screens/openapi_import_screen.dart';
+import '../../features/environments/widgets/environment_selector.dart';
+import '../../features/settings/screens/settings_screen.dart';
+import '../../features/workgroup/presentation/widgets/workgroup_explorer.dart';
+import '../../features/history/widgets/history_panel.dart';
+
+class MainWorkspaceScreen extends ConsumerStatefulWidget {
+  const MainWorkspaceScreen({super.key});
+
+  @override
+  ConsumerState<MainWorkspaceScreen> createState() => _MainWorkspaceScreenState();
+}
+
+class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          _buildTopNavigationBar(context, theme, isDark),
+          Divider(height: 1, thickness: 1, color: theme.dividerColor),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSidebar(theme),
+                VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor),
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: [
+                      const RequestScreen(isStandalone: false),
+                      const WorkflowEditorScreen(),
+                      const OpenApiImportScreen(targetGroupId: 'root'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopNavigationBar(BuildContext context, ThemeData theme, bool isDark) {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4),
+      color: theme.colorScheme.surface,
+      child: Row(
+        children: [
+          // Logo
+          Row(
+            children: [
+              Icon(Icons.lens, color: theme.colorScheme.primary, size: 20),
+              const SizedBox(width: AppTokens.s2),
+              Text(
+                'ApiLens',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: AppTokens.s6),
+          // Navigation Tabs
+          Row(
+            children: [
+              _buildNavTab('Requests', 0, theme),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab('Workflows', 1, theme),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab('Import', 2, theme),
+            ],
+          ),
+          const Spacer(),
+          // Right Actions
+          Row(
+            children: [
+              const SizedBox(
+                width: 160,
+                child: EnvironmentSelector(),
+              ),
+              const SizedBox(width: AppTokens.s3),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, size: 20),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavTab(String label, int index, ThemeData theme) {
+    final isSelected = _currentIndex == index;
+    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
+    
+    return InkWell(
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3, vertical: AppTokens.s2),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              )
+            : null,
+        child: Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: color,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebar(ThemeData theme) {
+    return SizedBox(
+      width: 280,
+      child: ColoredBox(
+        color: theme.colorScheme.surface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppTokens.s3),
+              child: Row(
+                children: [
+                  Icon(Icons.folder_open, size: 18, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: AppTokens.s2),
+                  Text(
+                    'Explorer',
+                    style: theme.textTheme.titleMedium?.copyWith(fontSize: 14),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.add_box_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
+              child: SizedBox(
+                height: 32,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Filter requests...',
+                    prefixIcon: const Icon(Icons.filter_list, size: 16),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+                      borderSide: BorderSide(color: theme.dividerColor),
+                    ),
+                  ),
+                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTokens.s2),
+            const Expanded(
+              flex: 3,
+              child: WorkgroupExplorer(),
+            ),
+            Divider(height: 1, thickness: 1, color: theme.dividerColor),
+            Padding(
+              padding: const EdgeInsets.all(AppTokens.s3),
+              child: Text(
+                'HISTORY',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const Expanded(
+              flex: 2,
+              child: HistoryPanel(showCloseButton: false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -15,8 +15,8 @@ class SettingsRepository {
 
   // --- Theme ---
   ThemeMode getThemeMode() {
-    if (!_box.isOpen) return ThemeMode.system; // Safety
-    final value = _box.get(_themeKey);
+    if (!_box.isOpen) return ThemeMode.dark;
+    final value = _box.get(_themeKey, defaultValue: 'dark') as String;
     if (value == 'light') return ThemeMode.light;
     if (value == 'dark') return ThemeMode.dark;
     return ThemeMode.system;

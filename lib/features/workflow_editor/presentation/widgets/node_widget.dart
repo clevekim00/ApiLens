@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/workflow_node.dart';
 import '../../domain/models/node_port.dart';
-
+import '../../../../core/ui/tokens/app_tokens.dart';
 class NodeWidget extends StatelessWidget {
   final WorkflowNode node;
   final bool isActive;
@@ -127,65 +127,72 @@ class NodeWidget extends StatelessWidget {
   Widget _buildNodeCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     
-    Color borderColor = colorScheme.outline;
+    Color borderColor = colorScheme.outlineVariant;
     double borderWidth = 1;
-    List<BoxShadow> shadows = [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-    ];
+    List<BoxShadow> shadows = [];
 
     if (isActive) {
-      borderColor = Colors.blueAccent;
-      borderWidth = 3;
-      shadows = [BoxShadow(color: Colors.blueAccent.withOpacity(0.5), blurRadius: 8, spreadRadius: 2)];
+      borderColor = colorScheme.primary;
+      borderWidth = 2;
+      shadows = [
+        BoxShadow(color: colorScheme.primary.withValues(alpha: 0.15), blurRadius: 12, spreadRadius: 2)
+      ];
     } else if (isRunning) {
       borderColor = Colors.amber;
-      borderWidth = 3;
-      shadows = [BoxShadow(color: Colors.amber.withOpacity(0.5), blurRadius: 8, spreadRadius: 2)];
+      borderWidth = 2;
     } else if (hasError) {
       borderColor = Colors.redAccent;
-      borderWidth = 2;
-    } else if (isSuccess) {
-      borderColor = Colors.greenAccent;
       borderWidth = 2;
     }
 
     Color nodeColor;
     IconData icon;
+    String subtitle = 'Node';
     
     switch (node.type) {
       case 'start':
         nodeColor = Colors.green;
         icon = Icons.play_arrow;
+        subtitle = 'START';
         break;
       case 'end':
-        nodeColor = Colors.red;
+        nodeColor = Colors.redAccent;
         icon = Icons.stop;
+        subtitle = 'END';
         break;
       case 'api':
         nodeColor = Colors.blue;
-        icon = Icons.api;
+        icon = Icons.language;
+        subtitle = 'HTTP Request';
         break;
       case 'condition':
         nodeColor = Colors.orange;
-        icon = Icons.call_split;
+        icon = Icons.diamond;
+        subtitle = 'Condition';
+        break;
+      case 'gql_request':
+        nodeColor = Colors.pink;
+        icon = Icons.hub;
+        subtitle = 'GraphQL Request';
+        break;
+      case 'ws_connect':
+        nodeColor = Colors.deepPurple;
+        icon = Icons.sync_alt;
+        subtitle = 'WebSocket Connect';
         break;
       default:
-        nodeColor = Colors.grey;
+        nodeColor = Colors.blueGrey;
         icon = Icons.device_hub;
     }
 
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 140,
-        height: 56,
+        width: 160,
+        height: 80,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
           border: Border.all(
             color: borderColor,
             width: borderWidth,
@@ -193,47 +200,79 @@ class NodeWidget extends StatelessWidget {
           boxShadow: shadows,
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header
+            // Header / Icon area
             Container(
-              height: 20,
+              height: 36,
               decoration: BoxDecoration(
-                color: nodeColor.withOpacity(0.2),
+                color: nodeColor.withValues(alpha: 0.1),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(9),
-                  topRight: Radius.circular(9),
+                  topLeft: Radius.circular(7),
+                  topRight: Radius.circular(7),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
               child: Row(
                 children: [
-                  Icon(icon, size: 12, color: nodeColor),
-                  const SizedBox(width: 4),
-                  Text(
-                    node.type.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: nodeColor,
+                  Icon(icon, size: 16, color: nodeColor),
+                  const SizedBox(width: AppTokens.s2),
+                  Expanded(
+                    child: Text(
+                      node.data['name'] ?? node.type.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
-            // Body
+            // Body / Subtitle
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Center(
-                  child: Text(
-                    node.data['name'] ?? 'Node ${node.id}',
-                    style: TextStyle(
-                      color: colorScheme.onSurface,
-                      fontSize: 12,
+                padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: AppTokens.s1),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(height: 2),
+                    if (isSuccess)
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle, size: 10, color: Colors.green),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Success/OK',
+                            style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      )
+                    else if (hasError)
+                      Row(
+                        children: [
+                          Icon(Icons.error, size: 10, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Failed',
+                            style: TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
               ),
             ),

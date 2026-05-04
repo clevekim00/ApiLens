@@ -13,6 +13,9 @@ class AppKVRow extends StatefulWidget {
   final VoidCallback onDelete;
   final String keyHint;
   final String valueHint;
+  final String descriptionText;
+  final ValueChanged<String>? onDescriptionChanged;
+  final String descriptionHint;
 
   const AppKVRow({
     super.key,
@@ -25,6 +28,9 @@ class AppKVRow extends StatefulWidget {
     required this.onDelete,
     this.keyHint = 'Key',
     this.valueHint = 'Value',
+    this.descriptionText = '',
+    this.onDescriptionChanged,
+    this.descriptionHint = 'Description',
   });
 
   @override
@@ -34,6 +40,7 @@ class AppKVRow extends StatefulWidget {
 class _AppKVRowState extends State<AppKVRow> {
   late TextEditingController _keyController;
   late TextEditingController _valueController;
+  late TextEditingController _descriptionController;
   bool _isHovering = false;
 
   @override
@@ -41,6 +48,7 @@ class _AppKVRowState extends State<AppKVRow> {
     super.initState();
     _keyController = TextEditingController(text: widget.keyText);
     _valueController = TextEditingController(text: widget.valueText);
+    _descriptionController = TextEditingController(text: widget.descriptionText);
   }
 
   @override
@@ -52,12 +60,16 @@ class _AppKVRowState extends State<AppKVRow> {
     if (widget.valueText != _valueController.text) {
       _valueController.text = widget.valueText;
     }
+    if (widget.descriptionText != _descriptionController.text) {
+      _descriptionController.text = widget.descriptionText;
+    }
   }
 
   @override
   void dispose() {
     _keyController.dispose();
     _valueController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -115,9 +127,21 @@ class _AppKVRowState extends State<AppKVRow> {
                 borderless: true,
               ),
             ),
+            VerticalDivider(width: 1, color: theme.dividerColor),
+            Expanded(
+              flex: 2,
+              child: AppInput(
+                controller: _descriptionController,
+                onChanged: widget.onDescriptionChanged ?? (_) {},
+                hintText: widget.descriptionHint,
+                mono: true,
+                borderless: true,
+              ),
+            ),
             if (_isHovering ||
                 _keyController.text.isNotEmpty ||
-                _valueController.text.isNotEmpty)
+                _valueController.text.isNotEmpty ||
+                _descriptionController.text.isNotEmpty)
               SizedBox(
                 width: 36,
                 child: AppButton(

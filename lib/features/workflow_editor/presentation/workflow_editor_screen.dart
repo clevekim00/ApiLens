@@ -130,8 +130,20 @@ class _WorkflowEditorScreenState extends ConsumerState<WorkflowEditorScreen> {
                           ),
                           const SizedBox(width: AppTokens.s3),
                           Expanded(
-                            child: _WorkflowCanvasPanel(
-                              canvasColor: canvasColor,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: _WorkflowCanvasPanel(
+                                    canvasColor: canvasColor,
+                                  ),
+                                ),
+                                const SizedBox(height: AppTokens.s3),
+                                const SizedBox(
+                                  height: 200,
+                                  child: _WorkflowPanel(child: DebugPanel()),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: AppTokens.s3),
@@ -141,11 +153,6 @@ class _WorkflowEditorScreenState extends ConsumerState<WorkflowEditorScreen> {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: AppTokens.s3),
-                    const SizedBox(
-                      height: 200,
-                      child: _WorkflowPanel(child: DebugPanel()),
                     ),
                   ],
                 ],

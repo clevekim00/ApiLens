@@ -25,7 +25,9 @@ import '../../workflow_editor/presentation/workflow_editor_screen.dart';
 import '../../workgroup/presentation/widgets/workgroup_selector.dart';
 
 class RequestScreen extends ConsumerStatefulWidget {
-  const RequestScreen({super.key});
+  final bool isStandalone;
+  
+  const RequestScreen({super.key, this.isStandalone = true});
 
   @override
   ConsumerState<RequestScreen> createState() => _RequestScreenState();
@@ -49,119 +51,130 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
       ref.read(responseNotifierProvider.notifier).sendRequest();
     }
 
-    return CallbackShortcuts(
+    Widget body = CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.enter, control: true): onSend,
         const SingleActivator(LogicalKeyboardKey.enter, meta: true): onSend,
       },
       child: Focus(
         autofocus: true,
-        child: DefaultTabController(
-          length: 3, // HTTP, WebSocket, GraphQL
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final showPersistentSidebar =
-                  constraints.maxWidth >= _persistentSidebarBreakpoint;
+        child: _buildHttpWorkspace(
+          context: context,
+          request: request,
+          isLoading: isLoading,
+          onSend: onSend,
+        ),
+      ),
+    );
 
-              return Scaffold(
-                key: const Key('screen_request_builder'),
-                drawer: showPersistentSidebar
-                    ? null
-                    : Drawer(
-                        width: _sidebarWidth,
-                        child: HistoryPanel(
-                          onClose: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-                appBar: AppBar(
-                  leading: showPersistentSidebar
-                      ? null
-                      : Builder(
-                          builder: (context) {
-                            return IconButton(
-                              key: const Key('btn_open_sidebar'),
-                              icon: const Icon(Icons.view_sidebar_outlined),
-                              tooltip: 'Open Workspace Sidebar',
-                              onPressed: () =>
-                                  Scaffold.of(context).openDrawer(),
-                            );
-                          },
-                        ),
-                  title: const Text('ApiLens'),
-                  centerTitle: false,
-                  elevation: 0,
-                  bottom: const TabBar(
-                    tabs: [
-                      Tab(text: 'HTTP / REST'),
-                      Tab(key: Key('tab_websocket'), text: 'WebSocket'),
-                      Tab(text: 'GraphQL'),
-                    ],
+    if (!widget.isStandalone) {
+      return body;
+    }
+
+    return DefaultTabController(
+      length: 3, // HTTP, WebSocket, GraphQL
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showPersistentSidebar =
+              constraints.maxWidth >= _persistentSidebarBreakpoint;
+
+          return Scaffold(
+            key: const Key('screen_request_builder'),
+            drawer: showPersistentSidebar
+                ? null
+                : Drawer(
+                    width: _sidebarWidth,
+                    child: HistoryPanel(
+                      onClose: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                  actions: [
-                    IconButton(
-                      key: const Key('menu_workflow'),
-                      icon: const Icon(Icons.account_tree_outlined),
-                      tooltip: 'Workflow Editor',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WorkflowEditorScreen()));
+            appBar: AppBar(
+              leading: showPersistentSidebar
+                  ? null
+                  : Builder(
+                      builder: (context) {
+                        return IconButton(
+                          key: const Key('btn_open_sidebar'),
+                          icon: const Icon(Icons.view_sidebar_outlined),
+                          tooltip: 'Open Workspace Sidebar',
+                          onPressed: () =>
+                              Scaffold.of(context).openDrawer(),
+                        );
                       },
                     ),
-                    PopupMenuButton<String>(
-                      key: const Key('btn_more_actions'),
-                      onSelected: (val) {
-                        if (val == 'workflow') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const WorkflowEditorScreen(),
-                            ),
-                          );
-                        }
-                        if (val == 'import') {
-                          _showImportDialog(context, ref);
-                        }
-                        if (val == 'export') {
-                          _showExportDialog(context, ref);
-                        }
-                        if (val == 'settings') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SettingsScreen(),
-                            ),
-                          );
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                            value: 'workflow', child: Text('Workflow Editor')),
-                        const PopupMenuItem(
-                            value: 'import', child: Text('Import cURL')),
-                        const PopupMenuItem(
-                            value: 'export', child: Text('Copy as cURL')),
-                        const PopupMenuItem(
-                            value: 'settings',
-                            key: Key('menu_settings'),
-                            child: Text('Settings')),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
+              title: const Text('ApiLens'),
+              centerTitle: false,
+              elevation: 0,
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'HTTP / REST'),
+                  Tab(key: Key('tab_websocket'), text: 'WebSocket'),
+                  Tab(text: 'GraphQL'),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  key: const Key('menu_workflow'),
+                  icon: const Icon(Icons.account_tree_outlined),
+                  tooltip: 'Workflow Editor',
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const WorkflowEditorScreen()));
+                  },
+                ),
+                PopupMenuButton<String>(
+                  key: const Key('btn_more_actions'),
+                  onSelected: (val) {
+                    if (val == 'workflow') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WorkflowEditorScreen(),
+                        ),
+                      );
+                    }
+                    if (val == 'import') {
+                      _showImportDialog(context, ref);
+                    }
+                    if (val == 'export') {
+                      _showExportDialog(context, ref);
+                    }
+                    if (val == 'settings') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                        value: 'workflow', child: Text('Workflow Editor')),
+                    const PopupMenuItem(
+                        value: 'import', child: Text('Import cURL')),
+                    const PopupMenuItem(
+                        value: 'export', child: Text('Copy as cURL')),
+                    const PopupMenuItem(
+                        value: 'settings',
+                        key: Key('menu_settings'),
+                        child: Text('Settings')),
                   ],
                 ),
-                body: _buildScreenBody(
-                  context: context,
-                  request: request,
-                  isLoading: isLoading,
-                  onSend: onSend,
-                  showPersistentSidebar: showPersistentSidebar,
-                ),
-              );
-            },
-          ),
-        ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            body: _buildScreenBody(
+              context: context,
+              request: request,
+              isLoading: isLoading,
+              onSend: onSend,
+              showPersistentSidebar: showPersistentSidebar,
+            ),
+          );
+        },
       ),
     );
   }
@@ -285,106 +298,126 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     required bool isLoading,
     required VoidCallback onSend,
   }) {
-    return DecoratedBox(
-      decoration: _panelDecoration(context),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.s2),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isCompact = constraints.maxWidth < _compactToolbarBreakpoint;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTokens.s2),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < _compactToolbarBreakpoint;
 
-            final sendButton = FilledButton.icon(
-              onPressed: isLoading ? null : onSend,
-              icon: isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white70,
-                      ),
-                    )
-                  : const Icon(Icons.send),
-              label: Text(isLoading ? 'Sending...' : 'Send'),
-            );
+          final sendButton = FilledButton.icon(
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4, vertical: AppTokens.s3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+              ),
+            ),
+            onPressed: isLoading ? null : onSend,
+            icon: isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white70,
+                    ),
+                  )
+                : const Icon(Icons.send, size: 16),
+            label: Text(isLoading ? 'Sending...' : 'Send'),
+          );
 
-            final requestActions = PopupMenuButton<String>(
-              tooltip: 'Request actions',
-              icon: const Icon(Icons.more_horiz),
-              onSelected: (val) {
-                if (val == 'import') {
-                  _showImportDialog(context, ref);
-                }
-                if (val == 'export') {
-                  _showExportDialog(context, ref);
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'import', child: Text('Import cURL')),
-                PopupMenuItem(value: 'export', child: Text('Copy as cURL')),
-              ],
-            );
-
-            final saveButton = OutlinedButton.icon(
-              onPressed: () {
+          final requestActions = PopupMenuButton<String>(
+            tooltip: 'Request actions',
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (val) {
+              if (val == 'save') {
                 final currentRequest = ref.read(requestNotifierProvider);
                 ref.read(savedRequestControllerProvider.notifier).saveRequest(currentRequest);
-              },
-              icon: const Icon(Icons.save, size: 16),
-              label: const Text('Save'),
-            );
+              }
+              if (val == 'import') {
+                _showImportDialog(context, ref);
+              }
+              if (val == 'export') {
+                _showExportDialog(context, ref);
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'save', child: Text('Save Request')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'import', child: Text('Import cURL')),
+              PopupMenuItem(value: 'export', child: Text('Copy as cURL')),
+            ],
+          );
 
-            if (isCompact) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    children: [
-                      MethodSelector(key: Key('selector_method')),
-                      SizedBox(width: AppTokens.s2),
-                      Expanded(child: UrlInput(key: Key('input_url_bar'))),
-                    ],
-                  ),
-                  const SizedBox(height: AppTokens.s2),
-                  Row(
-                    children: [
-                      const EnvironmentSelector(),
-                      const Spacer(),
-                      saveButton,
-                      const SizedBox(width: AppTokens.s2),
-                      Expanded(child: sendButton),
-                      const SizedBox(width: AppTokens.s2),
-                      requestActions,
-                    ],
-                  ),
-                ],
-              );
-            }
-
-            return Row(
+          Widget _buildLabeled(String label, Widget child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const MethodSelector(key: Key('selector_method')),
-                const SizedBox(width: AppTokens.s2),
-                const Expanded(child: UrlInput(key: Key('input_url_bar'))),
-                const SizedBox(width: AppTokens.s2),
-                const EnvironmentSelector(),
-                const SizedBox(width: AppTokens.s2),
-                saveButton,
-                const SizedBox(width: AppTokens.s2),
-                sendButton,
-                const SizedBox(width: AppTokens.s1),
-                requestActions,
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                child,
               ],
             );
-          },
-        ),
+          }
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    _buildLabeled('Environment', const EnvironmentSelector()),
+                    const SizedBox(width: AppTokens.s2),
+                    _buildLabeled('Method', const MethodSelector(key: Key('selector_method'))),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.s2),
+                Row(
+                  children: [
+                    const Expanded(child: UrlInput(key: Key('input_url_bar'))),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.s2),
+                Row(
+                  children: [
+                    const Spacer(),
+                    Expanded(child: sendButton),
+                    const SizedBox(width: AppTokens.s1),
+                    requestActions,
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildLabeled('Environment', const EnvironmentSelector()),
+              const SizedBox(width: AppTokens.s3),
+              _buildLabeled('Method', const MethodSelector(key: Key('selector_method'))),
+              const SizedBox(width: AppTokens.s3),
+              const Expanded(child: UrlInput(key: Key('input_url_bar'))),
+              const SizedBox(width: AppTokens.s3),
+              sendButton,
+              const SizedBox(width: AppTokens.s1),
+              requestActions,
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildEditorTabs(RequestModel request) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: DecoratedBox(
         decoration: _panelDecoration(context),
         child: LayoutBuilder(
@@ -415,6 +448,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                           keyLabel: 'Parameter',
                         ),
                       ),
+                      const AuthEditor(),
                       SingleChildScrollView(
                         padding: EdgeInsets.zero,
                         child: Column(
@@ -445,7 +479,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                         ),
                       ),
                       const BodyEditor(),
-                      const AuthEditor(),
+                      const Center(child: Text('Scripts (Pre-request / Tests)')),
                     ],
                   ),
                 ),
@@ -463,9 +497,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
       tabAlignment: TabAlignment.start,
       tabs: [
         Tab(text: 'Params'),
+        Tab(text: 'Auth'),
         Tab(text: 'Headers'),
         Tab(text: 'Body'),
-        Tab(text: 'Auth'),
+        Tab(text: 'Scripts'),
       ],
     );
 

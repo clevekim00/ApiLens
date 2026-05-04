@@ -7,6 +7,7 @@ import '../../../request/models/key_value_item.dart';
 import '../../../request/models/request_model.dart'; // NEW
 import '../../../request/widgets/auto_header_list.dart'; // NEW
 import '../../../../core/network/request_header_builder.dart'; // NEW
+import '../../../../core/ui/tokens/app_tokens.dart';
 import 'package:uuid/uuid.dart';
 
 class HttpNodeForm extends ConsumerStatefulWidget {
@@ -84,103 +85,168 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    final theme = Theme.of(context);
+    final inputDecoration = InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.s3, vertical: AppTokens.s2),
+      isDense: true,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Name
+        Text(
+          'Node Name',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
         TextFormField(
           controller: _nameController,
-          decoration: const InputDecoration(labelText: 'Node Name', border: OutlineInputBorder()),
+          decoration: inputDecoration.copyWith(hintText: 'e.g., Fetch Users'),
+          style: const TextStyle(fontSize: 13),
           onChanged: (_) => _save(),
         ),
-        const SizedBox(height: 16),
-        
+        const SizedBox(height: AppTokens.s3),
+
         // Method & URL
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             SizedBox(
               width: 86,
-              child: DropdownButtonFormField<String>(
-                value: _method,
-                isExpanded: true, // Ensure content fits
-                items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map((m) => 
-                   DropdownMenuItem(
-                     value: m, 
-                     child: Text(
-                       m, 
-                       style: const TextStyle(fontSize: 13), // Reduce font size slightly
-                       overflow: TextOverflow.ellipsis // Ensure text doesn't push bounds
-                     )
-                   )
-                ).toList(),
-                onChanged: (val) {
-                   if (val != null) {
-                     setState(() => _method = val);
-                     _save();
-                   }
-                },
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(), 
-                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 15) // Tight padding
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Method',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: _method,
+                    isExpanded: true,
+                    icon: const Icon(Icons.arrow_drop_down, size: 16),
+                    items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+                        .map((m) => DropdownMenuItem(
+                              value: m,
+                              child: Text(
+                                m,
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _method = val);
+                        _save();
+                      }
+                    },
+                    decoration: inputDecoration,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppTokens.s2),
             Expanded(
-              child: TextFormField(
-                controller: _urlController,
-                decoration: const InputDecoration(labelText: 'URL (supports {{template}})', border: OutlineInputBorder()),
-                onChanged: (_) => _save(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'URL',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    controller: _urlController,
+                    decoration: inputDecoration.copyWith(
+                      hintText: 'https://api.example.com',
+                    ),
+                    style: AppTokens.monoStyle.copyWith(fontSize: 12),
+                    onChanged: (_) => _save(),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        
+        const SizedBox(height: AppTokens.s4),
+
         // Tabs for Headers / Body
-        DefaultTabController(
-          length: 2,
-          child: Column(
-             mainAxisSize: MainAxisSize.min,
-             children: [
-               const TabBar(
-                 labelColor: Colors.blue,
-                 tabs: [Tab(text: 'Headers'), Tab(text: 'Body')],
-               ),
-               SizedBox(
-                 height: 300, // Fixed height for scrolling content
-                 child: TabBarView(
-                   children: [
-                     // Headers Editor
-                     SingleChildScrollView(
-                       child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                         children: [
-                           // Auto Headers (Calculated)
-                           Builder(builder: (context) {
-                             // Heuristic for Body Type: If body starts with {, assume JSON.
-                             // Workflow HttpNodeConfig is simple, so we guess.
-                             final bodyText = _bodyController.text.trim();
-                             final bodyType = bodyText.startsWith('{') ? RequestBodyType.json : RequestBodyType.text;
-                             
-                             final tempRequest = RequestModel(
-                               id: 'temp', 
-                               method: _method,
-                               url: _urlController.text,
-                               bodyType: bodyType,
-                               // We don't have full Auth config in HttpNodeConfig yet exposed in this form cleanly
-                               // but RequestHeaderBuilder handles basics.
-                             );
-                             return AutoHeaderList(
-                               autoHeaders: RequestHeaderBuilder.buildAutoHeaders(tempRequest),
-                             );
-                           }),
-                           
+        Expanded(
+          child: DefaultTabController(
+            length: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Color.alphaBlend(
+                      theme.colorScheme.primary.withValues(alpha: 0.025),
+                      theme.colorScheme.surface,
+                    ),
+                    border: Border(
+                      bottom: BorderSide(color: theme.dividerColor),
+                    ),
+                  ),
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    tabs: const [
+                      Tab(text: 'Headers'),
+                      Tab(text: 'Body'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppTokens.s2),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      // Headers Editor
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Builder(builder: (context) {
+                              final bodyText = _bodyController.text.trim();
+                              final bodyType = bodyText.startsWith('{')
+                                  ? RequestBodyType.json
+                                  : RequestBodyType.text;
+
+                              final tempRequest = RequestModel(
+                                id: 'temp',
+                                method: _method,
+                                url: _urlController.text,
+                                bodyType: bodyType,
+                              );
+                              return AutoHeaderList(
+                                autoHeaders: RequestHeaderBuilder.buildAutoHeaders(
+                                    tempRequest),
+                              );
+                            }),
                             KeyValueEditor(
                               items: _headers,
                               keyLabel: 'Header',
                               onAdd: () {
                                 setState(() {
-                                  _headers.add(KeyValueItem(id: const Uuid().v4(), key: '', value: '', isEnabled: true));
+                                  _headers.add(KeyValueItem(
+                                      id: const Uuid().v4(),
+                                      key: '',
+                                      value: '',
+                                      isEnabled: true));
                                 });
                                 _save();
                               },
@@ -196,24 +262,24 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                           ],
                         ),
                       ),
-                     
-                     // Body Editor
-                     Padding(
-                       padding: const EdgeInsets.all(8.0),
-                       child: TextFormField(
-                         controller: _bodyController,
-                         maxLines: 10,
-                         decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'JSON Body (supports {{template}})'
-                         ),
-                         onChanged: (_) => _save(),
-                       ),
-                     ),
-                   ],
-                 ),
-               )
-             ],
+
+                      // Body Editor
+                      TextFormField(
+                        controller: _bodyController,
+                        maxLines: null,
+                        expands: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        style: AppTokens.monoStyle.copyWith(fontSize: 12),
+                        decoration: inputDecoration.copyWith(
+                          hintText: '{"key": "value"}',
+                        ),
+                        onChanged: (_) => _save(),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ],
