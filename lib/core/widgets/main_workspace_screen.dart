@@ -10,6 +10,9 @@ import '../../features/settings/screens/settings_screen.dart';
 import '../../features/workgroup/presentation/widgets/workgroup_explorer.dart';
 import '../../features/history/widgets/history_panel.dart';
 import '../../features/help/screens/help_screen.dart';
+import '../services/tutorial_service.dart';
+import '../services/data_initialization_service.dart';
+import '../../core/settings/settings_repository.dart';
 
 class MainWorkspaceScreen extends ConsumerStatefulWidget {
   const MainWorkspaceScreen({super.key});
@@ -20,6 +23,38 @@ class MainWorkspaceScreen extends ConsumerStatefulWidget {
 
 class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   int _currentIndex = 0;
+  
+  final GlobalKey _keyRequests = GlobalKey();
+  final GlobalKey _keyWorkflows = GlobalKey();
+  final GlobalKey _keyImport = GlobalKey();
+  final GlobalKey _keyExplorerAdd = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initOnboarding();
+    });
+  }
+
+  void _initOnboarding() async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.hasSeenTutorial) {
+      // 1. Initialize Sample Data
+      await ref.read(dataInitializationServiceProvider).initializeSampleData();
+      
+      // 2. Show Tutorial
+      AppTutorialService().showTutorial(
+        context,
+        keyRequests: _keyRequests,
+        keyWorkflows: _keyWorkflows,
+        keyImport: _keyImport,
+        keyExplorerAdd: _keyExplorerAdd,
+      );
+      
+      ref.read(settingsProvider.notifier).setHasSeenTutorial(true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +117,11 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           // Navigation Tabs
           Row(
             children: [
-              _buildNavTab(l10n.translate('requests'), 0, theme),
+              _buildNavTab(l10n.translate('requests'), 0, theme, _keyRequests),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('workflows'), 1, theme),
+              _buildNavTab(l10n.translate('workflows'), 1, theme, _keyWorkflows),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('import'), 2, theme),
+              _buildNavTab(l10n.translate('import'), 2, theme, _keyImport),
             ],
           ),
           const Spacer(),
@@ -123,11 +158,12 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
     );
   }
 
-  Widget _buildNavTab(String label, int index, ThemeData theme) {
+  Widget _buildNavTab(String label, int index, ThemeData theme, Key? key) {
     final isSelected = _currentIndex == index;
     final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
     
     return InkWell(
+      key: key,
       onTap: () => setState(() => _currentIndex = index),
       borderRadius: BorderRadius.circular(AppTokens.radiusMd),
       child: Container(
@@ -174,6 +210,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                   ),
                   const Spacer(),
                   IconButton(
+                    key: _keyExplorerAdd,
                     icon: const Icon(Icons.add_box_outlined, size: 18),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),

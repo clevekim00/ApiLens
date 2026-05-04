@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/node_config.dart';
 import '../../application/workflow_editor_controller.dart';
+import '../../../../core/widgets/info_button.dart';
 
 class ConditionNodeForm extends ConsumerStatefulWidget {
   final String nodeId;
@@ -66,6 +67,10 @@ class _ConditionNodeFormState extends ConsumerState<ConditionNodeForm> {
             border: OutlineInputBorder(),
             helperText: 'Supported: ==, !=, >, <, contains',
             helperMaxLines: 2,
+            suffixIcon: InfoButton(
+              title: 'Expressions',
+              message: 'Use dynamic expressions to branch your workflow.\n\nVariables: {{node.<id>.response.body}}\nOperations: ==, !=, >, <, >=, <=, contains\n\nExample: {{lastResult.status}} == 200',
+            ),
           ),
           onChanged: (_) => _save(),
         ),

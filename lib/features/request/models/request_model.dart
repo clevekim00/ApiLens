@@ -81,10 +81,10 @@ class RequestModel {
 
   factory RequestModel.fromJson(Map<String, dynamic> json) {
     return RequestModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      method: json['method'] as String,
-      url: json['url'] as String,
+      id: json['id'] as String? ?? const Uuid().v4(),
+      name: json['name'] as String? ?? 'Untitled Request',
+      method: json['method'] as String? ?? 'GET',
+      url: json['url'] as String? ?? '',
       headers: (json['headers'] as List?)
           ?.map((e) => KeyValueItem.fromJson(e))
           .toList() ?? [],

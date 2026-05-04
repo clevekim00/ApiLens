@@ -19,6 +19,7 @@ import '../../../../core/utils/curl_parser.dart';
 import '../../../../core/utils/curl_exporter.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../application/saved_request_controller.dart';
+import '../../../../core/widgets/info_button.dart';
 
 import '../../../../features/websocket/presentation/widgets/websocket_client_panel.dart';
 import '../../../../features/graphql/presentation/screens/graphql_client_tab.dart';
@@ -500,8 +501,32 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
       tabs: [
         Tab(text: l10n.translate('params')),
         Tab(text: l10n.translate('auth')),
-        Tab(text: l10n.translate('headers')),
-        Tab(text: l10n.translate('body')),
+        Tab(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.translate('headers')),
+              const SizedBox(width: 4),
+              const InfoButton(
+                title: 'Headers',
+                message: 'HTTP headers allow the client and the server to pass additional information with an HTTP request or response.\n\nCommon headers:\n- Content-Type: application/json\n- Authorization: Bearer <token>',
+              ),
+            ],
+          ),
+        ),
+        Tab(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.translate('body')),
+              const SizedBox(width: 4),
+              const InfoButton(
+                title: 'Request Body',
+                message: 'The request body is used to send data to the server (e.g., in POST/PUT requests).\n\nSupported types:\n- JSON\n- Form Data\n- Raw Text\n- Binary',
+              ),
+            ],
+          ),
+        ),
         Tab(text: l10n.translate('scripts')),
       ],
     );

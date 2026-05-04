@@ -15,7 +15,9 @@ import 'package:apilens/features/request/providers/request_provider.dart';
 import 'package:apilens/features/workflow_editor/application/saved_workflow_controller.dart';
 import 'package:apilens/features/workflow_editor/domain/models/workflow.dart';
 import 'package:apilens/features/workflow_editor/presentation/workflow_editor_screen.dart';
+import 'package:apilens/features/workflow_editor/presentation/widgets/workflow_template_selector.dart';
 import 'package:apilens/features/import/presentation/screens/openapi_import_screen.dart';
+import 'package:apilens/core/widgets/empty_state_widget.dart';
 
 class WorkgroupExplorer extends ConsumerStatefulWidget {
   const WorkgroupExplorer({super.key});
@@ -493,23 +495,30 @@ void _showCreateWorkflowDialog(
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text('New Workflow'),
-      content: TextField(
-        controller: controller,
-        decoration: const InputDecoration(labelText: 'Name'),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: () async {
-            if (controller.text.isNotEmpty) {
+      title: const Text('Create New Workflow'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              hintText: 'Enter workflow name',
+            ),
+            autofocus: true,
+          ),
+          const SizedBox(height: AppTokens.s6),
+          WorkflowTemplateSelector(
+            onSelected: (Workflow template) async {
               final id = await ref
                   .read(savedWorkflowControllerProvider.notifier)
                   .createWorkflow(
-                      name: controller.text, groupId: targetGroupId);
+                    name: controller.text.isNotEmpty ? controller.text : template.name,
+                    groupId: targetGroupId,
+                    nodes: template.nodes,
+                    edges: template.edges,
+                  );
               if (context.mounted) {
                 Navigator.pop(context);
                 Navigator.push(
@@ -518,10 +527,14 @@ void _showCreateWorkflowDialog(
                         builder: (_) =>
                             WorkflowEditorScreen(workflowIdToLoad: id)));
               }
-            }
-          },
-          child: const Text('Create'),
-        ),
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
       ],
     ),
   );
@@ -828,43 +841,19 @@ class _ExplorerCountBadge extends StatelessWidget {
   }
 }
 
+
+
 class _ExplorerEmptyState extends StatelessWidget {
   const _ExplorerEmptyState();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.s4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.create_new_folder_outlined,
-              size: 30,
-              color: theme.colorScheme.primary.withValues(alpha: 0.62),
-            ),
-            const SizedBox(height: AppTokens.s2),
-            Text(
-              'No workgroups',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppTokens.s1),
-            Text(
-              'Create a folder to organize requests and workflows.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateWidget(
+      icon: Icons.folder_open_outlined,
+      title: 'Explorer is Empty',
+      description: 'Create a folder to start organizing your API projects.',
+      actionLabel: 'Create Folder',
+      onAction: () => (context.findAncestorStateOfType<_WorkgroupExplorerState>())?._showCreateFolderDialog(context),
     );
   }
 }

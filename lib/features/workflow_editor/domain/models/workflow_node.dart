@@ -107,11 +107,11 @@ class WorkflowNode {
 
   factory WorkflowNode.fromJson(Map<String, dynamic> json) {
     return WorkflowNode(
-      id: json['id'],
-      type: json['type'],
-      x: json['x'],
-      y: json['y'],
-      data: json['data'] ?? {},
+      id: json['id'] as String? ?? '',
+      type: json['type'] as String? ?? 'api',
+      x: (json['x'] as num?)?.toDouble() ?? 0.0,
+      y: (json['y'] as num?)?.toDouble() ?? 0.0,
+      data: json['data'] as Map<String, dynamic>? ?? {},
       inputPortKeys: (json['inputs'] as List?)?.cast<String>(),
       outputPortKeys: (json['outputs'] as List?)?.cast<String>(),
     );

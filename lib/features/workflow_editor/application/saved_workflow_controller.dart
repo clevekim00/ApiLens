@@ -26,44 +26,31 @@ class SavedWorkflowController extends StateNotifier<List<Workflow>> {
     refresh();
   }
 
-  Future<String> createWorkflow(
-      {required String name, required String groupId}) async {
+  Future<String> createWorkflow({
+    required String name,
+    required String groupId,
+    List<WorkflowNode>? nodes,
+    List<WorkflowEdge>? edges,
+  }) async {
     final workflowId = const Uuid().v4();
-    final startNodeId = const Uuid().v4();
-    final endNodeId = const Uuid().v4();
 
-    final nodes = [
-      WorkflowNode(
-        id: startNodeId,
-        type: 'start',
-        x: 100,
-        y: 200,
-      ),
-      WorkflowNode(
-        id: endNodeId,
-        type: 'end',
-        x: 500,
-        y: 200,
-      ),
-    ];
+    final finalNodes = nodes ??
+        [
+          WorkflowNode(id: const Uuid().v4(), type: 'start', x: 100, y: 200),
+          WorkflowNode(id: const Uuid().v4(), type: 'end', x: 500, y: 200),
+        ];
 
-    final edges = [
-      WorkflowEdge(
-        id: const Uuid().v4(),
-        sourceNodeId: startNodeId,
-        sourcePort: 'output',
-        targetNodeId: endNodeId,
-        targetPort: 'input',
-      ),
-    ];
+    final finalEdges = edges ?? [];
 
     final workflow = Workflow(
       id: workflowId,
       name: name,
       groupId: groupId,
-      nodes: nodes,
-      edges: edges,
+      nodes: finalNodes,
+      edges: finalEdges,
       lastModified: DateTime.now(),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
     await _repository.save(workflow);

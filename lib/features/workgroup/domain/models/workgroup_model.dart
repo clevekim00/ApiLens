@@ -98,19 +98,21 @@ class WorkgroupModel {
 
   factory WorkgroupModel.fromJson(Map<String, dynamic> json) {
     return WorkgroupModel(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'] ?? '',
-      parentId: json['parentId'],
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? 'Untitled',
+      description: json['description'] as String? ?? '',
+      parentId: json['parentId'] as String?,
       type: WorkgroupType.values.firstWhere(
           (e) => e.name == json['type'], 
           orElse: () => WorkgroupType.requestCollection),
-      icon: json['icon'],
-      isSystem: json['isSystem'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
+      icon: json['icon'] as String?,
+      isSystem: json['isSystem'] as bool? ?? false,
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'] as String) 
+          : DateTime.now(),
       updatedAt: json['updatedAt'] != null 
-          ? DateTime.parse(json['updatedAt']) 
-          : DateTime.parse(json['createdAt']),
+          ? DateTime.parse(json['updatedAt'] as String) 
+          : (json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : DateTime.now()),
     );
   }
 }

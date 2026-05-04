@@ -11,6 +11,7 @@ import '../../../execution/domain/models/execution_models.dart';
 import 'node_widget.dart';
 import 'edge_painter.dart';
 import 'edge_path_util.dart'; // NEW
+import '../../../../core/widgets/empty_state_widget.dart';
 
 class WorkflowCanvas extends ConsumerStatefulWidget {
   const WorkflowCanvas({super.key});
@@ -367,6 +368,16 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                   ),
                 ),
               ),
+              if (nodes.length <= 1)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: EmptyStateWidget(
+                      icon: Icons.account_tree_outlined,
+                      title: 'Canvas is Empty',
+                      description: 'Drag nodes from the left palette to start building your workflow.',
+                    ),
+                  ),
+                ),
               Positioned(
                 top: AppTokens.s3,
                 right: AppTokens.s3,

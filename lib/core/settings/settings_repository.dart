@@ -7,6 +7,7 @@ class SettingsRepository {
   static const String _themeKey = 'theme_mode';
   static const String _languageKey = 'language';
   static const String _lastWsConfigIdKey = 'last_selected_ws_config_id';
+  static const String _hasSeenTutorialKey = 'has_seen_tutorial';
   
   late Box _box;
 
@@ -50,6 +51,15 @@ class SettingsRepository {
   Future<void> setLastSelectedWsConfigId(String id) async {
     await _box.put(_lastWsConfigIdKey, id);
   }
+  
+  bool getHasSeenTutorial() {
+    if (!_box.isOpen) return false;
+    return _box.get(_hasSeenTutorialKey, defaultValue: false) as bool;
+  }
+
+  Future<void> setHasSeenTutorial(bool value) async {
+    await _box.put(_hasSeenTutorialKey, value);
+  }
 }
 
 // Global Provider
@@ -61,13 +71,15 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 class SettingsState {
   final ThemeMode themeMode;
   final String language;
+  final bool hasSeenTutorial;
 
-  SettingsState({required this.themeMode, required this.language});
+  SettingsState({required this.themeMode, required this.language, required this.hasSeenTutorial});
 
-  SettingsState copyWith({ThemeMode? themeMode, String? language}) {
+  SettingsState copyWith({ThemeMode? themeMode, String? language, bool? hasSeenTutorial}) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
       language: language ?? this.language,
+      hasSeenTutorial: hasSeenTutorial ?? this.hasSeenTutorial,
     );
   }
 }
@@ -80,6 +92,7 @@ class SettingsController extends StateNotifier<SettingsState> {
       : super(SettingsState(
           themeMode: _repository.getThemeMode(),
           language: _repository.getLanguage(),
+          hasSeenTutorial: _repository.getHasSeenTutorial(),
         ));
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -90,6 +103,11 @@ class SettingsController extends StateNotifier<SettingsState> {
   Future<void> setLanguage(String languageCode) async {
     await _repository.setLanguage(languageCode);
     state = state.copyWith(language: languageCode);
+  }
+
+  Future<void> setHasSeenTutorial(bool value) async {
+    await _repository.setHasSeenTutorial(value);
+    state = state.copyWith(hasSeenTutorial: value);
   }
 
   Locale? getLocale() {
