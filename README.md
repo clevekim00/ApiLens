@@ -1,33 +1,90 @@
-# ApiLens
+# ApiLens: The Unified Visual API Orchestration Platform
 
 <div align="center">
   <img src="assets/apilens_icon.svg" alt="ApiLens Icon" width="128" />
   <br/>
-  <img src="docs/assets/intro.png" alt="ApiLens Intro" width="100%" />
+  <h3>Connect. Automate. Visualize.</h3>
+  <p>A high-performance, premium developer tool for REST, WebSocket, and GraphQL orchestration.</p>
 </div>
 
-<br/>
+---
 
-ApiLens is a desktop/web-based API tool that connects REST, WebSocket, and GraphQL into a single workflow.
+## 🎯 Project Purpose
 
-## Key Features
-- **Multi-Client**: Support for REST / WebSocket / GraphQL Clients.
-- **Workflow Editor**: Connect complex API scenarios with nodes and automate them.
-- **Visual Debugging**: Real-time path highlighting (Green/Red) and active node pulsing.
-- **Command Palette**: (Cmd+K) Fast access to all workflows, requests, and settings.
-- **Workflow Templates**: Built-in library for common scenarios (Auth, CRUD, etc.).
-- **Workgroup System**: Isolate and manage projects individually.
-- **OpenAPI Import**: Filter by tags and selectively import endpoints.
-- **Team Collaboration**: Share workgroups via Export/Import JSON.
-- **Design**: Premium glassmorphism UI with smooth animations and dark mode.
-- **Platform**: Supports Desktop (macOS, Windows, Linux), Mobile (Android, iOS/iPad), and Web.
+In modern software development, developers often juggle multiple disconnected tools: Postman for REST, custom scripts for automation, and specialized clients for WebSocket or GraphQL. **ApiLens** was created to unify these into a single, cohesive experience.
 
-## Quick Start
-1. **Launch ApiLens**: Open the application.
-2. **Create Workgroup**: Click the `+` button in the sidebar to create a new group.
-3. **Import OpenAPI**: Right-click group -> `Import Swagger` to load specifications.
-4. **Run Request**: Select a request from the list and click `Send`.
-5. **Create Workflow**: Click `+ Workflow` to connect multiple requests.
+Our goal is to **bridge the gap between simple API testing and complex workflow automation**. By providing a visual, node-based editor with real-time feedback, ApiLens allows developers to:
+- **Unify Protocols**: Manage REST, WebSocket, and GraphQL in one place.
+- **Eliminate Boilerplate**: Replace fragile bash/python test scripts with robust visual logic.
+- **Gain Visibility**: See exactly how data flows through your system with real-time visual debugging.
+- **Accelerate Development**: Use a professional Command Palette and Templates to move faster than ever.
 
 ---
-Other languages: [한국어](README_KO.md) | [中文](README_CN.md)
+
+## ✨ Key Features
+
+### 🚀 Advanced Orchestration
+- **Visual Workflow Editor**: Design complex sequences (e.g., Auth -> Token -> WebSocket Connect) using a node-based interface.
+- **Real-time Visual Debugging**: Watch your workflow execute live. Successful paths turn **Green**, failures turn **Red**, and active nodes pulse with a **Blue** glow.
+- **Workflow Templates**: Access a library of pre-built scenarios like "Auth Flow", "CRUD Sync", and "GraphQL Explorer".
+
+### 🛠 Professional Developer Tools
+- **Multi-Protocol Support**: Full-featured clients for REST, WebSocket (with subprotocol support), and GraphQL (with variables and introspection).
+- **Command Palette (Cmd+K)**: Search through thousands of requests and workflows instantly. Switch themes or settings without leaving the keyboard.
+- **OpenAPI / Swagger Import**: Modern, filtered import system to bring in your entire API specification with one click.
+
+### 💎 Premium Experience
+- **Glassmorphism UI**: A stunning, modern interface built with Flutter, featuring smooth 60FPS animations and a curated dark mode.
+- **Workgroup System**: Organize your work by project, not by list. Isolate environments and shared data.
+- **Cross-Platform**: Run everywhere—macOS, Windows, Linux, and the Web.
+
+---
+
+## 📖 How to Use
+
+### 1. Organize with Workgroups
+ApiLens uses **Workgroups** to keep your projects isolated.
+- Click the **+** icon in the sidebar to create your first project.
+- Use the **Import** feature to bring in an existing OpenAPI (Swagger) JSON/YAML file.
+
+### 2. Build Your First Request
+- Select a protocol (REST/WS/GQL) from the top tabs.
+- Enter your URL and parameters. ApiLens supports **Template Variables** `{{ variable_name }}` that resolve dynamically.
+- Click **Send** to see the formatted response, headers, and execution timing.
+
+### 3. Design a Visual Workflow
+- Navigate to the **Workflow Tab**.
+- Drag nodes from the palette onto the canvas.
+- Connect ports to define the logic flow (e.g., connect the `success` output of a Login node to the `input` of a Fetch node).
+- Click **Run** to execute and watch the visual debugging in action.
+
+### 4. Master Efficiency with Command Palette
+- Press **Cmd + K** (or **Ctrl + K**) at any time.
+- Type to search for a specific request, workflow, or app command.
+- Use arrow keys and **Enter** to navigate instantly.
+
+---
+
+## 🛠 Tech Stack
+- **Framework**: [Flutter](https://flutter.dev) for high-performance, multi-platform UI.
+- **State Management**: [Riverpod](https://riverpod.dev) for robust, reactive data flow.
+- **Local Storage**: [Hive](https://pub.dev/packages/hive) and [Isar](https://isar.dev) for fast, encrypted local data.
+- **Networking**: [Dio](https://pub.dev/packages/dio) with custom interceptors for advanced protocol handling.
+
+---
+
+## 🚀 Getting Started
+
+1. **Download**: Grab the latest release for your OS from the [Releases](https://github.com/your-repo/apilens/releases) page.
+2. **Web Version**: Access the lite version at [apilens.app](https://apilens.app).
+3. **Contribute**: Check out [CONTRIBUTING.md](docs/CONTRIBUTING_EN.md) to help improve ApiLens.
+
+---
+
+## 🌍 Community & Support
+- **Documentation**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+- **Discord**: [Join our developer community](https://discord.gg/apilens)
+- **Twitter**: [@ApiLensTool](https://twitter.com/ApiLensTool)
+
+---
+*Other languages: [한국어](README_KO.md) | [中文](README_CN.md)*
