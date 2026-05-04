@@ -115,22 +115,53 @@ class _ResponseSummaryBar extends StatelessWidget {
         runSpacing: AppTokens.s2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Container(
-            height: 28,
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.14),
-              border: Border.all(color: statusColor.withValues(alpha: 0.55)),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '${response.statusCode} ${response.statusMessage}',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+          TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 1500),
+            tween: Tween(begin: 0.0, end: 1.0),
+            builder: (context, value, child) {
+              final isError = response.statusCode >= 400;
+              final pulse = isError ? (0.4 + (value * 0.6)) : 1.0;
+              
+              return Container(
+                height: 28,
+                padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.14 * pulse),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.55 * pulse)),
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: statusColor.withValues(alpha: 0.2 * pulse),
+                      blurRadius: 8 * pulse,
+                      spreadRadius: 1 * pulse,
+                    ),
+                    if (isError)
+                      BoxShadow(
+                        color: statusColor.withValues(alpha: 0.1 * value),
+                        blurRadius: 16 * value,
+                        spreadRadius: 4 * value,
+                      ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${response.statusCode} ${response.statusMessage}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w800,
+                    shadows: [
+                      Shadow(
+                        color: statusColor.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            onEnd: () {
+              // This causes the pulse to rebuild
+            },
           ),
           _ResponseMetricChip(
             icon: Icons.timer_outlined,

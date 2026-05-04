@@ -18,13 +18,20 @@ class WorkflowTemplateSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(bottom: AppTokens.s3),
-          child: Text(
-            'Start from Template',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          padding: const EdgeInsets.only(bottom: AppTokens.s3),
+          child: Row(
+            children: [
+              Icon(Icons.auto_awesome_outlined, size: 16, color: theme.colorScheme.primary),
+              const SizedBox(width: AppTokens.s2),
+              Text(
+                'Start from Template',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(
@@ -82,22 +89,43 @@ class _TemplateCard extends StatelessWidget {
     
     return Container(
       width: 160,
-      margin: EdgeInsets.only(right: AppTokens.s3),
+      margin: const EdgeInsets.only(right: AppTokens.s3, bottom: 4),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTokens.radiusMd),
         child: Container(
-          padding: EdgeInsets.all(AppTokens.s4),
+          padding: const EdgeInsets.all(AppTokens.s4),
           decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
             borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-            color: theme.colorScheme.surface,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.surface,
+                theme.colorScheme.primary.withValues(alpha: 0.03),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 24, color: theme.colorScheme.primary),
-              SizedBox(height: AppTokens.s2),
+              Container(
+                padding: const EdgeInsets.all(AppTokens.s2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(height: AppTokens.s3),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -105,14 +133,16 @@ class _TemplateCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
               ),
-              SizedBox(height: AppTokens.s1),
+              const SizedBox(height: 4),
               Text(
                 description,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontSize: 11,
                 ),
               ),
             ],

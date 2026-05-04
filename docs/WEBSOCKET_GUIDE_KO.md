@@ -14,7 +14,7 @@
 ## 2. WebSocket Client 사용법 (Manual Test)
 워크플로우를 작성하기 전, 단일 연결에 대한 수동 테스트를 진행할 수 있습니다.
 
-1. **메뉴 접근**: 상단 메뉴바에서 `WebSocket` -> `Open Client`를 선택하거나, `Request Builder` 화면의 `WebSocket` 탭을 이용합니다.
+1. **메뉴 접근**: 상단 메뉴바에서 `WebSocket` -> `Open Client`를 선택하거나, `Request Builder` 화면의 `WebSocket` 탭을 이용합니다. 전역 검색(`Cmd + K`)에서 "WebSocket"을 입력하여 즉시 열 수도 있습니다.
 2. **연결 (Connect)**:
    - **URL**: `ws://` 또는 `wss://`로 시작하는 주소를 입력합니다.  
      *(예: `wss://echo.websocket.org`)*
@@ -81,13 +81,20 @@ Web 환경 호환성을 위해 다음과 같은 인증 방식을 권장합니다
     - `JSON Path Equals`: JSON 응답의 특정 필드값이 일치하면 통과. (예: `$.type` == `pong`)
     - `Any Message`: 아무 메시지나 오면 통과.
 
+### WebSocket 시각적 디버깅
+워크플로우 실행 중 WebSocket 노드는 다음과 같은 시각적 피드백을 제공합니다:
+*   **연결 중(Pulse)**: 서버에 연결을 시도하거나 메시지를 기다리는 동안 노드가 파랗게 점멸합니다.
+*   **경로 하이라이트**:
+    *   **초록색 경로**: 연결 성공, 메시지 전송 완료, 또는 기다리던 메시지 매칭 성공 시.
+    *   **빨간색 경로**: 연결 실패, 타임아웃 발생, 또는 잘못된 세션 키 참조 시.
+
 ---
 
 ## 5. 샘플 시나리오
 
-### Scenario A: Echo Test (Direct)
-가장 기초적인 연결 및 응답 테스트입니다.
-1. **WS Connect**: `wss://echo.websocket.org` 연결, `storeAs: echo`
+### Scenario A: Echo Test (Template 활용)
+기본 제공되는 **"WebSocket Echo Flow"** 템플릿을 사용해 보세요.
+1. **WS Connect**: `wss://echo.websocket.org` 연결.
 2. **WS Send**: `Hello` 전송, `sessionKey: echo`
 3. **WS Wait**: `Hello`가 포함된 메시지 대기, `sessionKey: echo`
 

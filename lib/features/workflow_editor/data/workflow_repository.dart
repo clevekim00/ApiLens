@@ -40,3 +40,8 @@ class WorkflowRepository {
 final workflowRepositoryProvider = Provider<WorkflowRepository>((ref) {
   return WorkflowRepository(WorkflowStorage());
 });
+
+final allWorkflowsProvider = FutureProvider<List<Workflow>>((ref) async {
+  final repo = ref.watch(workflowRepositoryProvider);
+  return await repo.getAll();
+});

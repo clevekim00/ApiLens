@@ -47,3 +47,16 @@ class NodeRunResult {
     );
   }
 }
+
+abstract class WorkflowExecutionEvent {}
+
+class NodeExecutionEvent extends WorkflowExecutionEvent {
+  final NodeRunResult result;
+  NodeExecutionEvent(this.result);
+}
+
+class EdgeExecutionEvent extends WorkflowExecutionEvent {
+  final String edgeId;
+  final bool isError;
+  EdgeExecutionEvent(this.edgeId, {this.isError = false});
+}

@@ -47,34 +47,41 @@ query ApiLensSchemaExplorer {
 ''';
 
   Future<GraphQLResponse> execute(GraphQLRequestConfig config) async {
+    return query(
+      config.url,
+      config.query,
+      variables: config.variables,
+      headers: config.headers,
+      operationName: config.operationName,
+    );
+  }
+
+  Future<GraphQLResponse> query(
+    String url,
+    String query, {
+    Map<String, dynamic> variables = const {},
+    Map<String, String> headers = const {},
+    String? operationName,
+  }) async {
     final startTime = DateTime.now();
 
     try {
-      final headers = _buildHeaders(config);
-
-      // Parse variables
-      Map<String, dynamic>? variables;
-      try {
-        if (config.variablesJson.trim().isNotEmpty) {
-          variables = jsonDecode(config.variablesJson);
-        }
-      } catch (e) {
-        throw Exception('Invalid Variables JSON');
-      }
+      final mergedHeaders = Map<String, String>.from(headers);
+      mergedHeaders['Content-Type'] = 'application/json';
 
       final body = {
-        'query': config.query,
-        if (variables != null) 'variables': variables,
-        if (config.operationName != null && config.operationName!.isNotEmpty)
-          'operationName': config.operationName,
+        'query': query,
+        'variables': variables,
+        if (operationName != null && operationName.isNotEmpty)
+          'operationName': operationName,
       };
 
       final response = await _dio.post(
-        config.endpoint,
+        url,
         options: Options(
-          headers: headers,
-          responseType: ResponseType.plain, // Get raw first
-          validateStatus: (status) => true, // Handle all status codes
+          headers: mergedHeaders,
+          responseType: ResponseType.plain,
+          validateStatus: (status) => true,
         ),
         data: jsonEncode(body),
       );
@@ -82,7 +89,6 @@ query ApiLensSchemaExplorer {
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime).inMilliseconds;
 
-      // Parse Body
       Map<String, dynamic>? data;
       List<dynamic>? errors;
 
@@ -94,9 +100,7 @@ query ApiLensSchemaExplorer {
         if (jsonBody.containsKey('errors')) {
           errors = jsonBody['errors'];
         }
-      } catch (_) {
-        // Not a JSON response or not standard GraphQL
-      }
+      } catch (_) {}
 
       return GraphQLResponse(
         data: data,

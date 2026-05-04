@@ -8,7 +8,8 @@ class EdgePainter extends CustomPainter {
   final List<WorkflowEdge> edges;
   final Offset? dragStart;
   final Offset? dragEnd;
-  final String? selectedEdgeId; // NEW
+  final String? selectedEdgeId; 
+  final Map<String, bool>? traversedEdgeIds; // edgeId -> isError
 
   EdgePainter({
     required this.nodes, 
@@ -16,6 +17,7 @@ class EdgePainter extends CustomPainter {
     this.dragStart,
     this.dragEnd,
     this.selectedEdgeId,
+    this.traversedEdgeIds,
   });
 
   @override
@@ -30,6 +32,16 @@ class EdgePainter extends CustomPainter {
       ..strokeWidth = 4 // Thicker
       ..style = PaintingStyle.stroke;
 
+    final successPaint = Paint()
+      ..color = Colors.green
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke;
+
+    final errorPaint = Paint()
+      ..color = Colors.redAccent
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke;
+
     // Draw existing edges
     for (final edge in edges) {
       final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
@@ -39,14 +51,22 @@ class EdgePainter extends CustomPainter {
         final path = EdgePathUtil.createEdgePath(edge, source, target);
         
         final isSelected = edge.id == selectedEdgeId;
-        canvas.drawPath(path, isSelected ? selectedPaint : defaultPaint);
+        final isError = traversedEdgeIds?[edge.id] ?? false;
+        final isTraversed = traversedEdgeIds?.containsKey(edge.id) ?? false;
+
+        Paint edgePaint = isSelected ? selectedPaint : defaultPaint;
+        if (isTraversed) {
+          edgePaint = isError ? errorPaint : successPaint;
+        }
+
+        canvas.drawPath(path, edgePaint);
         
         // Draw arrow at end (simplified)
         final metrics = path.computeMetrics().toList();
         if (metrics.isNotEmpty) {
            final endPos = metrics.last.getTangentForOffset(metrics.last.length)?.position;
            if (endPos != null) {
-              canvas.drawCircle(endPos, 4, Paint()..color = (isSelected ? selectedPaint.color : defaultPaint.color)..style = PaintingStyle.fill);
+              canvas.drawCircle(endPos, 4, Paint()..color = edgePaint.color..style = PaintingStyle.fill);
            }
         }
       }
@@ -93,6 +113,7 @@ class EdgePainter extends CustomPainter {
            oldDelegate.edges != edges || 
            oldDelegate.dragStart != dragStart || 
            oldDelegate.dragEnd != dragEnd ||
-           oldDelegate.selectedEdgeId != selectedEdgeId;
+           oldDelegate.selectedEdgeId != selectedEdgeId ||
+           oldDelegate.traversedEdgeIds != traversedEdgeIds;
   }
 }

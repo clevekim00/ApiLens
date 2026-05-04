@@ -118,14 +118,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = state.copyWith(
       nodes: state.nodes.map((n) {
         if (n.id == id) {
-          return WorkflowNode(
-              id: n.id,
-              type: n.type,
-              x: x, 
-              y: y,
-              data: n.data,
-              inputPortKeys: n.inputPortKeys,
-              outputPortKeys: n.outputPortKeys);
+          return n.copyWith(x: x, y: y);
         }
         return n;
       }).toList(),
@@ -138,15 +131,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       nodes: state.nodes.map((n) {
         if (n.id == id) {
            final mergedData = Map<String, dynamic>.from(n.data)..addAll(newData);
-           return WorkflowNode(
-              id: n.id,
-              type: n.type,
-              x: n.x,
-              y: n.y,
-              data: mergedData,
-              inputPortKeys: n.inputPortKeys,
-              outputPortKeys: n.outputPortKeys 
-           );
+           return n.copyWith(data: mergedData);
         }
         return n;
       }).toList(),
@@ -288,6 +273,23 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       sourcePort: sourcePort,
       targetPort: targetPort
     )], isDirty: true);
+  }
+
+  void toggleNodeCompact(String id) {
+    state = state.copyWith(
+      nodes: state.nodes.map((n) {
+        if (n.id == id) return n.copyWith(isCompact: !n.isCompact);
+        return n;
+      }).toList(),
+      isDirty: true,
+    );
+  }
+
+  void setAllNodesCompact(bool compact) {
+    state = state.copyWith(
+      nodes: state.nodes.map((n) => n.copyWith(isCompact: compact)).toList(),
+      isDirty: true,
+    );
   }
 }
 

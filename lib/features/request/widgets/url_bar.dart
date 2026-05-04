@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../request/providers/request_provider.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../../../core/ui/components/app_input.dart';
+import '../../../../core/widgets/info_button.dart';
 
 class MethodSelector extends ConsumerWidget {
   const MethodSelector({super.key});
@@ -22,40 +23,49 @@ class MethodSelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final method = ref.watch(requestNotifierProvider.select((s) => s.method));
     
-    return Container(
-      width: 110,
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).inputDecorationTheme.fillColor,
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: method,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 16),
-          style: AppTokens.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: _getMethodColor(method),
+    return Row(
+      children: [
+        Container(
+          width: 110,
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).inputDecorationTheme.fillColor,
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(AppTokens.radiusMd),
           ),
-          items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
-              .map((m) => DropdownMenuItem(
-                    value: m, 
-                    child: Text(
-                      m, 
-                      style: AppTokens.textTheme.bodyMedium?.copyWith(color: _getMethodColor(m), fontWeight: FontWeight.bold)
-                    ),
-                  ))
-              .toList(),
-          onChanged: (val) {
-            if (val != null) {
-              ref.read(requestNotifierProvider.notifier).updateMethod(val);
-            }
-          },
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: method,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down, size: 16),
+              style: AppTokens.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: _getMethodColor(method),
+              ),
+              items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+                  .map((m) => DropdownMenuItem(
+                        value: m, 
+                        child: Text(
+                          m, 
+                          style: AppTokens.textTheme.bodyMedium?.copyWith(color: _getMethodColor(m), fontWeight: FontWeight.bold)
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  ref.read(requestNotifierProvider.notifier).updateMethod(val);
+                }
+              },
+            ),
+          ),
         ),
-      ),
+        const SizedBox(width: AppTokens.s2),
+        const InfoButton(
+          title: 'HTTP Methods',
+          message: 'GET: Retrieve data\nPOST: Create new data\nPUT: Replace existing data\nPATCH: Partial update\nDELETE: Remove data',
+        ),
+      ],
     );
   }
 }
@@ -88,15 +98,26 @@ class _UrlInputState extends ConsumerState<UrlInput> {
       }
     });
 
-    return SizedBox(
-      height: 36,
-      child: AppInput(
-        controller: _controller,
-        hintText: 'https://api.example.com/v1/resource',
-        mono: true,
-        onChanged: (val) => ref.read(requestNotifierProvider.notifier).updateUrl(val),
-        onSubmitted: (_) => widget.onSubmitted?.call(),
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 36,
+            child: AppInput(
+              controller: _controller,
+              hintText: 'https://api.example.com/v1/resource',
+              mono: true,
+              onChanged: (val) => ref.read(requestNotifierProvider.notifier).updateUrl(val),
+              onSubmitted: (_) => widget.onSubmitted?.call(),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppTokens.s2),
+        const InfoButton(
+          title: 'Dynamic URLs',
+          message: 'You can use environment variables in your URL.\n\nExample: {{base_url}}/users/{{id}}\n\nDefine variables in the Environment selector (top right).',
+        ),
+      ],
     );
   }
 

@@ -8,15 +8,17 @@ The primary interface consists of five main areas:
 
 1.  **Workflow Menu (Top)**: Manage workflow files (New, Save, Open) and Run execution.
 2.  **Node Palette (Left)**: Drag and drop nodes (Start, HTTP, Condition, End) onto the canvas.
-3.  **Canvas (Center)**: The infinite workspace where you design your flow. Pan (drag empty space) and zoom supported.
-4.  **Inspector Panel (Right)**: Configure the properties of the currently selected node (e.g., API URL, Method).
+3.  **Canvas (Center)**: The infinite workspace where you design your flow. Pan and zoom supported.
+4.  **Inspector Panel (Right)**: Configure the properties of the currently selected node.
 5.  **Debug/Log Panel (Bottom)**: View execution logs and results.
+6.  **Command Palette (Cmd + K)**: A global search and action bar to navigate and execute commands instantly.
 
 ## Create Your First Workflow
 
 ### 1. Start a New Workflow
 *   Click the workflow name in the top bar to open the menu.
 *   Select **New Workflow** (Shortcut: `Cmd/Ctrl + N`).
+*   **Using Templates**: Choose from pre-defined scenarios in the "Workflow Templates" section to jumpstart your automation.
 
 ### 2. Add Nodes
 *   From the **Node Palette**, drag a **Start** node onto the canvas. (Every workflow must have one).
@@ -50,10 +52,12 @@ You can pass data between nodes dynamically using the `{{ }}` syntax.
 
 1.  Click the **Run** button in the top menu or press `Cmd/Ctrl + Enter`.
 2.  The workflow will execute starting from the `Start` node.
-3.  **Visual Feedback**:
-    *   Active nodes glow **Blue**.
-    *   Successful nodes turn **Green** border.
-    *   Failed nodes turn **Red** border.
+3.  **Real-time Visual Debugging**:
+    *   **Active Nodes**: Currently executing nodes glow **Blue** with a pulse animation.
+    *   **Visual Paths (Edges)**: The flow of data is highlighted in real-time.
+        *   **Green Path**: Highlighted when the previous node executes successfully.
+        *   **Red Path**: Highlighted on error or condition mismatch.
+    *   **Status Animations**: Response status codes pop up next to nodes for immediate feedback.
 4.  **Check Logs**: Expand the bottom panel to see detailed request/response data for each step.
 
 ## Saving & Loading
@@ -122,3 +126,14 @@ When running ApiLens on the **Web** (Browser):
 *   **Custom Headers**: The standard browser WebSocket API does **not** support custom HTTP headers during the handshake (e.g., `Authorization: Bearer ...`).
 *   **Workaround**: Use Query Parameters (e.g., `wss://api.com?token=XYZ`) or Subprotocols (Sec-WebSocket-Protocol) for authentication.
 *   *Note*: Desktop (macOS/Windows/Linux) versions support full custom headers.
+
+## GraphQL Automation
+
+Integrate GraphQL APIs directly into your workflows to automate complex data fetching.
+
+*   **GraphQL Request Node**: Use a dedicated node to execute queries.
+    *   **URL**: The GraphQL endpoint address.
+    *   **Query**: A full-featured editor for `.graphql` syntax.
+    *   **Variables**: Input JSON variables. Supports template injection (`{{ }}`).
+*   **Visual Feedback**: Like other nodes, GraphQL nodes show real-time success (Green) or failure (Red) paths based on the `data` or `errors` fields in the response.
+*   **Data Access**: Reference results using `{{node.<id>.response.body.data.<field>}}`.

@@ -34,6 +34,9 @@ class WorkflowNode {
   @HiveField(6)
   final List<String> outputPortKeys;
 
+  @HiveField(7)
+  final bool isCompact;
+
   // Transient / Computed properties for UI usage
   List<NodePort> get inputs {
     // Basic logic mapping keys to default ports based on Key
@@ -49,6 +52,10 @@ class WorkflowNode {
   NodeConfig get config {
     if (type == 'api') return HttpNodeConfig.fromJson(data);
     if (type == 'condition') return ConditionNodeConfig.fromJson(data);
+    if (type == 'gql_request') return GraphQLNodeConfig.fromJson(data);
+    if (type == 'ws_connect') return WebSocketConnectNodeConfig.fromJson(data);
+    if (type == 'ws_send') return WebSocketSendNodeConfig.fromJson(data);
+    if (type == 'ws_wait') return WebSocketWaitNodeConfig.fromJson(data);
     return const EmptyNodeConfig();
   }
 
@@ -60,6 +67,7 @@ class WorkflowNode {
     this.data = const {},
     List<String>? inputPortKeys,
     List<String>? outputPortKeys,
+    this.isCompact = false,
   }) : 
     this.inputPortKeys = inputPortKeys ?? _defaultInputs(type),
     this.outputPortKeys = outputPortKeys ?? _defaultOutputs(type);
@@ -82,6 +90,7 @@ class WorkflowNode {
     double? x,
     double? y,
     Map<String, dynamic>? data,
+    bool? isCompact,
   }) {
     return WorkflowNode(
       id: id ?? this.id,
@@ -91,6 +100,7 @@ class WorkflowNode {
       data: data ?? this.data,
       inputPortKeys: this.inputPortKeys,
       outputPortKeys: this.outputPortKeys,
+      isCompact: isCompact ?? this.isCompact,
     );
   }
 
@@ -103,6 +113,7 @@ class WorkflowNode {
     'data': data,
     'inputs': inputPortKeys,
     'outputs': outputPortKeys,
+    'isCompact': isCompact,
   };
 
   factory WorkflowNode.fromJson(Map<String, dynamic> json) {
@@ -114,6 +125,7 @@ class WorkflowNode {
       data: json['data'] as Map<String, dynamic>? ?? {},
       inputPortKeys: (json['inputs'] as List?)?.cast<String>(),
       outputPortKeys: (json['outputs'] as List?)?.cast<String>(),
+      isCompact: json['isCompact'] as bool? ?? false,
     );
   }
 }

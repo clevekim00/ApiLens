@@ -7,7 +7,7 @@ ApiFlow Studio는 REST, WebSocket과 더불어 강력한 **GraphQL** 지원 기�
 - **REST**: 여러 엔드포인트(`/users`, `/posts`)를 호출하여 데이터를 조립해야 할 수 있습니다. 불필요한 데이터까지 받아오는 Over-fetching 문제가 발생하기도 합니다.
 - **GraphQL**: 단일 엔드포인트(`/graphql`)로 필요한 필드만 명시하여 요청합니다. 단 한 번의 요청으로 연관된 데이터를 모두 가져올 수 있습니다.
 
-ApiFlow Studio에서는 **전용 Client**와 **Workflow 통합**을 통해 GraphQL API를 쉽게 테스트하고 자동화할 수 있습니다.
+ApiFlow Studio에서는 **전용 Client**, **Workflow 통합**, 그리고 **커맨드 팔레트(Cmd+K)**를 통해 GraphQL API를 쉽게 테스트하고 자동화할 수 있습니다.
 
 ---
 
@@ -100,13 +100,15 @@ mutation CreateUser($name: String!, $job: String!) {
 - **Query / Variables**: 실행할 쿼리와 변수.
 - **Store As (Result Key)**: 실행 결과(`data`)를 Context에 저장할 키 이름입니다. (예: `userData`)
 
-### 예시 흐름: REST 로그인 후 GraphQL 요청
-1. **REST Request (Login)**: 로그인 API 호출 → 토큰 획득.
-2. **GraphQL Request (Fetch Profile)**:
-    - **Endpoint**: `https://api.example.com/graphql`
-    - **Header**: `Authorization: Bearer {{node.login.response.body.token}}`
-    - **Query**: 내 정보 조회 쿼리.
-3. **Condition**: `{{node.profile.response.data.me.isActive}} == true` 확인.
+### 시각적 디버깅 지원
+GraphQL 노드는 실행 시 실시간으로 상태를 표시합니다:
+*   **성공(Green Path)**: 쿼리가 성공적으로 수행되고 `data`를 반환한 경우.
+*   **실패(Red Path)**: 문법 오류, 변수 누락 또는 서버 에러(`errors` 필드 존재 시) 발생 경우.
+
+### 템플릿 시나리오: GraphQL Explorer
+앱 실행 시 기본 제공되는 **"GraphQL Explorer"** 템플릿을 확인해 보세요.
+- 국가 정보 조회 API를 사용하여 여러 노드 간에 데이터를 전달하고 처리하는 실제 예제를 보여줍니다.
+- 복잡한 쿼리 구성과 변수 주입 방식을 한눈에 배울 수 있습니다.
 
 ---
 

@@ -18,6 +18,10 @@ class DataInitializationService {
     final requestRepo = _ref.read(requestRepositoryProvider);
     final workflowRepo = _ref.read(workflowRepositoryProvider);
 
+    // Only seed if there are no workgroups
+    final existingGroups = await workgroupRepo.getAll();
+    if (existingGroups.isNotEmpty) return;
+
     // 1. Create Sample Workgroup
     final sampleGroup = WorkgroupModel.create(
       name: 'Welcome to ApiLens',

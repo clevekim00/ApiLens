@@ -1,3 +1,4 @@
+import 'dart:convert';
 abstract class NodeConfig {
   Map<String, dynamic> toJson();
 }
@@ -171,6 +172,17 @@ class GraphQLNodeConfig implements NodeConfig {
     this.variablesJson = '{}',
     this.storeAs = 'gqlResult',
   });
+
+  String get url => endpoint ?? '';
+  
+  Map<String, dynamic> get variables {
+    try {
+      if (variablesJson.trim().isEmpty) return {};
+      return Map<String, dynamic>.from(jsonDecode(variablesJson));
+    } catch (_) {
+      return {};
+    }
+  }
 
   @override
   Map<String, dynamic> toJson() => {

@@ -121,25 +121,33 @@ class AppTutorialService {
     required String description,
     required ThemeData theme,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          title,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.s4),
+      constraints: const BoxConstraints(maxHeight: 300),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppTokens.s2),
+            Text(
+              description,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.white70,
+              ),
+            ),
+            // Extra spacing to ensure content is not too close to the edge
+            const SizedBox(height: AppTokens.s6),
+          ],
         ),
-        const SizedBox(height: AppTokens.s2),
-        Text(
-          description,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: Colors.white70,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

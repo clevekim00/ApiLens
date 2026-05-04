@@ -36,57 +36,9 @@ class _HistoryPanelState extends ConsumerState<HistoryPanel> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: theme.dividerColor)),
         color: theme.canvasColor,
       ),
-      child: Column(
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTokens.s3,
-              vertical: AppTokens.s2,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.view_sidebar_outlined,
-                  color: theme.colorScheme.primary,
-                  size: 18,
-                ),
-                const SizedBox(width: AppTokens.s2),
-                Text(
-                  'Workspace',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                if (widget.showCloseButton)
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: widget.onClose,
-                    tooltip: 'Close Sidebar',
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          // Top: Workgroup Explorer
-          const Expanded(
-            flex: 5,
-            child: WorkgroupExplorer(),
-          ),
-          const Divider(height: 1, thickness: 4),
-          // Bottom: History
-          Expanded(
-            flex: 4,
-            child: _buildHistoryTab(historyAsync, theme),
-          ),
-        ],
-      ),
+      child: _buildHistoryTab(historyAsync, theme),
     );
   }
 
@@ -350,6 +302,13 @@ class _TinyChip extends StatelessWidget {
         color: color.withValues(alpha: muted ? 0.10 : 0.14),
         border: Border.all(color: color.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 4,
+            spreadRadius: 0.5,
+          ),
+        ],
       ),
       child: Text(
         label,
@@ -357,6 +316,12 @@ class _TinyChip extends StatelessWidget {
               color: color,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
+              shadows: [
+                Shadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 2,
+                ),
+              ],
             ),
       ),
     );

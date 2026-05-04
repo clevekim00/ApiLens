@@ -7,7 +7,6 @@ import '../../../core/utils/template_resolver.dart';
 import '../../../core/utils/expression_evaluator.dart';
 import '../../../core/network/websocket/websocket_manager.dart';
 import '../../../core/network/graphql_service.dart';
-import '../../../features/graphql/domain/models/graphql_request_config.dart';
 import 'dart:async';
 
 class ExecutionEngine {
@@ -67,7 +66,7 @@ class ExecutionEngine {
     return context;
   }
 
-  Stream<NodeRunResult> runWorkflow(List<WorkflowNode> nodes, List<WorkflowEdge> edges) async* {
+  Stream<WorkflowExecutionEvent> runWorkflow(List<WorkflowNode> nodes, List<WorkflowEdge> edges) async* {
     final startNode = nodes.firstWhere(
       (n) => n.type == 'start', 
       orElse: () => throw Exception('No Start Node found')
@@ -79,12 +78,12 @@ class ExecutionEngine {
 
     while (currentNodeId != null) {
       if (visitedPath.contains(currentNodeId)) {
-        yield NodeRunResult(
+        yield NodeExecutionEvent(NodeRunResult(
           nodeId: currentNodeId,
           status: NodeStatus.failure,
           finishedAt: DateTime.now(),
           errorMessage: 'Cycle detected!',
-        );
+        ));
         return;
       }
       visitedPath.add(currentNodeId);
@@ -97,7 +96,7 @@ class ExecutionEngine {
         status: NodeStatus.running,
         startedAt: DateTime.now(),
       );
-      yield result;
+      yield NodeExecutionEvent(result);
 
       String? targetPort; 
       
@@ -163,7 +162,7 @@ class ExecutionEngine {
              onLog?.call('[${node.id}] Connected (ID: $cid)');
            } catch (e) {
              onLog?.call('[${node.id}] Connection Failed: $e');
-             throw e;
+             rethrow;
            }
 
         } else if (node.type == 'ws_send') {
@@ -212,6 +211,39 @@ class ExecutionEngine {
              throw Exception('Timeout waiting for $matchType');
            }
 
+        } else if (node.type == 'gql_request') {
+           final config = node.config as GraphQLNodeConfig;
+           if (_gqlService == null) throw Exception('GraphQLService not initialized');
+           
+           final url = TemplateResolver.resolve(config.url, context);
+           final query = TemplateResolver.resolve(config.query, context);
+           
+           onLog?.call('[${node.id}] GQL Request to $url');
+           
+           try {
+             final response = await _gqlService!.query(
+               url,
+               query,
+               variables: config.variables.map((k, v) => MapEntry(k, TemplateResolver.resolve(v.toString(), context))),
+               headers: config.headers?.map((k, v) => MapEntry(k, TemplateResolver.resolve(v.toString(), context))) ?? {},
+             );
+             
+             result = result.copyWith(
+               status: response.isSuccess ? NodeStatus.success : NodeStatus.failure,
+               finishedAt: DateTime.now(),
+               responseBody: {
+                 'data': response.data,
+                 'errors': response.errors,
+                 'statusCode': response.statusCode,
+                 'durationMs': response.durationMs,
+               },
+             );
+             targetPort = response.isSuccess ? 'success' : 'failure';
+           } catch (e) {
+             onLog?.call('[${node.id}] GQL Error: $e');
+             rethrow;
+           }
+
         } else {
            result = result.copyWith(status: NodeStatus.success, finishedAt: DateTime.now());
            targetPort = 'output'; 
@@ -223,7 +255,7 @@ class ExecutionEngine {
           finishedAt: DateTime.now(),
           errorMessage: e.toString(),
         );
-        yield result;
+        yield NodeExecutionEvent(result);
         
         if (node.type == 'api' || node.type == 'ws_connect' || node.type == 'ws_send' || node.type == 'ws_wait') {
           targetPort = 'failure';
@@ -232,7 +264,7 @@ class ExecutionEngine {
         }
       }
 
-      yield result;
+      yield NodeExecutionEvent(result);
       results[node.id] = result;
 
       if (node.type == 'end') break;
@@ -243,6 +275,7 @@ class ExecutionEngine {
       );
 
       if (nextEdge.sourceNodeId.isNotEmpty) {
+        yield EdgeExecutionEvent(nextEdge.id, isError: targetPort == 'failure');
         currentNodeId = nextEdge.targetNodeId;
       } else {
         currentNodeId = null;

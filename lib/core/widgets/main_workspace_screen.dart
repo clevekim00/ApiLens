@@ -12,7 +12,11 @@ import '../../features/history/widgets/history_panel.dart';
 import '../../features/help/screens/help_screen.dart';
 import '../services/tutorial_service.dart';
 import '../services/data_initialization_service.dart';
+import '../services/command_service.dart';
 import '../../core/settings/settings_repository.dart';
+import '../widgets/command_palette.dart';
+import 'package:flutter/services.dart';
+import '../services/navigation_provider.dart';
 
 class MainWorkspaceScreen extends ConsumerStatefulWidget {
   const MainWorkspaceScreen({super.key});
@@ -22,7 +26,6 @@ class MainWorkspaceScreen extends ConsumerStatefulWidget {
 }
 
 class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
-  int _currentIndex = 0;
   
   final GlobalKey _keyRequests = GlobalKey();
   final GlobalKey _keyWorkflows = GlobalKey();
@@ -33,17 +36,69 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initCommands();
       _initOnboarding();
     });
   }
 
+  void _initCommands() {
+    final commandService = ref.read(commandServiceProvider.notifier);
+    final nav = ref.read(navigationProvider.notifier);
+    
+    commandService.registerCommand(AppCommand(
+      id: 'new_request',
+      title: 'New HTTP Request',
+      description: 'Create a new standalone REST request',
+      icon: Icons.add_link_rounded,
+      shortcut: '⌘ N',
+      action: () => nav.setIndex(0),
+      tags: ['rest', 'api', 'http'],
+    ));
+
+    commandService.registerCommand(AppCommand(
+      id: 'new_workflow',
+      title: 'New Workflow',
+      description: 'Create a new visual automation workflow',
+      icon: Icons.account_tree_outlined,
+      shortcut: '⌘ W',
+      action: () => nav.setIndex(1),
+      tags: ['automation', 'flow', 'visual'],
+    ));
+
+    commandService.registerCommand(AppCommand(
+      id: 'import_openapi',
+      title: 'Import OpenAPI / Swagger',
+      description: 'Import API definitions from a file or URL',
+      icon: Icons.import_export_rounded,
+      shortcut: '⌘ I',
+      action: () => nav.setIndex(2),
+      tags: ['swagger', 'postman', 'import'],
+    ));
+    commandService.registerCommand(AppCommand(
+      id: 'open_settings',
+      title: 'Settings',
+      description: 'Configure appearance, language, and proxy',
+      icon: Icons.settings_outlined,
+      shortcut: '⌘ ,',
+      action: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+      tags: ['config', 'theme', 'ui'],
+    ));
+    
+    commandService.registerCommand(AppCommand(
+      id: 'help_center',
+      title: 'Help & Documentation',
+      description: 'View guides and documentation',
+      icon: Icons.help_outline,
+      action: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
+      tags: ['guide', 'docs', 'support'],
+    ));
+  }
+
   void _initOnboarding() async {
+    await ref.read(dataInitializationServiceProvider).initializeSampleData();
+
     final settings = ref.read(settingsProvider);
     if (!settings.hasSeenTutorial) {
-      // 1. Initialize Sample Data
-      await ref.read(dataInitializationServiceProvider).initializeSampleData();
-      
-      // 2. Show Tutorial
       AppTutorialService().showTutorial(
         context,
         keyRequests: _keyRequests,
@@ -60,12 +115,22 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final currentIndex = ref.watch(navigationProvider);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return CallbackShortcuts(
+      bindings: {
+        SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
+          CommandPalette.show(context);
+        },
+        SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
+          CommandPalette.show(context);
+        },
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
-          _buildTopNavigationBar(context, theme, isDark),
+          _buildTopNavigationBar(context, theme, isDark, currentIndex),
           Divider(height: 1, thickness: 1, color: theme.dividerColor),
           Expanded(
             child: Row(
@@ -75,7 +140,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                 VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor),
                 Expanded(
                   child: IndexedStack(
-                    index: _currentIndex,
+                    index: currentIndex,
                     children: [
                       const RequestScreen(isStandalone: false),
                       const WorkflowEditorScreen(),
@@ -88,10 +153,11 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _buildTopNavigationBar(BuildContext context, ThemeData theme, bool isDark) {
+  Widget _buildTopNavigationBar(BuildContext context, ThemeData theme, bool isDark, int currentIndex) {
     final l10n = AppLocalizations.of(context);
     return Container(
       height: 56,
@@ -117,11 +183,11 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           // Navigation Tabs
           Row(
             children: [
-              _buildNavTab(l10n.translate('requests'), 0, theme, _keyRequests),
+              _buildNavTab(l10n.translate('requests'), 0, theme, _keyRequests, currentIndex),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('workflows'), 1, theme, _keyWorkflows),
+              _buildNavTab(l10n.translate('workflows'), 1, theme, _keyWorkflows, currentIndex),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('import'), 2, theme, _keyImport),
+              _buildNavTab(l10n.translate('import'), 2, theme, _keyImport, currentIndex),
             ],
           ),
           const Spacer(),
@@ -158,13 +224,13 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
     );
   }
 
-  Widget _buildNavTab(String label, int index, ThemeData theme, Key? key) {
-    final isSelected = _currentIndex == index;
+  Widget _buildNavTab(String label, int index, ThemeData theme, Key? key, int currentIndex) {
+    final isSelected = currentIndex == index;
     final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
     
     return InkWell(
       key: key,
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => ref.read(navigationProvider.notifier).setIndex(index),
       borderRadius: BorderRadius.circular(AppTokens.radiusMd),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3, vertical: AppTokens.s2),

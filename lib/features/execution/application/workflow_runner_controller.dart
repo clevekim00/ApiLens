@@ -10,22 +10,26 @@ import '../../../core/network/graphql_service.dart';
 class WorkflowRunnerState {
   final bool isRunning;
   final Map<String, NodeRunResult> results;
-  final List<String> logs; // Simple log list
+  final Map<String, bool> traversedEdgeIds; // edgeId -> isError
+  final List<String> logs; 
 
   const WorkflowRunnerState({
     this.isRunning = false,
     this.results = const {},
+    this.traversedEdgeIds = const {},
     this.logs = const [],
   });
 
   WorkflowRunnerState copyWith({
     bool? isRunning,
     Map<String, NodeRunResult>? results,
+    Map<String, bool>? traversedEdgeIds,
     List<String>? logs,
   }) {
     return WorkflowRunnerState(
       isRunning: isRunning ?? this.isRunning,
       results: results ?? this.results,
+      traversedEdgeIds: traversedEdgeIds ?? this.traversedEdgeIds,
       logs: logs ?? this.logs,
     );
   }
@@ -70,19 +74,26 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
       }
     );
 
-    await for (final result in engine.runWorkflow(nodes, edges)) {
-      final newResults = Map<String, NodeRunResult>.from(state.results);
-      newResults[result.nodeId] = result;
-      
-      final msg = '[${result.nodeId}] ${result.status.name.toUpperCase()}';
-      
-      state = state.copyWith(
-        results: newResults,
-        logs: [...state.logs, msg],
-      );
-      
-      if (result.status == NodeStatus.failure) {
-         state = state.copyWith(logs: [...state.logs, 'Execution failed: ${result.errorMessage}']);
+    await for (final event in engine.runWorkflow(nodes, edges)) {
+      if (event is NodeExecutionEvent) {
+        final result = event.result;
+        final newResults = Map<String, NodeRunResult>.from(state.results);
+        newResults[result.nodeId] = result;
+        
+        final msg = '[${result.nodeId}] ${result.status.name.toUpperCase()}';
+        
+        state = state.copyWith(
+          results: newResults,
+          logs: [...state.logs, msg],
+        );
+        
+        if (result.status == NodeStatus.failure) {
+           state = state.copyWith(logs: [...state.logs, 'Execution failed: ${result.errorMessage}']);
+        }
+      } else if (event is EdgeExecutionEvent) {
+        final newEdges = Map<String, bool>.from(state.traversedEdgeIds);
+        newEdges[event.edgeId] = event.isError;
+        state = state.copyWith(traversedEdgeIds: newEdges);
       }
     }
 

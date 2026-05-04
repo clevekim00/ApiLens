@@ -286,6 +286,7 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                                     nodes: nodes,
                                     edges: edges,
                                     selectedEdgeId: state.selectedEdgeId,
+                                    traversedEdgeIds: runnerState.traversedEdgeIds,
                                   ),
                                 ),
                               ),
@@ -340,6 +341,12 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                                                 workflowEditorProvider.notifier)
                                             .selectNode(node.id);
                                       },
+                                      onToggleCompact: () {
+                                        ref
+                                            .read(
+                                                workflowEditorProvider.notifier)
+                                            .toggleNodeCompact(node.id);
+                                      },
                                       onPortTap: (portKey, globalPos) {
                                         final isInput = node.inputPortKeys
                                             .contains(portKey);
@@ -375,6 +382,10 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                       icon: Icons.account_tree_outlined,
                       title: 'Canvas is Empty',
                       description: 'Drag nodes from the left palette to start building your workflow.',
+                      actionLabel: 'Browse Templates',
+                      onAction: () {
+                        // This will trigger the template selector logic or a search in command palette
+                      },
                     ),
                   ),
                 ),
@@ -383,10 +394,14 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                 right: AppTokens.s3,
                 child: _CanvasControls(
                   scale: _currentScale,
+                  isAllCompact: nodes.isNotEmpty && nodes.every((n) => n.isCompact),
                   onZoomIn: () => _zoomBy(1.2),
                   onZoomOut: () => _zoomBy(1 / 1.2),
                   onFit: () => _fitToNodes(nodes),
                   onReset: _resetZoom,
+                  onToggleAllCompact: (compact) {
+                    ref.read(workflowEditorProvider.notifier).setAllNodesCompact(compact);
+                  },
                 ),
               ),
               Positioned(
@@ -399,6 +414,18 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                   viewportSize: _viewportSize,
                   canvasSize: _canvasSize,
                   nodeSize: _nodeSize,
+                  onMove: (worldOffset) {
+                    final viewport = _viewportSize;
+                    final currentScale = _currentScale;
+                    _transformationController.value = Matrix4.identity()
+                      ..translateByDouble(
+                        viewport.width / 2 - worldOffset.dx * currentScale,
+                        viewport.height / 2 - worldOffset.dy * currentScale,
+                        0,
+                        1,
+                      )
+                      ..scaleByDouble(currentScale, currentScale, 1, 1);
+                  },
                 ),
               ),
 
@@ -486,17 +513,21 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
 
 class _CanvasControls extends StatelessWidget {
   final double scale;
+  final bool isAllCompact;
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
   final VoidCallback onFit;
   final VoidCallback onReset;
+  final Function(bool) onToggleAllCompact;
 
   const _CanvasControls({
     required this.scale,
+    required this.isAllCompact,
     required this.onZoomIn,
     required this.onZoomOut,
     required this.onFit,
     required this.onReset,
+    required this.onToggleAllCompact,
   });
 
   @override
@@ -554,6 +585,16 @@ class _CanvasControls extends StatelessWidget {
               tooltip: 'Reset zoom',
               onPressed: onReset,
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppTokens.s1),
+              child: SizedBox(height: 16, child: VerticalDivider(width: 1)),
+            ),
+            _CanvasToolButton(
+              icon: isAllCompact ? Icons.unfold_more : Icons.unfold_less,
+              tooltip: isAllCompact ? 'Expand all nodes' : 'Compact all nodes',
+              onPressed: () => onToggleAllCompact(!isAllCompact),
+              color: isAllCompact ? theme.colorScheme.primary : null,
+            ),
           ],
         ),
       ),
@@ -565,19 +606,21 @@ class _CanvasToolButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
+  final Color? color;
 
   const _CanvasToolButton({
     super.key,
     required this.icon,
     required this.tooltip,
     required this.onPressed,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tooltip,
-      icon: Icon(icon, size: 17),
+      icon: Icon(icon, size: 17, color: color),
       onPressed: onPressed,
       visualDensity: VisualDensity.compact,
       constraints: const BoxConstraints.tightFor(width: 32, height: 32),
@@ -592,6 +635,7 @@ class _CanvasMiniMap extends StatelessWidget {
   final Size viewportSize;
   final Size canvasSize;
   final Size nodeSize;
+  final Function(Offset worldOffset)? onMove;
 
   const _CanvasMiniMap({
     required this.nodes,
@@ -600,6 +644,7 @@ class _CanvasMiniMap extends StatelessWidget {
     required this.viewportSize,
     required this.canvasSize,
     required this.nodeSize,
+    this.onMove,
   });
 
   @override
@@ -622,27 +667,31 @@ class _CanvasMiniMap extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        child: CustomPaint(
-          painter: _MiniMapPainter(
-            nodes: nodes,
-            edges: edges,
-            transform: transform,
-            viewportSize: viewportSize,
-            canvasSize: canvasSize,
-            nodeSize: nodeSize,
-            colorScheme: theme.colorScheme,
-          ),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.s2),
-              child: Text(
-                'Map',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-                  fontWeight: FontWeight.w900,
+      child: GestureDetector(
+        onPanUpdate: (details) => _handleMove(details.localPosition),
+        onTapDown: (details) => _handleMove(details.localPosition),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+          child: CustomPaint(
+            painter: _MiniMapPainter(
+              nodes: nodes,
+              edges: edges,
+              transform: transform,
+              viewportSize: viewportSize,
+              canvasSize: canvasSize,
+              nodeSize: nodeSize,
+              colorScheme: theme.colorScheme,
+            ),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(AppTokens.s2),
+                child: Text(
+                  'Map',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),
@@ -650,6 +699,47 @@ class _CanvasMiniMap extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handleMove(Offset localPos) {
+    if (onMove == null) return;
+    
+    // Reverse painter logic to get world coords from local minimap coords
+    final bounds = _calculateWorldBounds(nodes, canvasSize, nodeSize);
+    final minimapSize = const Size(180, 126);
+    
+    final scale = _calculateFitScale(bounds, minimapSize);
+    final offset = Offset(
+      (minimapSize.width - bounds.width * scale) / 2 - bounds.left * scale,
+      (minimapSize.height - bounds.height * scale) / 2 - bounds.top * scale,
+    );
+
+    final worldX = (localPos.dx - offset.dx) / scale;
+    final worldY = (localPos.dy - offset.dy) / scale;
+    
+    onMove!(Offset(worldX, worldY));
+  }
+
+  static Rect _calculateWorldBounds(List<WorkflowNode> nodes, Size canvasSize, Size nodeSize) {
+    if (nodes.isEmpty) return Offset.zero & canvasSize;
+    var minX = double.infinity;
+    var minY = double.infinity;
+    var maxX = double.negativeInfinity;
+    var maxY = double.negativeInfinity;
+
+    for (final node in nodes) {
+      minX = minX < node.x ? minX : node.x;
+      minY = minY < node.y ? minY : node.y;
+      maxX = maxX > node.x + nodeSize.width ? maxX : node.x + nodeSize.width;
+      maxY = maxY > node.y + nodeSize.height ? maxY : node.y + nodeSize.height;
+    }
+    return Rect.fromLTRB(minX, minY, maxX, maxY).inflate(220);
+  }
+
+  static double _calculateFitScale(Rect bounds, Size size) {
+    final scaleX = size.width / bounds.width;
+    final scaleY = size.height / bounds.height;
+    return scaleX < scaleY ? scaleX : scaleY;
   }
 }
 
@@ -710,15 +800,16 @@ class _MiniMapPainter extends CustomPainter {
     }
 
     for (final node in nodes) {
+      final double h = node.isCompact ? nodeSize.height / 2 : nodeSize.height;
       final rect = Rect.fromLTWH(
         node.x * scale + offset.dx,
         node.y * scale + offset.dy,
         nodeSize.width * scale,
-        nodeSize.height * scale,
+        h * scale,
       );
       final color = _nodeColor(node.type);
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(3)),
+        RRect.fromRectAndRadius(rect, const Radius.circular(2)),
         Paint()..color = color.withValues(alpha: 0.78),
       );
     }

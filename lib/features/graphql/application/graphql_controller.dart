@@ -78,9 +78,9 @@ class GraphQLController extends StateNotifier<GraphQLState> {
       : super(GraphQLState(activeConfig: GraphQLRequestConfig.create()));
 
   // Configuration Updates
-  void updateEndpoint(String endpoint) {
+  void updateEndpoint(String url) {
     state = state.copyWith(
-      activeConfig: state.activeConfig.copyWith(endpoint: endpoint),
+      activeConfig: state.activeConfig.copyWith(url: url),
       clearError: true,
     );
   }
@@ -94,8 +94,15 @@ class GraphQLController extends StateNotifier<GraphQLState> {
 
   void updateVariables(String json) {
     final validationError = validateVariablesJson(json);
+    Map<String, dynamic> variables = {};
+    if (validationError == null && json.trim().isNotEmpty) {
+      try {
+        variables = Map<String, dynamic>.from(jsonDecode(json));
+      } catch (_) {}
+    }
+
     state = state.copyWith(
-      activeConfig: state.activeConfig.copyWith(variablesJson: json),
+      activeConfig: state.activeConfig.copyWith(variables: variables),
       variablesValidationError: validationError,
       clearVariablesValidationError: validationError == null,
       clearError: true,
@@ -104,7 +111,7 @@ class GraphQLController extends StateNotifier<GraphQLState> {
 
   void formatVariablesJson() {
     final source = state.activeConfig.variablesJson.trim();
-    if (source.isEmpty) {
+    if (source.isEmpty || source == '{}') {
       updateVariables('{}');
       return;
     }
@@ -121,11 +128,8 @@ class GraphQLController extends StateNotifier<GraphQLState> {
     final formatted = const JsonEncoder.withIndent('  ').convert(
       jsonDecode(source),
     );
-    state = state.copyWith(
-      activeConfig: state.activeConfig.copyWith(variablesJson: formatted),
-      clearVariablesValidationError: true,
-      clearError: true,
-    );
+    
+    updateVariables(formatted);
   }
 
   void updateAuth(Map<String, dynamic> auth) {
@@ -183,7 +187,7 @@ class GraphQLController extends StateNotifier<GraphQLState> {
   }
 
   Future<void> fetchSchema() async {
-    if (state.activeConfig.endpoint.trim().isEmpty) {
+    if (state.activeConfig.url.trim().isEmpty) {
       state = state.copyWith(
         schemaError: 'Enter a GraphQL endpoint before fetching schema.',
       );
