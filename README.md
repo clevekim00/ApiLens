@@ -75,16 +75,15 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 
 ## 🚀 Getting Started
 
-1. **Download**: Grab the latest release for your OS from the [Releases](https://github.com/your-repo/apilens/releases) page.
-2. **Web Version**: Access the lite version at [apilens.app](https://apilens.app).
+1. **Local Build**: Ensure you have Flutter installed. Run `flutter pub get` and then `flutter run` to launch the application on your desired platform.
+2. **Build for Release**: Use `flutter build macos` or `flutter build windows` to create a standalone executable for your OS.
 3. **Contribute**: Check out [CONTRIBUTING.md](docs/CONTRIBUTING_EN.md) to help improve ApiLens.
 
 ---
 
-## 🌍 Community & Support
-- **Documentation**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
-- **Discord**: [Join our developer community](https://discord.gg/apilens)
-- **Twitter**: [@ApiLensTool](https://twitter.com/ApiLensTool)
+## 🌍 Resources
+- **User Guide**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+- **Technical Docs**: Check the `docs/` directory for protocol-specific guides (GraphQL, WebSocket).
 
 ---
 *Other languages: [한국어](README_KO.md) | [中文](README_CN.md)*

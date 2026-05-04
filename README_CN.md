@@ -75,16 +75,15 @@ ApiLens 使用**工作组**来保持项目的独立性。
 
 ## 🚀 开始使用
 
-1. **下载**：从 [Releases](https://github.com/your-repo/apilens/releases) 页面获取适用于您操作系统的最新版本。
-2. **Web 版本**：在 [apilens.app](https://apilens.app) 访问精简版。
+1. **本地构建**：确保您已安装 Flutter。运行 `flutter pub get` 后执行 `flutter run` 即可在所需平台上启动应用程序。
+2. **构建发布版本**：使用 `flutter build macos` 或 `flutter build windows` 命令为您当前的操作系统创建独立的可执行文件。
 3. **贡献**：查看 [CONTRIBUTING.md](docs/CONTRIBUTING_CN.md) 帮助改进 ApiLens。
 
 ---
 
-## 🌍 社区与支持
-- **文档**：[详细使用指南](docs/USAGE_GUIDE_CN.md)
-- **Discord**：[加入我们的开发人员社区](https://discord.gg/apilens)
-- **Twitter**：[@ApiLensTool](https://twitter.com/ApiLensTool)
+## 🌍 相关资源
+- **使用指南**：[详细使用指南](docs/USAGE_GUIDE_CN.md)
+- **技术文档**：查看 `docs/` 目录中的协议特定指南（GraphQL、WebSocket）。
 
 ---
 *其他语言: [English](README.md) | [한국어](README_KO.md)*
