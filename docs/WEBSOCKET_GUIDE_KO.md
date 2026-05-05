@@ -1,7 +1,7 @@
 # WebSocket 사용 가이드
 
 ## 1. 개요
-**ApiFlow Studio**는 REST API와 더불어 실시간 양방향 통신을 위한 **WebSocket** 프로토콜을 지원합니다.  
+**ApiLens Studio**는 REST API와 더불어 실시간 양방향 통신을 위한 **WebSocket** 프로토콜을 지원합니다.  
 단순한 연결 테스트뿐만 아니라, **워크플로우(Workflow)** 내에서 WebSocket 연결, 메시지 전송, 특정 응답 대기 등의 작업을 자동화할 수 있습니다.
 
 ### 언제 사용하나요?

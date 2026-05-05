@@ -1,6 +1,6 @@
 # Build and Deploy Guide
 
-This document outlines the process for building release versions of **ApiFlow Studio** and preparing them for distribution.
+This document outlines the process for building release versions of **ApiLens Studio** and preparing them for distribution.
 
 ## Build Targets
 
@@ -10,7 +10,7 @@ Create a release build optimized for macOS.
 ```bash
 flutter build macos --release
 ```
-*   **Output**: `build/macos/Build/Products/Release/ApiFlow Studio.app`
+*   **Output**: `build/macos/Build/Products/Release/ApiLens Studio.app`
 *   **Running**: You can run the `.app` file directly to test.
 
 ### 2. Windows Desktop (Release)
@@ -20,7 +20,7 @@ Create a release build for Windows.
 flutter build windows --release
 ```
 *   **Output**: `build/windows/runner/Release/`
-*   **Contents**: `ApiFlow Studio.exe` along with `flutter_windows.dll` and `data/` folder.
+*   **Contents**: `ApiLens Studio.exe` along with `flutter_windows.dll` and `data/` folder.
 *   **Requirement**: End-users may need the [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) installed.
 
 ### 3. Web App (Release)

@@ -15,6 +15,7 @@ class AppLocalizations {
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
+      'dashboard': 'Dashboard',
       'requests': 'Requests',
       'workflows': 'Workflows',
       'import': 'Import',
@@ -50,6 +51,7 @@ class AppLocalizations {
       'saved': 'Saved',
     },
     'ko': {
+      'dashboard': '대시보드',
       'requests': '요청',
       'workflows': '워크플로우',
       'import': '가져오기',
@@ -85,6 +87,7 @@ class AppLocalizations {
       'saved': '저장됨',
     },
     'zh': {
+      'dashboard': '仪表板',
       'requests': '请求',
       'workflows': '工作流',
       'import': '导入',

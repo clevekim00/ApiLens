@@ -37,6 +37,7 @@ Our goal is to **bridge the gap between simple API testing and complex workflow 
 - **Glassmorphism UI**: A stunning, modern interface built with Flutter, featuring smooth 60FPS animations and a curated dark mode.
 - **Workgroup System**: Organize your work by project, not by list. Isolate environments and shared data.
 - **Cross-Platform**: Run everywhere—macOS, Windows, Linux, and the Web.
+- **Robust UI Testing**: Automated widget tests for core screens (Dashboard, Request, Import) ensure UI stability.
 
 ---
 
@@ -82,6 +83,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 ### 📖 Guides
 - **Installation**: [Full Installation Guide](docs/INSTALLATION_GUIDE_EN.md)
 - **Usage**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+- **Development**: [Technical Guide for Developers](docs/DEVELOP_GUIDE_EN.md)
 
 ### 🛠 Local Development
 1. Ensure you have [Flutter](https://flutter.dev) installed.

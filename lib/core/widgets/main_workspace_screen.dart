@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../ui/tokens/app_tokens.dart';
+import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/request/screens/request_screen.dart';
+
 import '../../features/workflow_editor/presentation/workflow_editor_screen.dart';
 import '../../features/import/presentation/screens/openapi_import_screen.dart';
 import '../../features/environments/widgets/environment_selector.dart';
@@ -51,7 +53,8 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       description: 'Create a new standalone REST request',
       icon: Icons.add_link_rounded,
       shortcut: '⌘ N',
-      action: () => nav.setIndex(0),
+      action: () => nav.setIndex(1),
+
       tags: ['rest', 'api', 'http'],
     ));
 
@@ -61,7 +64,8 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       description: 'Create a new visual automation workflow',
       icon: Icons.account_tree_outlined,
       shortcut: '⌘ W',
-      action: () => nav.setIndex(1),
+      action: () => nav.setIndex(2),
+
       tags: ['automation', 'flow', 'visual'],
     ));
 
@@ -71,7 +75,8 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       description: 'Import API definitions from a file or URL',
       icon: Icons.import_export_rounded,
       shortcut: '⌘ I',
-      action: () => nav.setIndex(2),
+      action: () => nav.setIndex(3),
+
       tags: ['swagger', 'postman', 'import'],
     ));
     commandService.registerCommand(AppCommand(
@@ -142,6 +147,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                   child: IndexedStack(
                     index: currentIndex,
                     children: [
+                      const DashboardScreen(),
                       const RequestScreen(isStandalone: false),
                       const WorkflowEditorScreen(),
                       const OpenApiImportScreen(targetGroupId: 'root'),
@@ -183,13 +189,16 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           // Navigation Tabs
           Row(
             children: [
-              _buildNavTab(l10n.translate('requests'), 0, theme, _keyRequests, currentIndex),
+              _buildNavTab(l10n.translate('dashboard'), 0, theme, null, currentIndex),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('workflows'), 1, theme, _keyWorkflows, currentIndex),
+              _buildNavTab(l10n.translate('requests'), 1, theme, _keyRequests, currentIndex),
               const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('import'), 2, theme, _keyImport, currentIndex),
+              _buildNavTab(l10n.translate('workflows'), 2, theme, _keyWorkflows, currentIndex),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab(l10n.translate('import'), 3, theme, _keyImport, currentIndex),
             ],
           ),
+
           const Spacer(),
           // Right Actions
           Row(

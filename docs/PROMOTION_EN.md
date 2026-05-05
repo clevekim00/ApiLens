@@ -11,6 +11,7 @@ Modern API development is more than just requests and responses. **ApiLens** tra
 *   **No-Code Automation**: Build powerful automation scenarios by simply connecting nodes, without the need for complex `bash` or `python` scripts.
 *   **Multi-Protocol Harmony**: Seamlessly weave REST, WebSocket, and GraphQL into a single, unified flow.
 *   **Live Debugging**: Watch your data flow in real-time. Success paths glow **Green**, while failures turn **Red** instantly.
+*   **Real-time Insights**: Monitor API health, response times, and traffic trends at a glance via the main dashboard.
 
 ---
 
@@ -32,6 +33,9 @@ As the workflow runs, active nodes pulse with a **Blue glow**. Instantly identif
 
 ### 3️⃣ Intelligent Data Mapping
 Passing response values from one node to the next is easier than ever. Visually browse and map JSON paths with precision.
+
+### 4️⃣ Premium Main Dashboard
+More than just a tool, it's your system's command center. Track API ecosystem health with real-time traffic charts and key performance indicators (KPIs).
 
 ---
 

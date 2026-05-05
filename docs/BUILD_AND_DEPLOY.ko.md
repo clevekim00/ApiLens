@@ -1,6 +1,6 @@
 # 빌드 및 배포 가이드 (Build and Deploy)
 
-이 문서는 **ApiFlow Studio**의 배포 버전 빌드 및 배포 준비 과정을 설명합니다.
+이 문서는 **ApiLens Studio**의 배포 버전 빌드 및 배포 준비 과정을 설명합니다.
 
 ## 빌드 타겟 (Build Targets)
 
@@ -10,7 +10,7 @@ macOS용 최적화된 배포 버전을 빌드합니다.
 ```bash
 flutter build macos --release
 ```
-*   **산출물**: `build/macos/Build/Products/Release/ApiFlow Studio.app`
+*   **산출물**: `build/macos/Build/Products/Release/ApiLens Studio.app`
 *   **실행**: 생성된 `.app` 파일을 더블 클릭하여 실행할 수 있습니다.
 
 ### 2. Windows Desktop (Release)
@@ -20,7 +20,7 @@ Windows용 배포 버전을 빌드합니다.
 flutter build windows --release
 ```
 *   **산출물**: `build/windows/runner/Release/`
-*   **구성**: `ApiFlow Studio.exe`, `flutter_windows.dll` 및 `data/` 폴더.
+*   **구성**: `ApiLens Studio.exe`, `flutter_windows.dll` 및 `data/` 폴더.
 *   **요구사항**: 사용자 PC에 [Visual C++ Redistributable](https://learn.microsoft.com/ko-kr/cpp/windows/latest-supported-vc-redist)이 설치되어 있어야 할 수 있습니다.
 
 ### 3. Web App (Release)

@@ -1,5 +1,9 @@
 # ApiLens User Guide
 
+## 0. Main Dashboard
+- **Monitoring**: Monitor API health and response speeds on the dashboard that appears when the app starts.
+- **Statistics**: Check request and error traffic trends for the past 24 hours.
+
 ## 1. Importing API Specifications
 - **Swagger URL**: Paste a Swagger UI address, and ApiLens will auto-discover the specification.
 - **Local Files**: Upload `JSON` or `YAML` OpenAPI files directly.

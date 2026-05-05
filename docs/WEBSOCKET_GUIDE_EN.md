@@ -1,7 +1,7 @@
 # WebSocket Usage Guide
 
 ## 1. Overview
-**ApiFlow Studio** supports **WebSocket** protocols for real-time bidirectional communication alongside standard REST APIs.  
+**ApiLens Studio** supports **WebSocket** protocols for real-time bidirectional communication alongside standard REST APIs.  
 You can perform manual tests via the client or automate complex scenarios involving connection handling, message sending, and response waiting using **Workflows**.
 
 ### Use Cases

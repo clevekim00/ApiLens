@@ -1,13 +1,13 @@
 # GraphQL User Guide
 
 ## 1. Overview
-ApiFlow Studio provides first-class support for **GraphQL**, alongside REST and WebSocket. In modern API environments with complex data requirements, GraphQL allows you to fetch exactly the data you need with a single request.
+ApiLens Studio provides first-class support for **GraphQL**, alongside REST and WebSocket. In modern API environments with complex data requirements, GraphQL allows you to fetch exactly the data you need with a single request.
 
 ### REST vs. GraphQL
 - **REST**: Often requires calling multiple endpoints (`/users`, `/posts`) to assemble the necessary data. This can lead to over-fetching (receiving more data than needed).
 - **GraphQL**: Uses a single endpoint (`/graphql`) to request specific fields. You can retrieve all related data in one go.
 
-With ApiFlow Studio's dedicated **GraphQL Client** and **Workflow Integration**, you can easily test and automate your GraphQL APIs.
+With ApiLens Studio's dedicated **GraphQL Client** and **Workflow Integration**, you can easily test and automate your GraphQL APIs.
 
 ---
 
@@ -111,7 +111,7 @@ You can automate GraphQL requests using the `gql_request` node in the **Visual W
 ---
 
 ## 5. Templating & Data Binding
-ApiFlow Studio supports Handlebars syntax (`{{ ... }}`) to inject dynamic data into queries and variables.
+ApiLens Studio supports Handlebars syntax (`{{ ... }}`) to inject dynamic data into queries and variables.
 
 ### Environment Variables
 ```graphql

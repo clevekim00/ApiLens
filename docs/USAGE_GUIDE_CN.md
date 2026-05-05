@@ -1,16 +1,15 @@
-# ApiFlow Studio 사용 가이드
+# ApiLens 사용 가이드
 
-본 문서는 **ApiFlow Studio**의 인터페이스 설명과 자동화 워크플로우를 생성, 설정, 실행하는 방법을 안내합니다.
+본 문서는 **ApiLens**의 인터페이스 설명과 자동화 워크플로우를 생성, 설정, 실행하는 방법을 안내합니다.
 
 ## 빠르게 둘러보기 (Quick Tour)
 
 화면은 크게 5가지 영역으로 구성됩니다:
 
-1.  **Workflow Menu (상단)**: 파일 관리(New, Save, Open) 및 실행(Run).
-2.  **Node Palette (좌측)**: 캔버스로 드래그하여 추가할 수 있는 노드 목록 (Start, HTTP, Condition, End).
-3.  **Canvas (중앙)**: 워크플로우를 디자인하는 무한 작업 공간. 빈 공간을 드래그하여 이동(Pan), 휠로 줌(Zoom) 가능.
-4.  **Inspector Panel (우측)**: 선택된 노드의 속성(API URL, Method 등)을 설정하는 패널.
-5.  **Debug/Log Panel (하단)**: 실행 로그 및 결과를 확인하는 패널.
+1.  **仪表板 (Dashboard)**: 显示实时 API 健康检查、响应时间和流量统计的中央控制中心。
+2.  **导航栏 (Top Bar)**: 在仪表板、请求 (Requests)、工作流 (Workflows) 和导入 (Import) 之间快速切换。
+3.  **资源管理器 (Explorer)**: 按工作组和文件夹管理您的请求。
+4.  **画布 (Canvas)**: 设计工作流的无限工作空间。
 
 ## 첫 번째 워크플로우 만들기
 

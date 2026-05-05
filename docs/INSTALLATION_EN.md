@@ -1,6 +1,6 @@
-# Installation Guide for ApiFlow Studio
+# Installation Guide for ApiLens Studio
 
-This guide covers the setup and installation process for **ApiFlow Studio** on macOS, Windows, and Web environments.
+This guide covers the setup and installation process for **ApiLens Studio** on macOS, Windows, and Web environments.
 
 ## Prerequisites
 

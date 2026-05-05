@@ -21,6 +21,18 @@ class FakeSettingsRepository implements SettingsRepository {
   Future<void> setThemeMode(ThemeMode mode) async {}
 
   @override
+  String getLanguage() => 'en';
+
+  @override
+  Future<void> setLanguage(String languageCode) async {}
+
+  @override
+  bool getHasSeenTutorial() => true;
+
+  @override
+  Future<void> setHasSeenTutorial(bool value) async {}
+
+  @override
   String? getLastSelectedWsConfigId() => null;
 
   @override

@@ -11,6 +11,7 @@
 ApiLens is a desktop/web-based API tool that connects REST, WebSocket, and GraphQL into a single workflow.
 
 ## Key Features
+- **Main Dashboard**: Monitor API health, performance metrics, and traffic trends in real-time.
 - **Multi-Client**: Support for REST / WebSocket / GraphQL Clients.
 - **Workflow Editor**: Connect complex API scenarios with nodes and automate them.
 - **Workgroup System**: Isolate and manage projects individually.
@@ -20,7 +21,7 @@ ApiLens is a desktop/web-based API tool that connects REST, WebSocket, and Graph
 - **Theme**: Premium Light / Dark themes.
 
 ## Quick Start
-1. **Launch ApiLens**: Open the application.
+1. **Launch ApiLens**: Open the application to see the **Main Dashboard**.
 2. **Create Workgroup**: Click the `+` button in the sidebar to create a new group.
 3. **Import OpenAPI**: Right-click group -> `Import Swagger` to load specifications.
 4. **Run Request**: Select a request from the list and click `Send`.

@@ -1,13 +1,13 @@
 # GraphQL 사용 가이드
 
 ## 1. 개요
-ApiFlow Studio는 REST, WebSocket과 더불어 강력한 **GraphQL** 지원 기능을 제공합니다. 복잡한 데이터 요구사항을 가진 최신 API 환경에서, 필요한 데이터만 정확하게 요청(Query)하고 변경(Mutation)할 수 있습니다.
+ApiLens Studio는 REST, WebSocket과 더불어 강력한 **GraphQL** 지원 기능을 제공합니다. 복잡한 데이터 요구사항을 가진 최신 API 환경에서, 필요한 데이터만 정확하게 요청(Query)하고 변경(Mutation)할 수 있습니다.
 
 ### REST vs GraphQL 차이점
 - **REST**: 여러 엔드포인트(`/users`, `/posts`)를 호출하여 데이터를 조립해야 할 수 있습니다. 불필요한 데이터까지 받아오는 Over-fetching 문제가 발생하기도 합니다.
 - **GraphQL**: 단일 엔드포인트(`/graphql`)로 필요한 필드만 명시하여 요청합니다. 단 한 번의 요청으로 연관된 데이터를 모두 가져올 수 있습니다.
 
-ApiFlow Studio에서는 **전용 Client**, **Workflow 통합**, 그리고 **커맨드 팔레트(Cmd+K)**를 통해 GraphQL API를 쉽게 테스트하고 자동화할 수 있습니다.
+ApiLens Studio에서는 **전용 Client**, **Workflow 통합**, 그리고 **커맨드 팔레트(Cmd+K)**를 통해 GraphQL API를 쉽게 테스트하고 자동화할 수 있습니다.
 
 ---
 

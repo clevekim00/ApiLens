@@ -1,6 +1,6 @@
-# ApiFlow Studio 설치 가이드
+# ApiLens Studio 설치 가이드
 
-본 문서는 macOS, Windows, Web 환경에서 **ApiFlow Studio**를 설정하고 실행하는 방법을 안내합니다.
+본 문서는 macOS, Windows, Web 환경에서 **ApiLens Studio**를 설정하고 실행하는 방법을 안내합니다.
 
 ## 필수 요건 (Prerequisites)
 

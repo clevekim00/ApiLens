@@ -1,16 +1,16 @@
-# Usage Guide for ApiFlow Studio
+# Usage Guide for ApiLens
 
-This guide explains the interface and how to build, configure, and execute automated workflows in **ApiFlow Studio**.
+This guide explains the interface and how to build, configure, and execute automated workflows in **ApiLens**.
 
 ## Quick Tour
 
 The primary interface consists of five main areas:
 
-1.  **Workflow Menu (Top)**: Manage workflow files (New, Save, Open) and Run execution.
-2.  **Node Palette (Left)**: Drag and drop nodes (Start, HTTP, Condition, End) onto the canvas.
-3.  **Canvas (Center)**: The infinite workspace where you design your flow. Pan (drag empty space) and zoom supported.
-4.  **Inspector Panel (Right)**: Configure the properties of the currently selected node (e.g., API URL, Method).
-5.  **Debug/Log Panel (Bottom)**: View execution logs and results.
+1.  **Dashboard (Home)**: The central command center showing real-time API health, performance metrics, and traffic trends.
+2.  **Navigation (Top Bar)**: Quick switching between Dashboard, Requests, Workflows, and Import.
+3.  **Explorer (Left Sidebar)**: Organize and manage your requests by workgroups and folders.
+4.  **Canvas (Center)**: The infinite workspace where you design your flow.
+5.  **Command Palette (Cmd + K)**: A global search and action bar to navigate and execute commands instantly.
 
 ## Create Your First Workflow
 
