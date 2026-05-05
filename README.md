@@ -75,9 +75,18 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 
 ## 🚀 Getting Started
 
-1. **Local Build**: Ensure you have Flutter installed. Run `flutter pub get` and then `flutter run` to launch the application on your desired platform.
-2. **Build for Release**: Use `flutter build macos` or `flutter build windows` to create a standalone executable for your OS.
-3. **Contribute**: Check out [CONTRIBUTING.md](docs/CONTRIBUTING_EN.md) to help improve ApiLens.
+### 📦 Downloads (v1.0.0)
+- **macOS**: [Download ApiLens for macOS v1.0.0 (.zip)](release/ApiLens_macOS_v1.0.0.zip)
+- **Other Platforms**: Build from source (see Installation Guide)
+
+### 📖 Guides
+- **Installation**: [Full Installation Guide](docs/INSTALLATION_GUIDE_EN.md)
+- **Usage**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+
+### 🛠 Local Development
+1. Ensure you have [Flutter](https://flutter.dev) installed.
+2. Clone the repository and run `flutter pub get`.
+3. Launch with `flutter run`.
 
 ---
 

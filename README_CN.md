@@ -75,9 +75,18 @@ ApiLens 使用**工作组**来保持项目的独立性。
 
 ## 🚀 开始使用
 
-1. **本地构建**：确保您已安装 Flutter。运行 `flutter pub get` 后执行 `flutter run` 即可在所需平台上启动应用程序。
-2. **构建发布版本**：使用 `flutter build macos` 或 `flutter build windows` 命令为您当前的操作系统创建独立的可执行文件。
-3. **贡献**：查看 [CONTRIBUTING.md](docs/CONTRIBUTING_CN.md) 帮助改进 ApiLens。
+### 📦 下载 (v1.0.0)
+- **macOS**: [下载 macOS 版 ApiLens v1.0.0 (.zip)](release/ApiLens_macOS_v1.0.0.zip)
+- **其他平台**: 从源代码构建 (见安装指南)
+
+### 📖 指南
+- **安装方法**: [完整安装指南](docs/INSTALLATION_GUIDE_CN.md)
+- **使用方法**: [详细使用指南](docs/USAGE_GUIDE_CN.md)
+
+### 🛠 本地开发
+1. 确保您已安装 [Flutter](https://flutter.dev)。
+2. 克隆仓库并运行 `flutter pub get`。
+3. 使用 `flutter run` 运行。
 
 ---
 

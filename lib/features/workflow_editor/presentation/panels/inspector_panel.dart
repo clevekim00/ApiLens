@@ -14,7 +14,7 @@ class InspectorPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(workflowEditorProvider);
-    final selectedId = state.selectedNodeId;
+    final selectedId = state.selectedNodeIds.lastOrNull;
 
     if (selectedId == null) {
       return const _InspectorEmptyState();

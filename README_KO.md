@@ -75,9 +75,18 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 
 ## 🚀 시작하기
 
-1. **로컬 빌드**: Flutter가 설치되어 있는지 확인하세요. `flutter pub get` 실행 후 `flutter run`을 통해 원하는 플랫폼에서 앱을 실행할 수 있습니다.
-2. **배포용 빌드**: `flutter build macos` 또는 `flutter build windows` 명령어를 사용하여 OS에 맞는 실행 파일을 생성하세요.
-3. **기여하기**: ApiLens 개선에 도움을 주시려면 [CONTRIBUTING.md](docs/CONTRIBUTING_KO.md)를 확인해 주세요.
+### 📦 다운로드 (v1.0.0)
+- **macOS**: [macOS용 ApiLens v1.0.0 다운로드 (.zip)](release/ApiLens_macOS_v1.0.0.zip)
+- **기타 플랫폼**: 소스에서 직접 빌드 (설치 가이드 참조)
+
+### 📖 가이드
+- **설치 방법**: [전체 설치 가이드](docs/INSTALLATION_GUIDE_KO.md)
+- **사용 방법**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
+
+### 🛠 로컬 개발
+1. [Flutter](https://flutter.dev)가 설치되어 있는지 확인하세요.
+2. 저장소를 클론하고 `flutter pub get`을 실행합니다.
+3. `flutter run`으로 실행합니다.
 
 ---
 

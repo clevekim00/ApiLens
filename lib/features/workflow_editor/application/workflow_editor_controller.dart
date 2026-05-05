@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../domain/models/workflow_node.dart';
@@ -9,12 +10,13 @@ class WorkflowEditorState {
   final String? groupId; // Link to parent folder
   final List<WorkflowNode> nodes;
   final List<WorkflowEdge> edges;
-  final String? selectedNodeId;
+  final List<String> selectedNodeIds;
   final String? connectingNodeId;
   final String? connectingPortKey;
   final bool isDirty;
   final DateTime? lastSavedAt;
   final String? selectedEdgeId;
+  final Offset viewportCenter;
 
   const WorkflowEditorState({
     required this.id,
@@ -22,12 +24,13 @@ class WorkflowEditorState {
     this.groupId,
     this.nodes = const [],
     this.edges = const [],
-    this.selectedNodeId,
+    this.selectedNodeIds = const [],
     this.connectingNodeId,
     this.connectingPortKey,
     this.isDirty = false,
     this.lastSavedAt,
     this.selectedEdgeId,
+    this.viewportCenter = const Offset(2500, 2500), // Default center of 5000x5000
   });
 
   WorkflowEditorState copyWith({
@@ -36,12 +39,13 @@ class WorkflowEditorState {
     String? groupId,
     List<WorkflowNode>? nodes,
     List<WorkflowEdge>? edges,
-    String? selectedNodeId,
+    List<String>? selectedNodeIds,
     String? connectingNodeId,
     String? connectingPortKey,
     bool? isDirty,
     DateTime? lastSavedAt,
     String? selectedEdgeId,
+    Offset? viewportCenter,
   }) {
     return WorkflowEditorState(
       id: id ?? this.id,
@@ -49,12 +53,13 @@ class WorkflowEditorState {
       groupId: groupId ?? this.groupId,
       nodes: nodes ?? this.nodes,
       edges: edges ?? this.edges,
-      selectedNodeId: selectedNodeId ?? this.selectedNodeId,
+      selectedNodeIds: selectedNodeIds ?? this.selectedNodeIds,
       connectingPortKey: connectingPortKey ?? this.connectingPortKey,
       isDirty: isDirty ?? this.isDirty,
       lastSavedAt: lastSavedAt ?? this.lastSavedAt,
       selectedEdgeId: selectedEdgeId ?? this.selectedEdgeId,
       connectingNodeId: connectingNodeId ?? this.connectingNodeId,
+      viewportCenter: viewportCenter ?? this.viewportCenter,
     );
   }
 }
@@ -125,6 +130,9 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       isDirty: true,
     );
   }
+  void updateViewportCenter(Offset center) {
+    state = state.copyWith(viewportCenter: center);
+  }
 
   void updateNodeConfig(String id, Map<String, dynamic> newData) {
     state = state.copyWith(
@@ -139,24 +147,43 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     );
   }
 
-  void selectNode(String? id) {
+  void selectNode(String? id, {bool multi = false}) {
     if (state.connectingNodeId != null) {
       cancelConnection();
     }
-    // Direct constructor to allow nullifying selectedNodeId safely
+
+    List<String> newSelection;
+    if (id == null) {
+      newSelection = const [];
+    } else if (multi) {
+      newSelection = List.from(state.selectedNodeIds);
+      if (newSelection.contains(id)) {
+        newSelection.remove(id);
+      } else {
+        newSelection.add(id);
+      }
+    } else {
+      newSelection = [id];
+    }
+
     state = WorkflowEditorState(
       id: state.id,
       name: state.name,
       groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
-      selectedNodeId: id,
-      selectedEdgeId: null, // Clear edge selection
+      selectedNodeIds: newSelection,
+      selectedEdgeId: null,
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: state.isDirty,
       lastSavedAt: state.lastSavedAt,
+      viewportCenter: state.viewportCenter,
     );
+  }
+
+  void selectAll() {
+    state = state.copyWith(selectedNodeIds: state.nodes.map((n) => n.id).toList());
   }
 
   void selectEdge(String? id) {
@@ -167,21 +194,29 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
-      selectedNodeId: null, // Clear node selection
+      selectedNodeIds: const [], // Clear node selection
       selectedEdgeId: id,
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: state.isDirty,
       lastSavedAt: state.lastSavedAt,
+      viewportCenter: state.viewportCenter,
     );
   }
 
-  void deleteNode(String id) {
-    // Cascade delete edges
-    final newEdges = state.edges.where((e) => e.sourceNodeId != id && e.targetNodeId != id).toList();
-    final newNodes = state.nodes.where((n) => n.id != id).toList();
+  void deleteNode(String id) => deleteNodes([id]);
+
+  void deleteNodes(List<String> ids) {
+    if (ids.isEmpty) return;
+
+    final newEdges = state.edges.where((e) => 
+      !ids.contains(e.sourceNodeId) && !ids.contains(e.targetNodeId)
+    ).toList();
     
-    // Check if selected edge was deleted
+    final newNodes = state.nodes.where((n) => !ids.contains(n.id)).toList();
+    
+    final newSelectedNodes = state.selectedNodeIds.where((sid) => !ids.contains(sid)).toList();
+    
     String? newSelectedEdgeForState = state.selectedEdgeId;
     if (newSelectedEdgeForState != null && !newEdges.any((e) => e.id == newSelectedEdgeForState)) {
       newSelectedEdgeForState = null;
@@ -193,15 +228,54 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       groupId: state.groupId,
       nodes: newNodes,
       edges: newEdges,
-      selectedNodeId: state.selectedNodeId == id ? null : state.selectedNodeId,
+      selectedNodeIds: newSelectedNodes,
       selectedEdgeId: newSelectedEdgeForState,
       connectingNodeId: state.connectingNodeId,
       connectingPortKey: state.connectingPortKey,
       isDirty: true,
       lastSavedAt: state.lastSavedAt,
+      viewportCenter: state.viewportCenter,
     );
   }
   
+  void duplicateNode(String id) {
+    final original = state.nodes.firstWhere((n) => n.id == id, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+    if (original.id.isEmpty) return;
+
+    final newNode = original.copyWith(
+      id: const Uuid().v4(),
+      x: original.x + 20,
+      y: original.y + 20,
+    );
+    addNode(newNode);
+    selectNode(newNode.id);
+  }
+
+  void duplicateSelection() {
+    if (state.selectedNodeIds.isEmpty) return;
+
+    final List<WorkflowNode> newNodes = [];
+    final Map<String, String> idMapping = {};
+
+    for (final id in state.selectedNodeIds) {
+      final original = state.nodes.firstWhere((n) => n.id == id);
+      final newId = const Uuid().v4();
+      idMapping[id] = newId;
+      
+      newNodes.add(original.copyWith(
+        id: newId,
+        x: original.x + 40,
+        y: original.y + 40,
+      ));
+    }
+
+    state = state.copyWith(
+      nodes: [...state.nodes, ...newNodes],
+      selectedNodeIds: newNodes.map((n) => n.id).toList(),
+      isDirty: true,
+    );
+  }
+
   void deleteEdge(String edgeId) {
     final newEdges = state.edges.where((e) => e.id != edgeId).toList();
     state = state.copyWith(
@@ -219,12 +293,13 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
-      selectedNodeId: state.selectedNodeId,
+      selectedNodeIds: state.selectedNodeIds,
       selectedEdgeId: state.selectedEdgeId,
       connectingNodeId: nodeId,
       connectingPortKey: portKey,
       isDirty: state.isDirty,
       lastSavedAt: state.lastSavedAt,
+      viewportCenter: state.viewportCenter,
     );
   }
 
@@ -248,12 +323,13 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       groupId: state.groupId,
       nodes: state.nodes,
       edges: state.edges,
-      selectedNodeId: state.selectedNodeId,
+      selectedNodeIds: state.selectedNodeIds,
       selectedEdgeId: state.selectedEdgeId,
       connectingNodeId: null,
       connectingPortKey: null,
       isDirty: state.isDirty,
       lastSavedAt: state.lastSavedAt,
+      viewportCenter: state.viewportCenter,
     );
   }
   

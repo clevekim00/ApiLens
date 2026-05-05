@@ -6,12 +6,26 @@ import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../application/workflow_editor_controller.dart';
 import '../../domain/models/workflow_node.dart';
 
-class NodePalette extends ConsumerWidget {
+class NodePalette extends ConsumerStatefulWidget {
   const NodePalette({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    const sections = [
+  ConsumerState<NodePalette> createState() => _NodePaletteState();
+}
+
+class _NodePaletteState extends ConsumerState<NodePalette> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = [
       _NodeSection(
         title: 'Core',
         items: [
@@ -42,58 +56,114 @@ class NodePalette extends ConsumerWidget {
       ),
     ];
 
+    // Filter logic
+    final filteredSections = sections.map((section) {
+      final filteredItems = section.items.where((item) {
+        return item.label.toLowerCase().contains(_searchQuery.toLowerCase());
+      }).toList();
+      return _NodeSection(title: section.title, items: filteredItems);
+    }).where((section) => section.items.isNotEmpty).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _PaletteHeader(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: AppTokens.s1),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search nodes...',
+              prefixIcon: const Icon(Icons.search, size: 18),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+            onChanged: (val) => setState(() => _searchQuery = val),
+          ),
+        ),
         Divider(height: 1, color: Theme.of(context).dividerColor),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(AppTokens.s2),
-            itemCount: sections.length,
-            separatorBuilder: (_, __) => const SizedBox(height: AppTokens.s3),
-            itemBuilder: (context, sectionIndex) {
-              final section = sections[sectionIndex];
+          child: filteredSections.isEmpty
+              ? _buildEmptySearch()
+              : ListView.separated(
+                  padding: const EdgeInsets.all(AppTokens.s2),
+                  itemCount: filteredSections.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: AppTokens.s3),
+                  itemBuilder: (context, sectionIndex) {
+                    final section = filteredSections[sectionIndex];
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.s2,
-                      vertical: AppTokens.s1,
-                    ),
-                    child: Text(
-                      section.title.toUpperCase(),
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.7,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTokens.s2,
+                            vertical: AppTokens.s1,
                           ),
-                    ),
-                  ),
-                  const SizedBox(height: AppTokens.s1),
-                  ...section.items.map(
-                    (item) => _DraggableNodeTile(
-                      item: item,
-                      onAdd: () => _addNode(ref, item),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                          child: Text(
+                            section.title.toUpperCase(),
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.7,
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: AppTokens.s1),
+                        ...section.items.map(
+                          (item) => _DraggableNodeTile(
+                            item: item,
+                            onAdd: () => _addNode(ref, item),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
 
+  Widget _buildEmptySearch() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 32, color: Theme.of(context).disabledColor),
+          const SizedBox(height: 12),
+          Text(
+            'No nodes found',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).disabledColor,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _addNode(WidgetRef ref, _NodePaletteItem item) {
+    final state = ref.read(workflowEditorProvider);
+    final center = state.viewportCenter;
+
     ref.read(workflowEditorProvider.notifier).addNode(
           WorkflowNode(
             id: const Uuid().v4(),
             type: item.type,
-            x: 100,
-            y: 100,
+            x: center.dx - 80, // Center based on standard node width
+            y: center.dy - 40, // Center based on standard node height
             data: {'name': item.label},
           ),
         );
