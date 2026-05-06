@@ -80,4 +80,6 @@ flutter test test/features/dashboard/dashboard_ui_test.dart
 2.  **빌드**:
     - macOS: `flutter build macos`
     - Windows: `flutter build windows`
-3.  **가이드 확인**: 자세한 배포 절차는 `docs/APP_STORE_PUBLISH_GUIDE_KO.md`를 참조하세요.
+3.  **가이드 확인**: 자세한 배포 절차는 다음 가이드를 참조하세요.
+    - [App Store 출시 가이드](docs/APP_STORE_PUBLISH_GUIDE_KO.md)
+    - [실행 파일 직접 배포 가이드](docs/DIRECT_DISTRIBUTION_GUIDE_KO.md)

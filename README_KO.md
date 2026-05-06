@@ -93,6 +93,9 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 ### 📖 가이드
 - **설치 방법**: [전체 설치 가이드](docs/INSTALLATION_GUIDE_KO.md)
 - **사용 방법**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
+- **테스트 서버**: [샘플 백엔드 구축 및 사용법](be_sample/README.md)
+- **App Store 배포**: [App Store 출시 가이드](docs/APP_STORE_PUBLISH_GUIDE_KO.md)
+- **직접 배포**: [실행 파일 직접 배포 가이드](docs/DIRECT_DISTRIBUTION_GUIDE_KO.md)
 - **개발 가이드**: [개발자용 기술 가이드](docs/DEVELOP_GUIDE_KO.md)
 
 ### 🛠 로컬 개발

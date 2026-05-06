@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "wf-be-sample-auth-test",
+  "name": "ApiLens Sample Backend Auth Test",
+  "startNodeId": "start",
+  "env": {
+    "baseUrl": "http://localhost:4000",
+    "username": "admin",
+    "password": "password123",
+    "jwtToken": ""
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "Start",
+      "position": { "x": 50, "y": 200 },
+      "inputPorts": [],
+      "outputPorts": [{ "key": "out" }],
+      "config": {},
+      "data": { "name": "Start" }
+    },
+    {
+      "id": "node_login",
+      "type": "http",
+      "name": "Login (JWT)",
+      "position": { "x": 250, "y": 200 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "data": { "name": "Login" },
+      "config": {
+        "url": "{{env.baseUrl}}/auth/login-jwt",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\"username\": \"{{env.username}}\", \"password\": \"{{env.password}}\"}",
+        "storeResultAs": "loginResponse"
+      }
+    },
+    {
+      "id": "node_extract_token",
+      "type": "transform",
+      "name": "Extract Token",
+      "position": { "x": 500, "y": 200 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "out" }],
+      "data": { "name": "Extract Token" },
+      "config": {
+        "script": "env.jwtToken = results.loginResponse.token;"
+      }
+    },
+    {
+      "id": "node_get_items",
+      "type": "http",
+      "name": "Get Items",
+      "position": { "x": 750, "y": 200 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "data": { "name": "Get Items" },
+      "config": {
+        "url": "{{env.baseUrl}}/api/items",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{env.jwtToken}}"
+        }
+      }
+    },
+    {
+      "id": "end_ok",
+      "type": "end",
+      "name": "Success",
+      "position": { "x": 1000, "y": 150 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [],
+      "config": {},
+      "data": { "name": "Success" }
+    },
+    {
+      "id": "end_fail",
+      "type": "end",
+      "name": "Failure",
+      "position": { "x": 1000, "y": 300 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [],
+      "config": {},
+      "data": { "name": "Failure" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "sourceNodeId": "start", "sourcePort": "out", "targetNodeId": "node_login", "targetPort": "in" },
+    { "id": "e2", "sourceNodeId": "node_login", "sourcePort": "success", "targetNodeId": "node_extract_token", "targetPort": "in" },
+    { "id": "e3", "sourceNodeId": "node_extract_token", "sourcePort": "out", "targetNodeId": "node_get_items", "targetPort": "in" },
+    { "id": "e4", "sourceNodeId": "node_get_items", "sourcePort": "success", "targetNodeId": "end_ok", "targetPort": "in" },
+    { "id": "e5", "sourceNodeId": "node_login", "sourcePort": "failure", "targetNodeId": "end_fail", "targetPort": "in" },
+    { "id": "e6", "sourceNodeId": "node_get_items", "sourcePort": "failure", "targetNodeId": "end_fail", "targetPort": "in" }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "wf-be-sample-full-test",
+  "name": "ApiLens Full Protocol Test (REST, GQL, WS)",
+  "startNodeId": "start",
+  "env": {
+    "baseUrl": "http://localhost:4000",
+    "wsUrl": "ws://localhost:4000"
+  },
+  "nodes": [
+    { "id": "start", "type": "start", "name": "Start", "position": { "x": 0, "y": 200 }, "inputPorts": [], "outputPorts": [{ "key": "out" }], "config": {}, "data": { "name": "Start" } },
+    {
+      "id": "gql_test",
+      "type": "gql_request",
+      "name": "GraphQL Query",
+      "position": { "x": 200, "y": 100 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "config": {
+        "endpoint": "{{env.baseUrl}}/graphql",
+        "query": "query { hello getItems { id name value } }",
+        "variablesJson": "{}"
+      }
+    },
+    {
+      "id": "ws_connect",
+      "type": "ws_connect",
+      "name": "WS Connect",
+      "position": { "x": 450, "y": 200 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "config": {
+        "mode": "direct",
+        "url": "{{env.wsUrl}}",
+        "storeAs": "testWs"
+      }
+    },
+    {
+      "id": "ws_send",
+      "type": "ws_send",
+      "name": "WS Send Message",
+      "position": { "x": 700, "y": 200 },
+      "inputPorts": [{ "key": "in" }],
+      "outputPorts": [{ "key": "success" }, { "key": "failure" }],
+      "config": {
+        "sessionKey": "testWs",
+        "payloadFormat": "json",
+        "payload": "{\"text\": \"Hello from Workflow\"}"
+      }
+    },
+    { "id": "end_ok", "type": "end", "name": "All OK", "position": { "x": 950, "y": 200 }, "inputPorts": [{ "key": "in" }], "outputPorts": [], "config": {}, "data": { "name": "End OK" } }
+  ],
+  "edges": [
+    { "id": "e1", "sourceNodeId": "start", "sourcePort": "out", "targetNodeId": "gql_test", "targetPort": "in" },
+    { "id": "e2", "sourceNodeId": "gql_test", "sourcePort": "success", "targetNodeId": "ws_connect", "targetPort": "in" },
+    { "id": "e3", "sourceNodeId": "ws_connect", "sourcePort": "success", "targetNodeId": "ws_send", "targetPort": "in" },
+    { "id": "e4", "sourceNodeId": "ws_send", "sourcePort": "success", "targetNodeId": "end_ok", "targetPort": "in" }
+  ]
+}
