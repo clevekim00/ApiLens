@@ -16,16 +16,21 @@ void main() {
     setUp(() {
       container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-          workgroupRepositoryProvider.overrideWithValue(FakeWorkgroupRepository()),
+          settingsRepositoryProvider
+              .overrideWithValue(FakeSettingsRepository()),
+          workgroupRepositoryProvider
+              .overrideWithValue(FakeWorkgroupRepository()),
           requestRepositoryProvider.overrideWithValue(FakeRequestRepository()),
-          workflowRepositoryProvider.overrideWithValue(FakeWorkflowRepository()),
-          webSocketConfigRepositoryProvider.overrideWithValue(FakeWebSocketConfigRepository()),
+          workflowRepositoryProvider
+              .overrideWithValue(FakeWorkflowRepository()),
+          webSocketConfigRepositoryProvider
+              .overrideWithValue(FakeWebSocketConfigRepository()),
         ],
       );
     });
 
-    testWidgets('OpenApiImportScreen renders landing panel by default', (WidgetTester tester) async {
+    testWidgets('OpenApiImportScreen renders landing panel by default',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -37,16 +42,20 @@ void main() {
 
       // Verify landing panel content
       expect(find.text('Start Your Integration'), findsOneWidget);
-      expect(find.text('Paste a Swagger URL or upload a spec file to preview endpoints before import.'), findsOneWidget);
+      expect(
+          find.text(
+              'Paste a Swagger URL or upload a spec file to preview endpoints before import.'),
+          findsOneWidget);
       expect(find.byType(TextField), findsOneWidget); // URL input
       expect(find.text('Choose Spec File'), findsOneWidget);
     });
 
-    testWidgets('Shows error if loading fails (Simulated)', (WidgetTester tester) async {
-       // Note: We are testing the UI's reaction to state changes.
-       // In a real scenario, we'd trigger a load and wait for it to fail.
-       
-       await tester.pumpWidget(
+    testWidgets('Shows error if loading fails (Simulated)',
+        (WidgetTester tester) async {
+      // Note: We are testing the UI's reaction to state changes.
+      // In a real scenario, we'd trigger a load and wait for it to fail.
+
+      await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(

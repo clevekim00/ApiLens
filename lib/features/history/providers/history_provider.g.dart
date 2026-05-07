@@ -6,7 +6,7 @@ part of 'history_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$historyRepositoryHash() => r'c82ad2b499f9d49cd2cbc66097f5770d79125d96';
+String _$historyRepositoryHash() => r'2f8d20f356c0c7a8f4bf41d75ffc926f29e38d8a';
 
 /// See also [historyRepository].
 @ProviderFor(historyRepository)
@@ -22,7 +22,7 @@ final historyRepositoryProvider =
 );
 
 typedef HistoryRepositoryRef = AutoDisposeFutureProviderRef<HistoryRepository>;
-String _$historyNotifierHash() => r'bd0103162a24b61bac02a3ad6ddbe680a5b16b56';
+String _$historyNotifierHash() => r'a08e98f32c47c0db29dac2c0db5bbeca2008b193';
 
 /// See also [HistoryNotifier].
 @ProviderFor(HistoryNotifier)

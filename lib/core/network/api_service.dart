@@ -12,32 +12,34 @@ class ApiService {
 
   ApiService(this._dioClient);
 
-  Future<ResponseModel> send(RequestModel req, {Map<String, String>? env}) async {
+  Future<ResponseModel> send(RequestModel req,
+      {Map<String, String>? env}) async {
     // 1. Prepare URL & Headers (Environment substitution)
     String finalUrl = TemplateResolver.resolve(req.url, env ?? {});
-    
+
     // Auto-headers logic
     final autoHeaders = RequestHeaderBuilder.buildAutoHeaders(req);
-    
+
     // Resolve user headers
     // We can't use RequestHeaderBuilder.mergeHeaders directly because we need to RESOLVE templates in user headers first.
     // So let's resolve user headers, then merge.
-    
+
     Map<String, String> resolvedUserHeaders = {};
     for (var h in req.headers) {
       if (h.isEnabled && h.key.isNotEmpty) {
-        resolvedUserHeaders[TemplateResolver.resolve(h.key, env ?? {})] = 
+        resolvedUserHeaders[TemplateResolver.resolve(h.key, env ?? {})] =
             TemplateResolver.resolve(h.value, env ?? {});
       }
     }
-    
+
     // Merge: User headers override auto headers
     final Map<String, String> finalHeaders = {...autoHeaders};
     resolvedUserHeaders.forEach((k, v) => finalHeaders[k] = v);
-    
+
     // Auth Headers
     if (req.authType == AuthType.bearer && req.authData != null) {
-      final token = TemplateResolver.resolve(req.authData!['token'] ?? '', env ?? {});
+      final token =
+          TemplateResolver.resolve(req.authData!['token'] ?? '', env ?? {});
       finalHeaders['Authorization'] = 'Bearer $token';
     }
     // Basic / API Key logic would go here
@@ -47,12 +49,12 @@ class ApiService {
     if (req.body != null && req.body!.isNotEmpty) {
       finalBody = TemplateResolver.resolve(req.body!, env ?? {});
     }
-    
+
     // 3. Prepare Params
     Map<String, dynamic> finalParams = {};
     for (var p in req.params) {
       if (p.isEnabled && p.key.trim().isNotEmpty) {
-        finalParams[TemplateResolver.resolve(p.key, env ?? {})] = 
+        finalParams[TemplateResolver.resolve(p.key, env ?? {})] =
             TemplateResolver.resolve(p.value, env ?? {});
       }
     }
@@ -71,11 +73,11 @@ class ApiService {
 
       final duration = response.extra['duration'] as int? ?? 0;
       final rawBody = _decodeResponseBody(response);
-      
+
       dynamic jsonBody;
       try {
         if (rawBody.trim().startsWith('{') || rawBody.trim().startsWith('[')) {
-           jsonBody = jsonDecode(rawBody);
+          jsonBody = jsonDecode(rawBody);
         }
       } catch (_) {}
 
@@ -93,12 +95,11 @@ class ApiService {
         durationMs: duration,
         sizeBytes: utf8.encode(rawBody).length,
       );
-
     } catch (e) {
       return ResponseModel(
         statusCode: 0,
         statusMessage: 'Error',
-        headers: {},
+        headers: const {},
         body: '',
         durationMs: 0,
         sizeBytes: 0,

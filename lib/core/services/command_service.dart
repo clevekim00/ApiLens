@@ -37,12 +37,13 @@ class CommandService extends StateNotifier<List<AppCommand>> {
     final lowercaseQuery = query.toLowerCase();
     return state.where((c) {
       return c.title.toLowerCase().contains(lowercaseQuery) ||
-             c.description.toLowerCase().contains(lowercaseQuery) ||
-             c.tags.any((t) => t.toLowerCase().contains(lowercaseQuery));
+          c.description.toLowerCase().contains(lowercaseQuery) ||
+          c.tags.any((t) => t.toLowerCase().contains(lowercaseQuery));
     }).toList();
   }
 }
 
-final commandServiceProvider = StateNotifierProvider<CommandService, List<AppCommand>>((ref) {
+final commandServiceProvider =
+    StateNotifierProvider<CommandService, List<AppCommand>>((ref) {
   return CommandService();
 });

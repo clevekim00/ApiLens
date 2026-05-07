@@ -34,7 +34,7 @@ class RequestRepository {
   // The viewed RequestModel code didn't show toJson/fromJson. I should probably add them or do it here.
   // Let's do it here for now to be safe, or check RequestModel again.
   // Just in case, I will implement robust mapper here.
-  
+
   Map<String, dynamic> _toJson(RequestModel model) {
     return {
       'id': model.id,
@@ -59,9 +59,18 @@ class RequestRepository {
       name: json['name'] ?? 'Saved Request',
       method: json['method'] ?? 'GET',
       url: json['url'] ?? '',
-      headers: (json['headers'] as List?)?.map((e) => KeyValueItem.fromJson(e)).toList() ?? [],
-      params: (json['params'] as List?)?.map((e) => KeyValueItem.fromJson(e)).toList() ?? [],
-      pathParams: (json['pathParams'] as List?)?.map((e) => KeyValueItem.fromJson(e)).toList() ?? [],
+      headers: (json['headers'] as List?)
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
+      params: (json['params'] as List?)
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
+      pathParams: (json['pathParams'] as List?)
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
       body: json['body'],
       bodyType: RequestBodyType.values.byName(json['bodyType'] ?? 'json'),
       authType: AuthType.values.byName(json['authType'] ?? 'none'),

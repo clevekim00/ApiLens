@@ -24,13 +24,14 @@ class WorkflowNodeAdapter extends TypeAdapter<WorkflowNode> {
       data: (fields[4] as Map).cast<String, dynamic>(),
       inputPortKeys: (fields[5] as List?)?.cast<String>(),
       outputPortKeys: (fields[6] as List?)?.cast<String>(),
+      isCompact: fields[7] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, WorkflowNode obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class WorkflowNodeAdapter extends TypeAdapter<WorkflowNode> {
       ..writeByte(5)
       ..write(obj.inputPortKeys)
       ..writeByte(6)
-      ..write(obj.outputPortKeys);
+      ..write(obj.outputPortKeys)
+      ..writeByte(7)
+      ..write(obj.isCompact);
   }
 
   @override

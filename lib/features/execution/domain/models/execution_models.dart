@@ -12,7 +12,7 @@ class NodeRunResult {
   final DateTime? finishedAt;
   final int? statusCode;
   final Map<String, String>? responseHeaders;
-  final dynamic? responseBody;
+  final dynamic responseBody;
   final String? errorMessage;
 
   const NodeRunResult({
@@ -32,7 +32,7 @@ class NodeRunResult {
     DateTime? finishedAt,
     int? statusCode,
     Map<String, String>? responseHeaders,
-    dynamic? responseBody,
+    dynamic responseBody,
     String? errorMessage,
   }) {
     return NodeRunResult(

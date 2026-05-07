@@ -26,6 +26,7 @@ Our goal is to **bridge the gap between simple API testing and complex workflow 
 ### 🚀 Advanced Orchestration
 - **Visual Workflow Editor**: Design complex sequences (e.g., Auth -> Token -> WebSocket Connect) using a node-based interface.
 - **Real-time Visual Debugging**: Watch your workflow execute live. Successful paths turn **Green**, failures turn **Red**, and active nodes pulse with a **Blue** glow.
+- **Timeout/Retry Policies**: Apply per-attempt timeouts, retry backoff, and retryable status code rules to HTTP, GraphQL, and WebSocket workflow nodes.
 - **Workflow Templates**: Access a library of pre-built scenarios like "Auth Flow", "CRUD Sync", and "GraphQL Explorer".
 
 ### 🛠 Professional Developer Tools
@@ -57,6 +58,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 - Navigate to the **Workflow Tab**.
 - Drag nodes from the palette onto the canvas.
 - Connect ports to define the logic flow (e.g., connect the `success` output of a Login node to the `input` of a Fetch node).
+- Configure timeout/retry policies for unreliable network calls and connect `failure` ports for recovery paths.
 - Click **Run** to execute and watch the visual debugging in action.
 
 ### 4. Master Efficiency with Command Palette

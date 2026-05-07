@@ -76,7 +76,11 @@ class _OpenApiImportScreenState extends ConsumerState<OpenApiImportScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text('OpenAPI Specification Import'),
+        title: const Text(
+          'OpenAPI Specification Import',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -684,6 +688,25 @@ class _OperationTableToolbar extends StatelessWidget {
           ],
         );
 
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  selectButton,
+                  const Spacer(),
+                ],
+              ),
+              const SizedBox(height: AppTokens.s1),
+              Align(
+                alignment: Alignment.centerRight,
+                child: counts,
+              ),
+            ],
+          );
+        }
+
         return Row(
           children: [
             selectButton,
@@ -913,6 +936,7 @@ class _OperationPreviewPanel extends StatelessWidget {
                         const SizedBox(height: AppTokens.s3),
                       ],
                       const TabBar(
+                        isScrollable: true,
                         tabs: [
                           Tab(text: 'Operation'),
                           Tab(text: 'Options'),
@@ -1457,12 +1481,17 @@ class _ImportBottomBar extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.layers, size: 16, color: theme.colorScheme.primary),
+                    Icon(Icons.layers,
+                        size: 16, color: theme.colorScheme.primary),
                     const SizedBox(width: 6),
-                    Text(
-                      '${state.selectedOperationIds.length} operations selected',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
+                    Flexible(
+                      child: Text(
+                        '${state.selectedOperationIds.length} operations selected',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ],
@@ -1523,8 +1552,8 @@ class _ImportBottomBar extends ConsumerWidget {
 
             return Row(
               children: [
-                details,
-                const Spacer(),
+                Expanded(child: details),
+                const SizedBox(width: AppTokens.s4),
                 resetButton,
                 const SizedBox(width: AppTokens.s2),
                 workflowButton,

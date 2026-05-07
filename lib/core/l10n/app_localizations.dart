@@ -11,7 +11,8 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
@@ -129,7 +130,7 @@ class AppLocalizations {
   }
 
   // --- Help Content (returning Map for complex structures) ---
-  
+
   Map<String, dynamic> get helpContent {
     switch (locale.languageCode) {
       case 'ko':
@@ -145,16 +146,21 @@ class AppLocalizations {
   static final Map<String, dynamic> _enHelp = {
     'getting_started': {
       'title': 'Getting Started with ApiLens',
-      'p1': 'ApiLens is a highly optimized, workflow-centric API workspace designed for backend developers and QA engineers.',
+      'p1':
+          'ApiLens is a highly optimized, workflow-centric API workspace designed for backend developers and QA engineers.',
       'h2': 'The Workspace Layout',
       'p2': 'The main workspace is divided into three primary regions:',
-      'b1': 'Top Navigation: Switch between HTTP Requests, Workflows, and Swagger Imports.',
-      'b2': 'Explorer (Left): Organize your requests into nested workgroups and folders.',
-      'b3': 'Main Editor (Right): Craft requests, view responses, or design complex logic visually.',
+      'b1':
+          'Top Navigation: Switch between HTTP Requests, Workflows, and Swagger Imports.',
+      'b2':
+          'Explorer (Left): Organize your requests into nested workgroups and folders.',
+      'b3':
+          'Main Editor (Right): Craft requests, view responses, or design complex logic visually.',
     },
     'workflow_editor': {
       'title': 'Workflow Editor',
-      'p1': 'The Workflow Editor allows you to chain multiple API requests together, parse responses, and create complex testing scenarios.',
+      'p1':
+          'The Workflow Editor allows you to chain multiple API requests together, parse responses, and create complex testing scenarios.',
       'h2_1': '1. Types of Nodes',
       'n1': 'Entry Point: Execution begins here.',
       'n2': 'HTTP Request: Executes an API call.',
@@ -170,7 +176,8 @@ class AppLocalizations {
   static final Map<String, dynamic> _koHelp = {
     'getting_started': {
       'title': 'ApiLens 시작하기',
-      'p1': 'ApiLens는 백엔드 개발자와 QA 엔지니어를 위해 설계된 고도로 최적화된 워크플로우 중심의 API 워크스페이스입니다.',
+      'p1':
+          'ApiLens는 백엔드 개발자와 QA 엔지니어를 위해 설계된 고도로 최적화된 워크플로우 중심의 API 워크스페이스입니다.',
       'h2': '워크스페이스 레이아웃',
       'p2': '메인 워크스페이스는 세 가지 주요 영역으로 나뉩니다:',
       'b1': '상단 네비게이션: HTTP 요청, 워크플로우, Swagger 가져오기 간의 전환.',
@@ -179,7 +186,8 @@ class AppLocalizations {
     },
     'workflow_editor': {
       'title': '워크플로우 에디터',
-      'p1': '워크플로우 에디터는 여러 API 요청을 체인으로 연결하고, 응답을 파싱하며, 복잡한 테스트 시나리오를 생성할 수 있게 해줍니다.',
+      'p1':
+          '워크플로우 에디터는 여러 API 요청을 체인으로 연결하고, 응답을 파싱하며, 복잡한 테스트 시나리오를 생성할 수 있게 해줍니다.',
       'h2_1': '1. 노드 유형',
       'n1': '진입점 (Start): 여기서부터 실행이 시작됩니다.',
       'n2': 'HTTP 요청 노드: API 호출을 실행합니다.',
@@ -218,7 +226,8 @@ class AppLocalizations {
   };
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override

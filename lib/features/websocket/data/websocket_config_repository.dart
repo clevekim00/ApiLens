@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -5,11 +6,11 @@ import '../domain/models/websocket_config.dart';
 
 class WebSocketConfigRepository {
   static const String boxName = 'websocket_configs';
-  
+
   // Hive Box (Lazy initialization or passed in)
   // For simplicity using Hive.box directly implies it needs valid open call.
   // Better to ensure openBox is called before usage.
-  
+
   Future<Box<Map>> _getBox() async {
     if (!Hive.isBoxOpen(boxName)) {
       return await Hive.openBox<Map>(boxName);
@@ -41,7 +42,8 @@ class WebSocketConfigRepository {
     await box.put(config.id, config.toJson());
   }
 
-  Future<WebSocketConfig> saveNew({required String name, required String url}) async {
+  Future<WebSocketConfig> saveNew(
+      {required String name, required String url}) async {
     final newConfig = WebSocketConfig(
       id: const Uuid().v4(),
       name: name,
@@ -51,7 +53,8 @@ class WebSocketConfigRepository {
       headers: {},
       protocols: [],
       autoReconnect: false,
-      reconnect: const WebSocketReconnectConfig(maxAttempts: 3, backoffMs: 1000),
+      reconnect:
+          const WebSocketReconnectConfig(maxAttempts: 3, backoffMs: 1000),
     );
     await save(newConfig);
     return newConfig;
@@ -71,7 +74,7 @@ class WebSocketConfigRepository {
     // Since copyWith follows original ID, we need to create a new instance essentially or Force ID.
     // copyWith in domain model usually keeps ID.
     // Let's manually reconstruct or add copyWithId.
-    // Or just modify copyWith in generic way? 
+    // Or just modify copyWith in generic way?
     // Domain model implies entity identity.
     // Let's create new instance from properties.
     final duplicated = WebSocketConfig(
@@ -86,10 +89,11 @@ class WebSocketConfigRepository {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    
+
     await save(duplicated);
     return duplicated;
   }
+
   Future<void> ensureSeeded() async {
     final box = await _getBox();
     if (box.isEmpty) {
@@ -103,9 +107,10 @@ class WebSocketConfigRepository {
         headers: {},
         protocols: [],
         autoReconnect: false,
-        reconnect: const WebSocketReconnectConfig(maxAttempts: 3, backoffMs: 1000),
+        reconnect:
+            const WebSocketReconnectConfig(maxAttempts: 3, backoffMs: 1000),
       );
-      
+
       final localConfig = WebSocketConfig(
         id: const Uuid().v4(),
         name: 'Local Dev (Placeholder)',
@@ -115,16 +120,18 @@ class WebSocketConfigRepository {
         headers: {},
         protocols: [],
         autoReconnect: true,
-        reconnect: const WebSocketReconnectConfig(maxAttempts: 5, backoffMs: 500),
+        reconnect:
+            const WebSocketReconnectConfig(maxAttempts: 5, backoffMs: 500),
       );
 
       await save(echoConfig);
       await save(localConfig);
-      print('WebSocket Configs seeded.');
+      debugPrint('WebSocket Configs seeded.');
     }
   }
 }
 
-final webSocketConfigRepositoryProvider = Provider<WebSocketConfigRepository>((ref) {
+final webSocketConfigRepositoryProvider =
+    Provider<WebSocketConfigRepository>((ref) {
   return WebSocketConfigRepository();
 });

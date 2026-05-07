@@ -11,9 +11,9 @@ class HistoryItem {
 
   late String method;
   late String url;
-  
+
   // Storing complex objects as JSON strings for simplicity in Isar
-  late String headersJson; 
+  late String headersJson;
   late String paramsJson;
   late String? body;
   late String authJson;

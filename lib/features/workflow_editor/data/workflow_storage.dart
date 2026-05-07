@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../domain/models/workflow.dart';
 
@@ -24,7 +25,7 @@ class WorkflowStorage {
   Future<List<Workflow>> loadAllWorkflows() async {
     final box = await _getBox();
     final List<Workflow> list = [];
-    
+
     for (var i = 0; i < box.length; i++) {
       final key = box.keyAt(i);
       final value = box.get(key);
@@ -33,12 +34,13 @@ class WorkflowStorage {
           final jsonMap = jsonDecode(value);
           list.add(Workflow.fromJson(jsonMap));
         } catch (e) {
-          print('Error loading workflow $key: $e');
+          debugPrint('Error loading workflow $key: $e');
         }
       }
     }
     // Sort by last modified desc
-    list.sort((a, b) => (b.lastModified ?? DateTime(0)).compareTo(a.lastModified ?? DateTime(0)));
+    list.sort((a, b) => (b.lastModified ?? DateTime(0))
+        .compareTo(a.lastModified ?? DateTime(0)));
     return list;
   }
 
@@ -46,12 +48,12 @@ class WorkflowStorage {
     final box = await _getBox();
     await box.delete(id);
   }
-  
+
   Future<Workflow?> loadWorkflow(String id) async {
     final box = await _getBox();
     final value = box.get(id);
     if (value is String) {
-       return Workflow.fromJson(jsonDecode(value));
+      return Workflow.fromJson(jsonDecode(value));
     }
     return null;
   }

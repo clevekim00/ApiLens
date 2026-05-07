@@ -29,6 +29,11 @@
     - **변수 해석기 (Variable Resolver)**:
         - 문법: `{{node.nodeId.data.response.body.token}}`.
         - 로직: Regex로 `{{...}}` 파싱 -> `executionContext`에서 조회.
+    - **Timeout/Retry 정책**:
+        - 실행형 노드는 `execution.timeoutMs`를 가질 수 있음.
+        - `execution.retry.maxAttempts`는 최초 실행 이후 추가 재시도 횟수.
+        - HTTP/GraphQL은 `408`, `429`, `5xx` 등 설정된 상태 코드에서 재시도 가능.
+        - 재시도를 모두 소진하면 연결된 `failure` 포트로 이동.
 
 ### 3. 캔버스 UI (`lib/features/workflow/ui`)
 - **WorkflowCanvas**: 
@@ -57,6 +62,7 @@
 ### 4단계: 실행 엔진
 - [ ] `Runner` 구축.
 - [ ] 변수 치환 로직 구현.
+- [x] HTTP, GraphQL, WebSocket 실행 노드에 시도별 timeout/retry 정책 추가.
 - [ ] UI: "워크플로우 실행" 버튼 및 실행 시각화 (활성 노드 하이라이트).
 
 ## 사용자 검토 필요 사항

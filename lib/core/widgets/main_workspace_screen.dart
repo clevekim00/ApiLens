@@ -24,11 +24,11 @@ class MainWorkspaceScreen extends ConsumerStatefulWidget {
   const MainWorkspaceScreen({super.key});
 
   @override
-  ConsumerState<MainWorkspaceScreen> createState() => _MainWorkspaceScreenState();
+  ConsumerState<MainWorkspaceScreen> createState() =>
+      _MainWorkspaceScreenState();
 }
 
 class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
-  
   final GlobalKey _keyRequests = GlobalKey();
   final GlobalKey _keyWorkflows = GlobalKey();
   final GlobalKey _keyImport = GlobalKey();
@@ -46,7 +46,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
   void _initCommands() {
     final commandService = ref.read(commandServiceProvider.notifier);
     final nav = ref.read(navigationProvider.notifier);
-    
+
     commandService.registerCommand(AppCommand(
       id: 'new_request',
       title: 'New HTTP Request',
@@ -54,7 +54,6 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       icon: Icons.add_link_rounded,
       shortcut: '⌘ N',
       action: () => nav.setIndex(1),
-
       tags: ['rest', 'api', 'http'],
     ));
 
@@ -65,7 +64,6 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       icon: Icons.account_tree_outlined,
       shortcut: '⌘ W',
       action: () => nav.setIndex(2),
-
       tags: ['automation', 'flow', 'visual'],
     ));
 
@@ -76,7 +74,6 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       icon: Icons.import_export_rounded,
       shortcut: '⌘ I',
       action: () => nav.setIndex(3),
-
       tags: ['swagger', 'postman', 'import'],
     ));
     commandService.registerCommand(AppCommand(
@@ -85,22 +82,25 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       description: 'Configure appearance, language, and proxy',
       icon: Icons.settings_outlined,
       shortcut: '⌘ ,',
-      action: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+      action: () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
       tags: ['config', 'theme', 'ui'],
     ));
-    
+
     commandService.registerCommand(AppCommand(
       id: 'help_center',
       title: 'Help & Documentation',
       description: 'View guides and documentation',
       icon: Icons.help_outline,
-      action: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
+      action: () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const HelpScreen())),
       tags: ['guide', 'docs', 'support'],
     ));
   }
 
   void _initOnboarding() async {
     await ref.read(dataInitializationServiceProvider).initializeSampleData();
+    if (!mounted) return;
 
     final settings = ref.read(settingsProvider);
     if (!settings.hasSeenTutorial) {
@@ -111,7 +111,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
         keyImport: _keyImport,
         keyExplorerAdd: _keyExplorerAdd,
       );
-      
+
       ref.read(settingsProvider.notifier).setHasSeenTutorial(true);
     }
   }
@@ -124,90 +124,166 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
 
     return CallbackShortcuts(
       bindings: {
-        SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
+        const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
           CommandPalette.show(context);
         },
-        SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
+        const SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
           CommandPalette.show(context);
         },
       },
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          _buildTopNavigationBar(context, theme, isDark, currentIndex),
-          Divider(height: 1, thickness: 1, color: theme.dividerColor),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final showPersistentSidebar = constraints.maxWidth >= 900;
+
+            return Column(
               children: [
-                _buildSidebar(theme),
-                VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor),
+                _buildTopNavigationBar(
+                  context,
+                  theme,
+                  isDark,
+                  currentIndex,
+                  showSidebarButton: !showPersistentSidebar,
+                ),
+                Divider(height: 1, thickness: 1, color: theme.dividerColor),
                 Expanded(
-                  child: IndexedStack(
-                    index: currentIndex,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const DashboardScreen(),
-                      const RequestScreen(isStandalone: false),
-                      const WorkflowEditorScreen(),
-                      const OpenApiImportScreen(targetGroupId: 'root'),
+                      if (showPersistentSidebar) ...[
+                        _buildSidebar(theme),
+                        VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: theme.dividerColor,
+                        ),
+                      ],
+                      Expanded(
+                        child: IndexedStack(
+                          index: currentIndex,
+                          children: const [
+                            DashboardScreen(),
+                            RequestScreen(isStandalone: false),
+                            WorkflowEditorScreen(),
+                            OpenApiImportScreen(targetGroupId: 'root'),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
+            );
+          },
+        ),
+        drawer: LayoutBuilder(
+          builder: (context, constraints) {
+            final showPersistentSidebar = constraints.maxWidth >= 900;
+            if (showPersistentSidebar) return const SizedBox.shrink();
+            return Drawer(
+              width: 280,
+              child: _buildSidebar(theme),
+            );
+          },
+        ),
       ),
-    ),
     );
   }
 
-  Widget _buildTopNavigationBar(BuildContext context, ThemeData theme, bool isDark, int currentIndex) {
+  Widget _buildTopNavigationBar(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    int currentIndex, {
+    required bool showSidebarButton,
+  }) {
     final l10n = AppLocalizations.of(context);
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4),
       color: theme.colorScheme.surface,
-      child: Row(
-        children: [
-          // Logo
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 860;
+
+          final logo = Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              if (showSidebarButton) ...[
+                IconButton(
+                  key: const Key('btn_open_sidebar'),
+                  icon: const Icon(Icons.view_sidebar_outlined, size: 20),
+                  tooltip: 'Open Workspace Sidebar',
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+                const SizedBox(width: AppTokens.s1),
+              ],
               Icon(Icons.lens, color: theme.colorScheme.primary, size: 20),
               const SizedBox(width: AppTokens.s2),
-              Text(
-                'ApiLens',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              if (!compact)
+                Text(
+                  'ApiLens',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
             ],
-          ),
-          const SizedBox(width: AppTokens.s6),
-          // Navigation Tabs
-          Row(
-            children: [
-              _buildNavTab(l10n.translate('dashboard'), 0, theme, null, currentIndex),
-              const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('requests'), 1, theme, _keyRequests, currentIndex),
-              const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('workflows'), 2, theme, _keyWorkflows, currentIndex),
-              const SizedBox(width: AppTokens.s2),
-              _buildNavTab(l10n.translate('import'), 3, theme, _keyImport, currentIndex),
-            ],
-          ),
+          );
 
-          const Spacer(),
-          // Right Actions
-          Row(
+          final tabs = Row(
             children: [
-              const SizedBox(
-                width: 160,
-                child: EnvironmentSelector(),
+              _buildNavTab(
+                l10n.translate('dashboard'),
+                0,
+                theme,
+                null,
+                currentIndex,
               ),
-              const SizedBox(width: AppTokens.s3),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab(
+                l10n.translate('requests'),
+                1,
+                theme,
+                _keyRequests,
+                currentIndex,
+              ),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab(
+                l10n.translate('workflows'),
+                2,
+                theme,
+                _keyWorkflows,
+                currentIndex,
+              ),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab(
+                l10n.translate('import'),
+                3,
+                theme,
+                _keyImport,
+                currentIndex,
+              ),
+            ],
+          );
+
+          final rightActions = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: compact ? 120 : 160,
+                child: const EnvironmentSelector(),
+              ),
+              const SizedBox(width: AppTokens.s2),
+              IconButton(
+                key: const Key('menu_workflow'),
+                icon: const Icon(Icons.account_tree_outlined, size: 20),
+                tooltip: 'Workflow Editor',
+                onPressed: () {
+                  ref.read(navigationProvider.notifier).setIndex(2);
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.help_outline, size: 20),
                 onPressed: () {
@@ -227,22 +303,44 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                 },
               ),
             ],
-          ),
-        ],
+          );
+
+          return Row(
+            children: [
+              logo,
+              SizedBox(width: compact ? AppTokens.s3 : AppTokens.s6),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: tabs,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTokens.s2),
+              rightActions,
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildNavTab(String label, int index, ThemeData theme, Key? key, int currentIndex) {
+  Widget _buildNavTab(
+      String label, int index, ThemeData theme, Key? key, int currentIndex) {
     final isSelected = currentIndex == index;
-    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
-    
+    final color = isSelected
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
+
     return InkWell(
       key: key,
       onTap: () => ref.read(navigationProvider.notifier).setIndex(index),
       borderRadius: BorderRadius.circular(AppTokens.radiusMd),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3, vertical: AppTokens.s2),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppTokens.s3, vertical: AppTokens.s2),
         decoration: isSelected
             ? BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.1),
@@ -275,21 +373,41 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(AppTokens.s3),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.folder_open, size: 18, color: theme.colorScheme.onSurfaceVariant),
-                  const SizedBox(width: AppTokens.s2),
                   Text(
-                    l10n.translate('explorer'),
-                    style: theme.textTheme.titleMedium?.copyWith(fontSize: 14),
+                    'Workspace',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.58),
+                      letterSpacing: 0.4,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    key: _keyExplorerAdd,
-                    icon: const Icon(Icons.add_box_outlined, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {},
+                  const SizedBox(height: AppTokens.s2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.folder_open,
+                        size: 18,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: AppTokens.s2),
+                      Text(
+                        l10n.translate('explorer'),
+                        style:
+                            theme.textTheme.titleMedium?.copyWith(fontSize: 14),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        key: _keyExplorerAdd,
+                        icon: const Icon(Icons.add_box_outlined, size: 18),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {},
+                      ),
+                    ],
                   ),
                 ],
               ),

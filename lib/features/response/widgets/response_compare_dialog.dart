@@ -10,7 +10,8 @@ class ResponseCompareDialog extends ConsumerStatefulWidget {
   const ResponseCompareDialog({super.key, required this.currentJson});
 
   @override
-  ConsumerState<ResponseCompareDialog> createState() => _ResponseCompareDialogState();
+  ConsumerState<ResponseCompareDialog> createState() =>
+      _ResponseCompareDialogState();
 }
 
 class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
@@ -30,13 +31,17 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
           children: [
             Row(
               children: [
-                const Text('Compare Response', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('Compare Response',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context)),
               ],
             ),
             const Divider(),
-            
+
             // Selector
             Row(
               children: [
@@ -51,11 +56,13 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
                       return DropdownButton<HistoryItem>(
                         isExpanded: true,
                         value: _selectedHistory,
-                        hint: const Text('Select a previous request from history...'),
+                        hint: const Text(
+                            'Select a previous request from history...'),
                         items: recent.map((e) {
                           return DropdownMenuItem(
                             value: e,
-                            child: Text('[${e.method}] ${e.url} (${e.statusCode}) - ${e.createdAt.toString().substring(5, 16)}'),
+                            child: Text(
+                                '[${e.method}] ${e.url} (${e.statusCode}) - ${e.createdAt.toString().substring(5, 16)}'),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -67,22 +74,26 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
                       );
                     },
                     loading: () => const LinearProgressIndicator(),
-                    error: (_,__) => const Text('Failed to load history'),
+                    error: (_, __) => const Text('Failed to load history'),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Diff View
             Expanded(
-              child: _diffNodes == null 
-                  ? const Center(child: Text('Select a comparison target to see differences.'))
-                  : _diffNodes!.isEmpty 
-                      ? const Center(child: Text('No Differences Found (Identical JSON)'))
+              child: _diffNodes == null
+                  ? const Center(
+                      child: Text(
+                          'Select a comparison target to see differences.'))
+                  : _diffNodes!.isEmpty
+                      ? const Center(
+                          child: Text('No Differences Found (Identical JSON)'))
                       : ListView.builder(
                           itemCount: _diffNodes!.length,
-                          itemBuilder: (context, index) => _buildDiffItem(_diffNodes![index]),
+                          itemBuilder: (context, index) =>
+                              _buildDiffItem(_diffNodes![index]),
                         ),
             ),
           ],
@@ -93,17 +104,18 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
 
   void _computeDiff() {
     if (_selectedHistory == null || widget.currentJson == null) return;
-    
+
     // Try parse history body
     dynamic oldJson;
     try {
       if (_selectedHistory!.body != null) {
-         oldJson = jsonDecode(_selectedHistory!.body!);
+        oldJson = jsonDecode(_selectedHistory!.body!);
       }
     } catch (_) {}
 
     if (oldJson == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected history has no valid JSON body')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Selected history has no valid JSON body')));
       setState(() => _diffNodes = []);
       return;
     }
@@ -135,12 +147,14 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
         children: [
           Container(
             color: color,
-            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4).add(indent),
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4)
+                .add(indent),
             child: Row(
               children: [
-                if(icon!=null) Icon(icon, size: 14),
+                if (icon != null) Icon(icon, size: 14),
                 const SizedBox(width: 4),
-                Text(node.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(node.key,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -151,29 +165,46 @@ class _ResponseCompareDialogState extends ConsumerState<ResponseCompareDialog> {
 
     return Container(
       color: color,
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8).add(indent),
+      padding:
+          const EdgeInsets.symmetric(vertical: 4, horizontal: 8).add(indent),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if(icon!=null) Padding(
-            padding: const EdgeInsets.only(top: 2.0),
-            child: Icon(icon, size: 16, color: Colors.black54),
-          ),
+          if (icon != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Icon(icon, size: 16, color: Colors.black54),
+            ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(color: Colors.black87, fontFamily: 'monospace'),
+                style: const TextStyle(
+                    color: Colors.black87, fontFamily: 'monospace'),
                 children: [
-                  TextSpan(text: '${node.key}: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(
+                      text: '${node.key}: ',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   if (node.type == DiffType.changed) ...[
-                    TextSpan(text: '${node.oldValue}', style: const TextStyle(color: Colors.red, decoration: TextDecoration.lineThrough)),
+                    TextSpan(
+                        text: '${node.oldValue}',
+                        style: const TextStyle(
+                            color: Colors.red,
+                            decoration: TextDecoration.lineThrough)),
                     const TextSpan(text: '  ➔  '),
-                    TextSpan(text: '${node.newValue}', style: const TextStyle(color: Colors.green)),
+                    TextSpan(
+                        text: '${node.newValue}',
+                        style: const TextStyle(color: Colors.green)),
                   ] else if (node.type == DiffType.added) ...[
-                    TextSpan(text: '${node.newValue}', style: const TextStyle(color: Colors.green)),
+                    TextSpan(
+                        text: '${node.newValue}',
+                        style: const TextStyle(color: Colors.green)),
                   ] else if (node.type == DiffType.removed) ...[
-                    TextSpan(text: '${node.oldValue}', style: const TextStyle(color: Colors.red, decoration: TextDecoration.lineThrough)),
+                    TextSpan(
+                        text: '${node.oldValue}',
+                        style: const TextStyle(
+                            color: Colors.red,
+                            decoration: TextDecoration.lineThrough)),
                   ],
                 ],
               ),

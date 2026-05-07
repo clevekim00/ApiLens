@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:yaml/yaml.dart';
 import 'package:uuid/uuid.dart';
 import '../../request/models/request_model.dart';
@@ -6,16 +7,17 @@ import '../../request/models/key_value_item.dart';
 import '../domain/models/openapi_operation_model.dart';
 
 class SwaggerParserService {
-  
   List<RequestModel> parse(String content, {String? baseUrlOverride}) {
     final result = parseToResult(content);
     if (result == null) return [];
-    
+
     final baseUrl = baseUrlOverride ?? result.baseUrl ?? '';
     // Default options for legacy/direct parse
-    const options = ImportOptions(); 
-    
-    return result.operations.map((op) => convertOperationToRequest(op, options, baseUrl)).toList();
+    const options = ImportOptions();
+
+    return result.operations
+        .map((op) => convertOperationToRequest(op, options, baseUrl))
+        .toList();
   }
 
   OpenApiParseResult? parseToResult(String content) {
@@ -26,7 +28,7 @@ class SwaggerParserService {
         final map = jsonDecode(content);
         return _parseJsonToResult(map);
       }
-      
+
       // 2. Try YAML
       final yamlMap = loadYaml(content);
       if (yamlMap is YamlMap) {
@@ -35,7 +37,7 @@ class SwaggerParserService {
       }
       return null;
     } catch (e) {
-      print('Parse Error: $e');
+      debugPrint('Parse Error: $e');
       return null;
     }
   }
@@ -81,21 +83,24 @@ class SwaggerParserService {
 
           pathItem.forEach((method, operation) {
             if (_isHttpMethod(method) && operation is Map<String, dynamic>) {
-               final opParamsRaw = operation['parameters'] as List?;
-               final combinedParams = [...?pathParamsRaw, ...?opParamsRaw];
-               
-               operations.add(OpenApiOperation(
-                 id: const Uuid().v4(),
-                 path: path,
-                 method: method.toUpperCase(),
-                 summary: operation['summary'],
-                 description: operation['description'],
-                 operationId: operation['operationId'],
-                 tags: (operation['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
-                 parameters: combinedParams,
-                 requestBody: operation['requestBody'],
-                 security: operation['security'] as List? ?? [],
-               ));
+              final opParamsRaw = operation['parameters'] as List?;
+              final combinedParams = [...?pathParamsRaw, ...?opParamsRaw];
+
+              operations.add(OpenApiOperation(
+                id: const Uuid().v4(),
+                path: path,
+                method: method.toUpperCase(),
+                summary: operation['summary'],
+                description: operation['description'],
+                operationId: operation['operationId'],
+                tags: (operation['tags'] as List?)
+                        ?.map((e) => e.toString())
+                        .toList() ??
+                    [],
+                parameters: combinedParams,
+                requestBody: operation['requestBody'],
+                security: operation['security'] as List? ?? [],
+              ));
             }
           });
         }
@@ -110,7 +115,15 @@ class SwaggerParserService {
   }
 
   bool _isHttpMethod(String key) {
-    const methods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+    const methods = [
+      'get',
+      'post',
+      'put',
+      'delete',
+      'patch',
+      'options',
+      'head'
+    ];
     return methods.contains(key.toLowerCase());
   }
 
@@ -130,19 +143,16 @@ class SwaggerParserService {
     final host = root['host'];
     final basePath = root['basePath'] ?? '';
     final schemes = root['schemes'] as List?;
-    final scheme = schemes != null && schemes.isNotEmpty ? schemes.first : 'https';
+    final scheme =
+        schemes != null && schemes.isNotEmpty ? schemes.first : 'https';
     if (host != null) return '$scheme://$host$basePath';
     return '';
   }
 
-
   RequestModel convertOperationToRequest(
-      OpenApiOperation op, 
-      ImportOptions options, 
-      String parsedBaseUrl
-  ) {
+      OpenApiOperation op, ImportOptions options, String parsedBaseUrl) {
     final name = op.summary ?? op.operationId ?? '${op.method} ${op.path}';
-    
+
     // Base URL Handling
     String fullUrl;
     if (options.baseUrlBehavior == BaseUrlBehavior.env) {
@@ -155,21 +165,22 @@ class SwaggerParserService {
     final headers = <KeyValueItem>[];
     final queryParams = <KeyValueItem>[];
     final pathParamsList = <KeyValueItem>[];
-    
+
     for (var p in op.parameters) {
       if (p is Map<String, dynamic>) {
         final name = p['name'] as String? ?? '';
-        final inType = p['in'] as String? ?? ''; 
+        final inType = p['in'] as String? ?? '';
         final schema = p['schema'] as Map<String, dynamic>?;
-        final example = p['example'] ?? schema?['example'] ?? schema?['default'];
+        final example =
+            p['example'] ?? schema?['example'] ?? schema?['default'];
         final val = example?.toString() ?? '';
-        
+
         final item = KeyValueItem(
           id: const Uuid().v4(),
           key: name,
           value: val,
           isEnabled: true,
-          description: inType, 
+          description: inType,
         );
 
         if (inType == 'query') {
@@ -178,7 +189,7 @@ class SwaggerParserService {
           if (!headers.any((x) => x.key == name)) headers.add(item);
         } else if (inType == 'path') {
           if (!pathParamsList.any((x) => x.key == name)) {
-             pathParamsList.add(item.copyWith(value: '')); 
+            pathParamsList.add(item.copyWith(value: ''));
           }
         }
       }
@@ -187,29 +198,34 @@ class SwaggerParserService {
     // Body Parsing
     String body = '';
     RequestBodyType bodyType = RequestBodyType.none;
-    
+
     if (op.requestBody != null) {
       final content = op.requestBody['content'] as Map<String, dynamic>?;
       if (content != null) {
         if (content.containsKey('application/json')) {
-           bodyType = RequestBodyType.json;
-           final schema = content['application/json']['schema'] as Map<String, dynamic>?;
-           final example = content['application/json']['example'];
-           
-           if (options.bodySampleStrategy == BodySampleStrategy.example && example != null) {
-             // Use explicit example if available
-             try {
-                body = const JsonEncoder.withIndent('  ').convert(example);
-             } catch (_) { body = example.toString(); }
-           } else if (options.bodySampleStrategy != BodySampleStrategy.minimal && schema != null) {
-             body = _generateJsonFromSchema(schema);
-           } else {
-             body = '{}';
-           }
+          bodyType = RequestBodyType.json;
+          final schema =
+              content['application/json']['schema'] as Map<String, dynamic>?;
+          final example = content['application/json']['example'];
+
+          if (options.bodySampleStrategy == BodySampleStrategy.example &&
+              example != null) {
+            // Use explicit example if available
+            try {
+              body = const JsonEncoder.withIndent('  ').convert(example);
+            } catch (_) {
+              body = example.toString();
+            }
+          } else if (options.bodySampleStrategy != BodySampleStrategy.minimal &&
+              schema != null) {
+            body = _generateJsonFromSchema(schema);
+          } else {
+            body = '{}';
+          }
         } else if (content.containsKey('application/x-www-form-urlencoded')) {
-           bodyType = RequestBodyType.form;
+          bodyType = RequestBodyType.form;
         } else if (content.containsKey('multipart/form-data')) {
-           bodyType = RequestBodyType.form; 
+          bodyType = RequestBodyType.form;
         }
       }
     }
@@ -217,17 +233,17 @@ class SwaggerParserService {
     // Auth Parsing
     AuthType authType = AuthType.none;
     Map<String, String>? authData;
-    
+
     if (options.authBehavior == AuthBehavior.detect && op.security.isNotEmpty) {
-       // Simple detection
-       authType = AuthType.bearer; 
+      // Simple detection
+      authType = AuthType.bearer;
     }
 
     return RequestModel(
       id: const Uuid().v4(),
       name: name,
       method: op.method,
-      url: fullUrl, 
+      url: fullUrl,
       headers: headers,
       params: queryParams,
       pathParams: pathParamsList,
@@ -245,42 +261,42 @@ class SwaggerParserService {
   }
 
   String _generateJsonFromSchema(Map<String, dynamic> schema) {
-     try {
-       final obj = _generateSchemaValue(schema);
-       const encoder = JsonEncoder.withIndent('  ');
-       return encoder.convert(obj);
-     } catch (_) {
-       return '{}';
-     }
+    try {
+      final obj = _generateSchemaValue(schema);
+      const encoder = JsonEncoder.withIndent('  ');
+      return encoder.convert(obj);
+    } catch (_) {
+      return '{}';
+    }
   }
 
   dynamic _generateSchemaValue(Map<String, dynamic> schema) {
-     final type = schema['type'];
-     if (type == 'object') {
-       final props = schema['properties'] as Map<String, dynamic>?;
-       if (props != null) {
-         final Map<String, dynamic> obj = {};
-         props.forEach((key, propSchema) {
-           if (propSchema is Map<String, dynamic>) {
-              obj[key] = _generateSchemaValue(propSchema);
-           }
-         });
-         return obj;
-       }
-       return {};
-     } else if (type == 'array') {
-       final items = schema['items'] as Map<String, dynamic>?;
-       if (items != null) {
-         return [_generateSchemaValue(items)];
-       }
-       return [];
-     } else if (type == 'string') {
-       return schema['example'] ?? 'string';
-     } else if (type == 'integer' || type == 'number') {
-       return schema['example'] ?? 0;
-     } else if (type == 'boolean') {
-       return schema['example'] ?? false;
-     }
-     return null;
+    final type = schema['type'];
+    if (type == 'object') {
+      final props = schema['properties'] as Map<String, dynamic>?;
+      if (props != null) {
+        final Map<String, dynamic> obj = {};
+        props.forEach((key, propSchema) {
+          if (propSchema is Map<String, dynamic>) {
+            obj[key] = _generateSchemaValue(propSchema);
+          }
+        });
+        return obj;
+      }
+      return {};
+    } else if (type == 'array') {
+      final items = schema['items'] as Map<String, dynamic>?;
+      if (items != null) {
+        return [_generateSchemaValue(items)];
+      }
+      return [];
+    } else if (type == 'string') {
+      return schema['example'] ?? 'string';
+    } else if (type == 'integer' || type == 'number') {
+      return schema['example'] ?? 0;
+    } else if (type == 'boolean') {
+      return schema['example'] ?? false;
+    }
+    return null;
   }
 }

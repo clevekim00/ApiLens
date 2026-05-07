@@ -57,7 +57,14 @@
                 "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": "{\"id\":\"user\",\"pw\":\"pass\"}"
+                "body": "{\"id\":\"user\",\"pw\":\"pass\"}",
+                "execution": {
+                    "timeoutMs": 10000,
+                    "retry": {
+                        "maxAttempts": 2,
+                        "backoffMs": 500
+                    }
+                }
             }
         },
         {
@@ -87,7 +94,14 @@
             "config": {
                 "mode": "direct",
                 "url": "{{env.wsBase}}?token={{node.login.response.body}}",
-                "storeAs": "mainWs"
+                "storeAs": "mainWs",
+                "execution": {
+                    "timeoutMs": 5000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
+                }
             }
         },
         {
@@ -117,7 +131,14 @@
             "config": {
                 "sessionKey": "mainWs",
                 "payloadFormat": "json",
-                "payload": "{\"type\":\"ping\"}"
+                "payload": "{\"type\":\"ping\"}",
+                "execution": {
+                    "timeoutMs": 5000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
+                }
             }
         },
         {
@@ -150,6 +171,13 @@
                 "match": {
                     "type": "jsonPathEquals",
                     "value": "$.type==\"pong\""
+                },
+                "execution": {
+                    "timeoutMs": 5000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
                 }
             }
         },

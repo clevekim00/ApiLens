@@ -19,11 +19,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-          workgroupRepositoryProvider.overrideWithValue(FakeWorkgroupRepository()),
+          settingsRepositoryProvider
+              .overrideWithValue(FakeSettingsRepository()),
+          workgroupRepositoryProvider
+              .overrideWithValue(FakeWorkgroupRepository()),
           requestRepositoryProvider.overrideWithValue(FakeRequestRepository()),
-          workflowRepositoryProvider.overrideWithValue(FakeWorkflowRepository()),
-          webSocketConfigRepositoryProvider.overrideWithValue(FakeWebSocketConfigRepository()),
+          workflowRepositoryProvider
+              .overrideWithValue(FakeWorkflowRepository()),
+          webSocketConfigRepositoryProvider
+              .overrideWithValue(FakeWebSocketConfigRepository()),
         ],
         child: const ApiTesterApp(),
       ),
@@ -31,11 +35,11 @@ void main() {
 
     // Verify Splash Screen
     expect(find.byType(ApiTesterApp), findsOneWidget);
-    
+
     // Pump to finish Splash delay (2 seconds)
     await tester.pump(const Duration(seconds: 3));
     await tester.pump(); // Just one frame after navigation
-    
+
     // Should be at Home/Request Screen now
     // We can just verify the app didn't crash
     expect(find.byType(ApiTesterApp), findsOneWidget);

@@ -10,19 +10,25 @@ class MethodSelector extends ConsumerWidget {
 
   Color _getMethodColor(String method) {
     switch (method) {
-      case 'GET': return AppColorsLight.ring; // Blue
-      case 'POST': return Colors.green;
-      case 'PUT': return Colors.orange;
-      case 'DELETE': return AppColorsLight.destructive;
-      case 'PATCH': return Colors.purple;
-      default: return Colors.grey;
+      case 'GET':
+        return AppColorsLight.ring; // Blue
+      case 'POST':
+        return Colors.green;
+      case 'PUT':
+        return Colors.orange;
+      case 'DELETE':
+        return AppColorsLight.destructive;
+      case 'PATCH':
+        return Colors.purple;
+      default:
+        return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final method = ref.watch(requestNotifierProvider.select((s) => s.method));
-    
+
     return Row(
       children: [
         Container(
@@ -45,11 +51,11 @@ class MethodSelector extends ConsumerWidget {
               ),
               items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
                   .map((m) => DropdownMenuItem(
-                        value: m, 
-                        child: Text(
-                          m, 
-                          style: AppTokens.textTheme.bodyMedium?.copyWith(color: _getMethodColor(m), fontWeight: FontWeight.bold)
-                        ),
+                        value: m,
+                        child: Text(m,
+                            style: AppTokens.textTheme.bodyMedium?.copyWith(
+                                color: _getMethodColor(m),
+                                fontWeight: FontWeight.bold)),
                       ))
                   .toList(),
               onChanged: (val) {
@@ -63,7 +69,8 @@ class MethodSelector extends ConsumerWidget {
         const SizedBox(width: AppTokens.s2),
         const InfoButton(
           title: 'HTTP Methods',
-          message: 'GET: Retrieve data\nPOST: Create new data\nPUT: Replace existing data\nPATCH: Partial update\nDELETE: Remove data',
+          message:
+              'GET: Retrieve data\nPOST: Create new data\nPUT: Replace existing data\nPATCH: Partial update\nDELETE: Remove data',
         ),
       ],
     );
@@ -107,7 +114,8 @@ class _UrlInputState extends ConsumerState<UrlInput> {
               controller: _controller,
               hintText: 'https://api.example.com/v1/resource',
               mono: true,
-              onChanged: (val) => ref.read(requestNotifierProvider.notifier).updateUrl(val),
+              onChanged: (val) =>
+                  ref.read(requestNotifierProvider.notifier).updateUrl(val),
               onSubmitted: (_) => widget.onSubmitted?.call(),
             ),
           ),
@@ -115,7 +123,8 @@ class _UrlInputState extends ConsumerState<UrlInput> {
         const SizedBox(width: AppTokens.s2),
         const InfoButton(
           title: 'Dynamic URLs',
-          message: 'You can use environment variables in your URL.\n\nExample: {{base_url}}/users/{{id}}\n\nDefine variables in the Environment selector (top right).',
+          message:
+              'You can use environment variables in your URL.\n\nExample: {{base_url}}/users/{{id}}\n\nDefine variables in the Environment selector (top right).',
         ),
       ],
     );

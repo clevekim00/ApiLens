@@ -73,7 +73,7 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
         final compact = constraints.maxWidth < 860;
         final veryCompact = constraints.maxWidth < 640;
 
-    final l10n = AppLocalizations.of(context);
+        final l10n = AppLocalizations.of(context);
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
           child: Row(
@@ -289,7 +289,8 @@ class _SaveStateBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final color = isDirty ? Colors.orange : Colors.green;
-    final label = isDirty ? l10n.translate('unsaved') : _savedLabel(lastSavedAt, l10n);
+    final label =
+        isDirty ? l10n.translate('unsaved') : _savedLabel(lastSavedAt, l10n);
 
     return Container(
       height: 24,

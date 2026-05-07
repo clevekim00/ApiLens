@@ -19,7 +19,7 @@ class WorkflowRepository {
   Future<void> delete(String id) async {
     await _storage.deleteWorkflow(id);
   }
-  
+
   // Export to JSON String
   String exportJson(Workflow workflow) {
     const encoder = JsonEncoder.withIndent('  ');

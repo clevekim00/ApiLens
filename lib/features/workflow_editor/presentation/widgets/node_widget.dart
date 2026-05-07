@@ -35,7 +35,8 @@ class NodeWidget extends StatefulWidget {
   State<NodeWidget> createState() => _NodeWidgetState();
 }
 
-class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateMixin {
+class _NodeWidgetState extends State<NodeWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _pulseAnimation;
 
@@ -60,7 +61,9 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
     super.didUpdateWidget(oldWidget);
     if ((widget.hasError || widget.isRunning) && !_controller.isAnimating) {
       _controller.repeat(reverse: true);
-    } else if (!widget.hasError && !widget.isRunning && _controller.isAnimating) {
+    } else if (!widget.hasError &&
+        !widget.isRunning &&
+        _controller.isAnimating) {
       _controller.stop();
       _controller.reset();
     }
@@ -77,7 +80,8 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
     return GestureDetector(
       onTap: widget.onTap,
       onPanStart: (details) => widget.onDragStart?.call(details.globalPosition),
-      onPanUpdate: (details) => widget.onDragUpdate?.call(details.globalPosition),
+      onPanUpdate: (details) =>
+          widget.onDragUpdate?.call(details.globalPosition),
       onPanEnd: (_) => widget.onDragEnd.call(),
       child: Stack(
         clipBehavior: Clip.none,
@@ -93,7 +97,8 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
     );
   }
 
-  List<Widget> _buildPorts(BuildContext context, List<NodePort> ports, {required bool isInput}) {
+  List<Widget> _buildPorts(BuildContext context, List<NodePort> ports,
+      {required bool isInput}) {
     final nodeHeight = widget.node.isCompact ? 40.0 : 80.0;
     final count = ports.length;
     final widgets = <Widget>[];
@@ -111,8 +116,10 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
           right: isInput ? null : -5,
           top: top,
           child: GestureDetector(
-            onTapDown: (details) => widget.onPortTap?.call(port.key, details.globalPosition),
-            onPanStart: (details) => widget.onPortTap?.call(port.key, details.globalPosition),
+            onTapDown: (details) =>
+                widget.onPortTap?.call(port.key, details.globalPosition),
+            onPanStart: (details) =>
+                widget.onPortTap?.call(port.key, details.globalPosition),
             child: Tooltip(
               message: port.label,
               child: _buildPortCircle(context, port.key),
@@ -149,25 +156,44 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
     if (widget.isActive) {
       borderColor = colorScheme.primary;
       borderWidth = 2;
-      shadows = [BoxShadow(color: colorScheme.primary.withValues(alpha: 0.15), blurRadius: 12, spreadRadius: 2)];
+      shadows = [
+        BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.15),
+            blurRadius: 12,
+            spreadRadius: 2)
+      ];
     } else if (widget.isRunning) {
       borderColor = Colors.amber;
       borderWidth = 2;
       final value = _pulseAnimation.value;
-      shadows = [BoxShadow(color: Colors.amber.withValues(alpha: 0.1 + (value * 0.2)), blurRadius: 8, spreadRadius: 1)];
+      shadows = [
+        BoxShadow(
+            color: Colors.amber.withValues(alpha: 0.1 + (value * 0.2)),
+            blurRadius: 8,
+            spreadRadius: 1)
+      ];
     } else if (widget.isSuccess) {
       borderColor = Colors.green;
       borderWidth = 2;
       shadows = [
-        BoxShadow(color: Colors.green.withValues(alpha: 0.3), blurRadius: 8, spreadRadius: 1),
-        BoxShadow(color: Colors.green.withValues(alpha: 0.1), blurRadius: 16, spreadRadius: 4),
+        BoxShadow(
+            color: Colors.green.withValues(alpha: 0.3),
+            blurRadius: 8,
+            spreadRadius: 1),
+        BoxShadow(
+            color: Colors.green.withValues(alpha: 0.1),
+            blurRadius: 16,
+            spreadRadius: 4),
       ];
     } else if (widget.hasError) {
       borderColor = Colors.redAccent;
       borderWidth = 2;
       final value = _pulseAnimation.value;
       shadows = [
-        BoxShadow(color: Colors.redAccent.withValues(alpha: 0.2 + (value * 0.3)), blurRadius: 8 + (value * 12), spreadRadius: value * 4),
+        BoxShadow(
+            color: Colors.redAccent.withValues(alpha: 0.2 + (value * 0.3)),
+            blurRadius: 8 + (value * 12),
+            spreadRadius: value * 4),
       ];
     }
 
@@ -175,13 +201,39 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
     IconData icon;
     String subtitle = 'Node';
     switch (widget.node.type) {
-      case 'start': nodeColor = Colors.green; icon = Icons.play_arrow; subtitle = 'START'; break;
-      case 'end': nodeColor = Colors.redAccent; icon = Icons.stop; subtitle = 'END'; break;
-      case 'api': nodeColor = Colors.blue; icon = Icons.language; subtitle = 'HTTP Request'; break;
-      case 'condition': nodeColor = Colors.orange; icon = Icons.diamond; subtitle = 'Condition'; break;
-      case 'gql_request': nodeColor = Colors.pink; icon = Icons.hub; subtitle = 'GraphQL Request'; break;
-      case 'ws_connect': nodeColor = Colors.deepPurple; icon = Icons.sync_alt; subtitle = 'WebSocket Connect'; break;
-      default: nodeColor = Colors.blueGrey; icon = Icons.device_hub;
+      case 'start':
+        nodeColor = Colors.green;
+        icon = Icons.play_arrow;
+        subtitle = 'START';
+        break;
+      case 'end':
+        nodeColor = Colors.redAccent;
+        icon = Icons.stop;
+        subtitle = 'END';
+        break;
+      case 'api':
+        nodeColor = Colors.blue;
+        icon = Icons.language;
+        subtitle = 'HTTP Request';
+        break;
+      case 'condition':
+        nodeColor = Colors.orange;
+        icon = Icons.diamond;
+        subtitle = 'Condition';
+        break;
+      case 'gql_request':
+        nodeColor = Colors.pink;
+        icon = Icons.hub;
+        subtitle = 'GraphQL Request';
+        break;
+      case 'ws_connect':
+        nodeColor = Colors.deepPurple;
+        icon = Icons.sync_alt;
+        subtitle = 'WebSocket Connect';
+        break;
+      default:
+        nodeColor = Colors.blueGrey;
+        icon = Icons.device_hub;
     }
 
     return Container(
@@ -200,7 +252,8 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
             height: 36,
             decoration: BoxDecoration(
               color: nodeColor.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(7), topRight: Radius.circular(7)),
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(7), topRight: Radius.circular(7)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2),
             child: Row(
@@ -210,13 +263,21 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
                 Expanded(
                   child: Text(
                     widget.node.data['name'] ?? widget.node.type.toUpperCase(),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(widget.node.isCompact ? Icons.unfold_more : Icons.unfold_less, size: 14, color: nodeColor.withValues(alpha: 0.6)),
+                  icon: Icon(
+                      widget.node.isCompact
+                          ? Icons.unfold_more
+                          : Icons.unfold_less,
+                      size: 14,
+                      color: nodeColor.withValues(alpha: 0.6)),
                   onPressed: widget.onToggleCompact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -228,17 +289,39 @@ class _NodeWidgetState extends State<NodeWidget> with SingleTickerProviderStateM
           if (!widget.node.isCompact)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: AppTokens.s1),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.s2, vertical: AppTokens.s1),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(subtitle, style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(subtitle,
+                        style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            fontSize: 11),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
                     if (widget.isSuccess)
-                      const Row(children: [Icon(Icons.check_circle, size: 10, color: Colors.green), SizedBox(width: 4), Text('Success/OK', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold))])
+                      const Row(children: [
+                        Icon(Icons.check_circle, size: 10, color: Colors.green),
+                        SizedBox(width: 4),
+                        Text('Success/OK',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold))
+                      ])
                     else if (widget.hasError)
-                      const Row(children: [Icon(Icons.error, size: 10, color: Colors.redAccent), SizedBox(width: 4), Text('Failed', style: TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold))]),
+                      const Row(children: [
+                        Icon(Icons.error, size: 10, color: Colors.redAccent),
+                        SizedBox(width: 4),
+                        Text('Failed',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold))
+                      ]),
                   ],
                 ),
               ),

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../workflow_editor/domain/models/workflow_node.dart';
 import '../../workflow_editor/domain/models/workflow_edge.dart'; // Fixed import path
@@ -11,7 +10,7 @@ class WorkflowRunnerState {
   final bool isRunning;
   final Map<String, NodeRunResult> results;
   final Map<String, bool> traversedEdgeIds; // edgeId -> isError
-  final List<String> logs; 
+  final List<String> logs;
 
   const WorkflowRunnerState({
     this.isRunning = false,
@@ -35,7 +34,8 @@ class WorkflowRunnerState {
   }
 }
 
-final workflowRunnerProvider = StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
+final workflowRunnerProvider =
+    StateNotifierProvider<WorkflowRunnerController, WorkflowRunnerState>((ref) {
   // Inject WebSocketManager
   final wsManager = ref.watch(webSocketManagerProvider);
   final gqlService = ref.watch(graphQLServiceProvider);
@@ -46,12 +46,11 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
   final WebSocketManager _wsManager;
   final GraphQLService _gqlService;
 
-  WorkflowRunnerController({required WebSocketManager wsManager, required GraphQLService gqlService}) 
-    : _wsManager = wsManager,
-      _gqlService = gqlService,
-      super(const WorkflowRunnerState());
-
-  StreamSubscription? _subscription;
+  WorkflowRunnerController(
+      {required WebSocketManager wsManager, required GraphQLService gqlService})
+      : _wsManager = wsManager,
+        _gqlService = gqlService,
+        super(const WorkflowRunnerState());
 
   void clear() {
     state = const WorkflowRunnerState();
@@ -65,30 +64,32 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
 
     // Instantiate engine per run to maintain fresh state (like activeConnectionId)
     final engine = ExecutionEngine(
-      wsManager: _wsManager,
-      gqlService: _gqlService,
-      onLog: (msg) {
-        if (mounted) {
-           state = state.copyWith(logs: [...state.logs, msg]);
-        }
-      }
-    );
+        wsManager: _wsManager,
+        gqlService: _gqlService,
+        onLog: (msg) {
+          if (mounted) {
+            state = state.copyWith(logs: [...state.logs, msg]);
+          }
+        });
 
     await for (final event in engine.runWorkflow(nodes, edges)) {
       if (event is NodeExecutionEvent) {
         final result = event.result;
         final newResults = Map<String, NodeRunResult>.from(state.results);
         newResults[result.nodeId] = result;
-        
+
         final msg = '[${result.nodeId}] ${result.status.name.toUpperCase()}';
-        
+
         state = state.copyWith(
           results: newResults,
           logs: [...state.logs, msg],
         );
-        
+
         if (result.status == NodeStatus.failure) {
-           state = state.copyWith(logs: [...state.logs, 'Execution failed: ${result.errorMessage}']);
+          state = state.copyWith(logs: [
+            ...state.logs,
+            'Execution failed: ${result.errorMessage}'
+          ]);
         }
       } else if (event is EdgeExecutionEvent) {
         final newEdges = Map<String, bool>.from(state.traversedEdgeIds);
@@ -97,8 +98,7 @@ class WorkflowRunnerController extends StateNotifier<WorkflowRunnerState> {
       }
     }
 
-    state = state.copyWith(isRunning: false, logs: [...state.logs, 'Execution finished.']);
+    state = state.copyWith(
+        isRunning: false, logs: [...state.logs, 'Execution finished.']);
   }
 }
-
-

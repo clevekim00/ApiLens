@@ -7,6 +7,7 @@ erDiagram
     Workflow ||--|{ WorkflowEdge : "connects nodes"
     WorkflowNode ||--|{ NodePort : "has inputs/outputs"
     WorkflowNode ||--|| NodeConfig : "has configuration"
+    NodeConfig ||--|| ExecutionPolicy : "has runtime policy"
     
     WorkflowEdge {
         string id
@@ -34,6 +35,10 @@ erDiagram
 
     NodeConfig ||--|{ HttpNodeConfig : "type=http"
     NodeConfig ||--|{ ConditionNodeConfig : "type=condition"
+    NodeConfig ||--|{ GraphQLNodeConfig : "type=gql_request"
+    NodeConfig ||--|{ WebSocketConnectNodeConfig : "type=ws_connect"
+    NodeConfig ||--|{ WebSocketSendNodeConfig : "type=ws_send"
+    NodeConfig ||--|{ WebSocketWaitNodeConfig : "type=ws_wait"
 ```
 
 ## JSON Structure Models
@@ -75,8 +80,34 @@ class WorkflowNode {
 ```
 
 **Configurations**:
-- **HttpNodeConfig**: `method` (GET/POST...), `url`, `headers` (Map), `query` (Map), `body`, `auth`.
-- **ConditionNodeConfig**: `expression` (String).
+- **HttpNodeConfig**: `method` (GET/POST...), `url`, `headers` (Map), `body`, optional `execution`.
+- **ConditionNodeConfig**: `expression` (String), optional `execution`.
+- **GraphQLNodeConfig**: `endpoint`, `headers`, `query`, `variablesJson`, `storeAs`, optional `execution`.
+- **WebSocketConnectNodeConfig**: `mode`, `url`, `configRefId`, `storeAs`, `headers`, optional `execution`.
+- **WebSocketSendNodeConfig**: `sessionKey`, `payloadFormat`, `payload`, optional `execution`.
+- **WebSocketWaitNodeConfig**: `sessionKey`, `timeoutMs`, `match`, optional `execution`.
+
+**Execution Policy**:
+```dart
+class ExecutionPolicy {
+  final int? timeoutMs;
+  final RetryPolicy retry;
+}
+
+class RetryPolicy {
+  final int maxAttempts;
+  final int backoffMs;
+  final List<int> retryOnStatusCodes;
+  final bool retryOnTimeout;
+}
+```
+
+Runtime rules:
+- `timeoutMs` is applied per attempt.
+- `maxAttempts` is the number of retries after the first attempt.
+- HTTP/GraphQL nodes can retry on configured status codes such as `408`, `429`, and `5xx`.
+- WebSocket nodes can retry on exceptions and timeout.
+- Exhausted retries route executable nodes to the `failure` port.
 
 ## Implementation Details
 - **Polymorphism**: `NodeConfig` will be an abstract class or union, serialized with a `type` discriminator if needed, or handled within the parent `WorkflowNode` serialization logic based on the `type` field.

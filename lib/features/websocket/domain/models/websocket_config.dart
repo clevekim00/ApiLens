@@ -22,14 +22,14 @@ class WebSocketAuthConfig {
   });
 
   Map<String, dynamic> toJson() => {
-    'type': type.name,
-    if (token != null) 'token': token,
-    if (username != null) 'username': username,
-    if (password != null) 'password': password,
-    if (key != null) 'key': key,
-    if (value != null) 'value': value,
-    if (addTo != null) 'addTo': addTo,
-  };
+        'type': type.name,
+        if (token != null) 'token': token,
+        if (username != null) 'username': username,
+        if (password != null) 'password': password,
+        if (key != null) 'key': key,
+        if (value != null) 'value': value,
+        if (addTo != null) 'addTo': addTo,
+      };
 
   factory WebSocketAuthConfig.fromJson(Map<String, dynamic> json) {
     return WebSocketAuthConfig(
@@ -54,9 +54,9 @@ class WebSocketReconnectConfig {
   });
 
   Map<String, dynamic> toJson() => {
-    'maxAttempts': maxAttempts,
-    'backoffMs': backoffMs,
-  };
+        'maxAttempts': maxAttempts,
+        'backoffMs': backoffMs,
+      };
 
   factory WebSocketReconnectConfig.fromJson(Map<String, dynamic> json) =>
       WebSocketReconnectConfig(
@@ -148,7 +148,9 @@ class WebSocketConfig {
       name: json['name'] as String,
       url: json['url'] as String,
       protocols: (json['protocols'] as List<dynamic>?)?.cast<String>() ?? [],
-      headers: (json['headers'] as Map<String, dynamic>?)?.cast<String, String>() ?? {},
+      headers:
+          (json['headers'] as Map<String, dynamic>?)?.cast<String, String>() ??
+              {},
       auth: json['auth'] != null
           ? WebSocketAuthConfig.fromJson(json['auth'])
           : const WebSocketAuthConfig(),

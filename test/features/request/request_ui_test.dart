@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:apilens/features/request/screens/request_screen.dart';
 import 'package:apilens/features/request/data/request_repository.dart';
+import 'package:apilens/core/l10n/app_localizations.dart';
 import 'package:apilens/core/settings/settings_repository.dart';
 import 'package:apilens/features/workgroup/data/workgroup_repository.dart';
 import 'package:apilens/features/workflow_editor/data/workflow_repository.dart';
@@ -31,11 +33,15 @@ void main() {
     setUp(() {
       container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-          workgroupRepositoryProvider.overrideWithValue(FakeWorkgroupRepository()),
+          settingsRepositoryProvider
+              .overrideWithValue(FakeSettingsRepository()),
+          workgroupRepositoryProvider
+              .overrideWithValue(FakeWorkgroupRepository()),
           requestRepositoryProvider.overrideWithValue(FakeRequestRepository()),
-          workflowRepositoryProvider.overrideWithValue(FakeWorkflowRepository()),
-          webSocketConfigRepositoryProvider.overrideWithValue(FakeWebSocketConfigRepository()),
+          workflowRepositoryProvider
+              .overrideWithValue(FakeWorkflowRepository()),
+          webSocketConfigRepositoryProvider
+              .overrideWithValue(FakeWebSocketConfigRepository()),
           activeWorkgroupIdProvider.overrideWith((ref) => 'test-group'),
           historyNotifierProvider.overrideWith(() => MockHistoryNotifier()),
           responseNotifierProvider.overrideWith(() => MockResponseNotifier()),
@@ -43,7 +49,8 @@ void main() {
       );
     });
 
-    testWidgets('RequestScreen renders key components', (WidgetTester tester) async {
+    testWidgets('RequestScreen renders key components',
+        (WidgetTester tester) async {
       // Use a larger default size to avoid overflows in tests
       tester.view.physicalSize = const Size(1200, 1200);
       tester.view.devicePixelRatio = 1.0;
@@ -53,6 +60,17 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: RequestScreen(),
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [
+              Locale('en'),
+              Locale('ko'),
+              Locale('zh'),
+            ],
           ),
         ),
       );

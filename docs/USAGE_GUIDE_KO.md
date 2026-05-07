@@ -57,6 +57,18 @@
     *   **상태 코드 애니메이션**: 응답 결과에 따라 상태 코드가 화면에 팝업되며 시각적 피드백을 제공합니다.
 4.  **로그 확인**: 하단 패널을 열어 각 단계의 요청/응답 상세 내용을 확인합니다.
 
+### Timeout/Retry 정책
+
+실행형 노드(HTTP, GraphQL, WebSocket Connect/Send/Wait)는 공통 `execution` 정책을 가질 수 있습니다.
+
+*   **Timeout**: `timeoutMs`는 노드 실행 시도 1회당 제한 시간입니다.
+*   **Retry**: `retry.maxAttempts`는 최초 실행 이후 추가 재시도 횟수입니다. 기본값은 `0`이라 기존 워크플로우는 자동 재시도하지 않습니다.
+*   **Backoff**: `retry.backoffMs`는 재시도 전 대기 시간입니다.
+*   **Status Code Retry**: HTTP/GraphQL 노드는 기본적으로 `408`, `429`, `500`, `502`, `503`, `504`를 재시도 대상으로 사용할 수 있습니다.
+*   **Failure Routing**: 모든 재시도가 실패하면 노드는 `failure` 포트로 이동합니다. 실패 처리 경로를 연결해두면 에러 로깅/복구 시나리오를 구성할 수 있습니다.
+
+자세한 정책 JSON 예시는 [Workflow Timeout/Retry 정책](WORKFLOW_TIMEOUT_RETRY_POLICY.ko.md)을 참고하세요.
+
 ## 저장 및 불러오기
 
 *   **Save**: `Menu -> Save` (`Cmd/Ctrl + S`) 변경 사항을 로컬에 저장합니다.

@@ -48,7 +48,8 @@ class _AppKVRowState extends State<AppKVRow> {
     super.initState();
     _keyController = TextEditingController(text: widget.keyText);
     _valueController = TextEditingController(text: widget.valueText);
-    _descriptionController = TextEditingController(text: widget.descriptionText);
+    _descriptionController =
+        TextEditingController(text: widget.descriptionText);
   }
 
   @override

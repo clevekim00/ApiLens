@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../domain/models/websocket_config.dart';
 import '../domain/models/websocket_message.dart'; // SessionState, Message, Direction, Status
 import '../data/websocket_config_repository.dart';
 import '../../../core/ws/websocket_service.dart';
@@ -101,7 +100,10 @@ class WebSocketClientController extends StateNotifier<WebSocketClientState> {
 
     state = state.copyWith(
       session: state.session.copyWith(
-        messages: [...state.session.messages, message], // Logic in model handles trimming
+        messages: [
+          ...state.session.messages,
+          message
+        ], // Logic in model handles trimming
       ),
     );
   }
@@ -109,16 +111,16 @@ class WebSocketClientController extends StateNotifier<WebSocketClientState> {
   Future<void> selectConfig(String? id) async {
     // If switching config, disconnect current
     if (state.selectedConfigId != id) {
-       if (_service.currentStatus == WebSocketConnectionStatus.connected) {
-         _service.disconnect();
-       }
-       state = WebSocketClientState(selectedConfigId: id); // Reset session
+      if (_service.currentStatus == WebSocketConnectionStatus.connected) {
+        _service.disconnect();
+      }
+      state = WebSocketClientState(selectedConfigId: id); // Reset session
     }
   }
 
   Future<void> connect() async {
     if (state.selectedConfigId == null) return;
-    
+
     final config = await _repository.get(state.selectedConfigId!);
     if (config == null) {
       _addMessage(WebSocketMessageDirection.system, 'Config not found');
@@ -126,11 +128,9 @@ class WebSocketClientController extends StateNotifier<WebSocketClientState> {
     }
 
     state = state.copyWith(
-      session: state.session.copyWith(
-        lastError: null, // Clear error
-        status: WebSocketConnectionStatus.connecting
-      )
-    );
+        session: state.session.copyWith(
+            lastError: null, // Clear error
+            status: WebSocketConnectionStatus.connecting));
 
     await _service.connect(config);
   }
@@ -152,19 +152,21 @@ class WebSocketClientController extends StateNotifier<WebSocketClientState> {
     state = state.copyWith(
       session: const WebSocketSessionState(messages: []),
     );
-     // Note: This resets status too if we use const(), but we want to keep status.
-     // So let's reproduce current status.
-     state = state.copyWith(
-       session: WebSocketSessionState(
-         status: state.session.status,
-         lastError: state.session.lastError,
-         messages: [],
-       ),
-     );
+    // Note: This resets status too if we use const(), but we want to keep status.
+    // So let's reproduce current status.
+    state = state.copyWith(
+      session: WebSocketSessionState(
+        status: state.session.status,
+        lastError: state.session.lastError,
+        messages: [],
+      ),
+    );
   }
 }
 
-final webSocketClientProvider = StateNotifierProvider<WebSocketClientController, WebSocketClientState>((ref) {
+final webSocketClientProvider =
+    StateNotifierProvider<WebSocketClientController, WebSocketClientState>(
+        (ref) {
   final service = ref.watch(webSocketServiceProvider);
   final repo = ref.watch(webSocketConfigRepositoryProvider);
   return WebSocketClientController(service: service, repository: repo);

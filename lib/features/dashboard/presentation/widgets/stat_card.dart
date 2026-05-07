@@ -63,7 +63,8 @@ class StatCard extends StatelessWidget {
                     vertical: AppTokens.s1,
                   ),
                   decoration: BoxDecoration(
-                    color: (isPositive ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                    color: (isPositive ? Colors.green : Colors.red)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

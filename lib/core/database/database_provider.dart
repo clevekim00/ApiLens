@@ -11,7 +11,7 @@ part 'database_provider.g.dart';
 @Riverpod(keepAlive: true)
 Future<Isar> isarDatabase(IsarDatabaseRef ref) async {
   final dir = await getApplicationDocumentsDirectory();
-  
+
   if (Isar.instanceNames.isEmpty) {
     return await Isar.open(
       [
@@ -21,6 +21,6 @@ Future<Isar> isarDatabase(IsarDatabaseRef ref) async {
       directory: dir.path,
     );
   }
-  
+
   return Isar.getInstance()!;
 }

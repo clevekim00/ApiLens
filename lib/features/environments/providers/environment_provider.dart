@@ -8,7 +8,8 @@ import '../repositories/environment_repository.dart';
 part 'environment_provider.g.dart';
 
 @riverpod
-Future<EnvironmentRepository> environmentRepository(EnvironmentRepositoryRef ref) async {
+Future<EnvironmentRepository> environmentRepository(
+    EnvironmentRepositoryRef ref) async {
   final isar = await ref.watch(isarDatabaseProvider.future);
   return EnvironmentRepository(isar);
 }
@@ -19,7 +20,7 @@ class ActiveEnvironmentId extends _$ActiveEnvironmentId {
   Id? build() {
     return null; // Initial null
   }
-  
+
   void set(Id? id) => state = id;
 }
 
@@ -29,17 +30,17 @@ class EnvironmentList extends _$EnvironmentList {
   Future<List<EnvironmentItem>> build() async {
     final repo = await ref.watch(environmentRepositoryProvider.future);
     final list = await repo.getAllEnvironments();
-    
+
     // Sync active ID state
     final active = list.where((e) => e.isSelected).firstOrNull;
     if (active != null) {
       Future(() {
-        if(ref.exists(activeEnvironmentIdProvider)) {
-            ref.read(activeEnvironmentIdProvider.notifier).set(active.id);
+        if (ref.exists(activeEnvironmentIdProvider)) {
+          ref.read(activeEnvironmentIdProvider.notifier).set(active.id);
         }
       });
     }
-    
+
     return list;
   }
 
@@ -52,17 +53,18 @@ class EnvironmentList extends _$EnvironmentList {
     await repo.saveEnvironment(newItem);
     ref.invalidateSelf();
   }
-  
-  Future<void> updateEnvironment(Id id, String name, Map<String, String> variables) async {
-     final repo = await ref.read(environmentRepositoryProvider.future);
-     final item = EnvironmentItem()
-       ..id = id
-       ..name = name
-       ..variablesJson = jsonEncode(variables)
-       ..isSelected = ref.read(activeEnvironmentIdProvider) == id; 
-     
-     await repo.saveEnvironment(item);
-     ref.invalidateSelf();
+
+  Future<void> updateEnvironment(
+      Id id, String name, Map<String, String> variables) async {
+    final repo = await ref.read(environmentRepositoryProvider.future);
+    final item = EnvironmentItem()
+      ..id = id
+      ..name = name
+      ..variablesJson = jsonEncode(variables)
+      ..isSelected = ref.read(activeEnvironmentIdProvider) == id;
+
+    await repo.saveEnvironment(item);
+    ref.invalidateSelf();
   }
 
   Future<void> activateEnvironment(Id? id) async {
@@ -78,7 +80,7 @@ class EnvironmentList extends _$EnvironmentList {
     final repo = await ref.read(environmentRepositoryProvider.future);
     await repo.deleteEnvironment(id);
     if (ref.read(activeEnvironmentIdProvider) == id) {
-       ref.read(activeEnvironmentIdProvider.notifier).set(null);
+      ref.read(activeEnvironmentIdProvider.notifier).set(null);
     }
     ref.invalidateSelf();
   }

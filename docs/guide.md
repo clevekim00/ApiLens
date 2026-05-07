@@ -160,6 +160,8 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 - Click the `Run` button at the top right.
 - Running nodes blink, completing green for success or red for failure.
 - Check execution results per step in the bottom Log Panel.
+- HTTP, GraphQL, and WebSocket executable nodes can use an `execution` policy for per-attempt timeout, retry count, retry backoff, and retryable status codes.
+- When retries are exhausted, execution follows the node's `failure` port if it is connected.
 
 ### Debugging Tips
 - **Inspector**: Click a node to view detailed Input/Output data in the right panel.

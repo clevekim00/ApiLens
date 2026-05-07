@@ -32,7 +32,7 @@ class SwaggerWorkflowGenerator {
 
     String previousNodeId = startNodeId;
     String previousOutputPort = 'output';
-    
+
     // Grid layout parameters
     const double startX = 100;
     const double startY = 200;

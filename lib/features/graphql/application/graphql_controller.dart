@@ -94,15 +94,8 @@ class GraphQLController extends StateNotifier<GraphQLState> {
 
   void updateVariables(String json) {
     final validationError = validateVariablesJson(json);
-    Map<String, dynamic> variables = {};
-    if (validationError == null && json.trim().isNotEmpty) {
-      try {
-        variables = Map<String, dynamic>.from(jsonDecode(json));
-      } catch (_) {}
-    }
-
     state = state.copyWith(
-      activeConfig: state.activeConfig.copyWith(variables: variables),
+      activeConfig: state.activeConfig.copyWith(variablesJson: json),
       variablesValidationError: validationError,
       clearVariablesValidationError: validationError == null,
       clearError: true,
@@ -128,7 +121,7 @@ class GraphQLController extends StateNotifier<GraphQLState> {
     final formatted = const JsonEncoder.withIndent('  ').convert(
       jsonDecode(source),
     );
-    
+
     updateVariables(formatted);
   }
 

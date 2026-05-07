@@ -1,11 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTokens {
   // 1) Radius
   static const double radiusSm = 6.0;
-  static const double radiusMd = 12.0; // AntiGravity uses 12px for primary components
+  static const double radiusMd =
+      12.0; // AntiGravity uses 12px for primary components
   static const double radiusLg = 16.0;
 
   // 2) Spacing scale
@@ -22,9 +22,12 @@ class AppTokens {
       labelSmall: _uiStyle(fontSize: 12, height: 1.0, letterSpacing: 0.1),
       bodyMedium: _uiStyle(fontSize: 14, height: 1.6, letterSpacing: 0.01),
       bodyLarge: _uiStyle(fontSize: 16, height: 1.6, letterSpacing: 0.01),
-      titleMedium: _uiStyle(fontSize: 18, fontWeight: FontWeight.w500, letterSpacing: 0.03),
-      titleLarge: _uiStyle(fontSize: 24, fontWeight: FontWeight.w500, letterSpacing: 0.03),
-      labelMedium: _uiStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+      titleMedium: _uiStyle(
+          fontSize: 18, fontWeight: FontWeight.w500, letterSpacing: 0.03),
+      titleLarge: _uiStyle(
+          fontSize: 24, fontWeight: FontWeight.w500, letterSpacing: 0.03),
+      labelMedium: _uiStyle(
+          fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.1),
     );
   }
 

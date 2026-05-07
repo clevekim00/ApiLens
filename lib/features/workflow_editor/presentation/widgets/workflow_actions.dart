@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +10,9 @@ import '../../data/workflow_repository.dart';
 import '../../../execution/application/workflow_runner_controller.dart';
 import '../../application/saved_workflow_controller.dart';
 import '../../../workgroup/application/workgroup_controller.dart';
-import '../../../workgroup/domain/models/workgroup_model.dart'; // optional if needed
-import '../../../../features/request/providers/request_provider.dart'; // for activeWorkgroupIdProvider if it's there? No it's in workgroup_controller.
+// optional if needed
+// for activeWorkgroupIdProvider if it's there? No it's in workgroup_controller.
 // Check where activeWorkgroupIdProvider is: workgroup_controller.dart
-
 
 class WorkflowActions {
   static Future<void> handleNew(BuildContext context, WidgetRef ref) async {
@@ -27,7 +25,8 @@ class WorkflowActions {
     ref.read(workflowEditorProvider.notifier).initNewWithGroup(activeGroupId);
   }
 
-  static Future<void> handleSave(BuildContext context, WidgetRef ref, {required bool saveAs}) async {
+  static Future<void> handleSave(BuildContext context, WidgetRef ref,
+      {required bool saveAs}) async {
     final state = ref.read(workflowEditorProvider);
     String name = state.name;
     String id = state.id;
@@ -36,7 +35,7 @@ class WorkflowActions {
       final newName = await _showNameDialog(context, 'Save Workflow As', name);
       if (newName == null) return;
       final newId = const Uuid().v4();
-      
+
       // Save new file
       final workflow = Workflow(
         id: newId,
@@ -47,12 +46,13 @@ class WorkflowActions {
       );
       await ref.read(workflowRepositoryProvider).save(workflow);
       ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
-      
+
       // Switch context to new file
       ref.read(workflowEditorProvider.notifier).saveAs(newId, newName);
-      
+
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved as "$newName"!')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Saved as "$newName"!')));
       }
     } else {
       // Regular Save
@@ -67,9 +67,10 @@ class WorkflowActions {
       ref.read(savedWorkflowControllerProvider.notifier).notifySaved();
 
       ref.read(workflowEditorProvider.notifier).markSaved();
-      
+
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved "$name"!')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Saved "$name"!')));
       }
     }
   }
@@ -83,27 +84,29 @@ class WorkflowActions {
     // Use SavedWorkflowController for cached list or fetch fresh
     final repo = ref.read(workflowRepositoryProvider);
     final allWorkflows = await repo.getAll();
-    
+
     // Filter by Active Group
     final activeGroupId = ref.read(activeWorkgroupIdProvider);
-    final workflows = activeGroupId != null 
+    final workflows = activeGroupId != null
         ? allWorkflows.where((w) => w.groupId == activeGroupId).toList()
         : allWorkflows; // If no active group (e.g. initial), show all or just root?
-        // Logic: if activeGroupId is null, we might be in "No Workgroup" implicit context?
-        // But activeWorkgroupIdProvider usually returns 'no-workgroup' or ID. Null means no selection?
-        // Let's assume strict filtering if ID present.
+    // Logic: if activeGroupId is null, we might be in "No Workgroup" implicit context?
+    // But activeWorkgroupIdProvider usually returns 'no-workgroup' or ID. Null means no selection?
+    // Let's assume strict filtering if ID present.
 
     if (!context.mounted) return;
 
     final selected = await showDialog<Workflow>(
       context: context,
       builder: (_) => SimpleDialog(
-        title: Text('Open Workflow ${activeGroupId != null ? "(Current Group)" : ""}'),
+        title: Text(
+            'Open Workflow ${activeGroupId != null ? "(Current Group)" : ""}'),
         children: [
-          if (workflows.isEmpty) const Padding(
-             padding: EdgeInsets.all(16), 
-             child: Text('No saved workflows in this group.'),
-          ),
+          if (workflows.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('No saved workflows in this group.'),
+            ),
           SizedBox(
             width: 400,
             height: 300,
@@ -127,26 +130,23 @@ class WorkflowActions {
 
     if (selected != null) {
       ref.read(workflowEditorProvider.notifier).loadWorkflow(
-        selected.id, selected.name, selected.nodes, selected.edges, groupId: selected.groupId
-      );
+          selected.id, selected.name, selected.nodes, selected.edges,
+          groupId: selected.groupId);
     }
   }
 
   static Future<void> handleRun(BuildContext context, WidgetRef ref) async {
     final state = ref.read(workflowEditorProvider);
-    
+
     // Validation
     final startNode = state.nodes.where((n) => n.type == 'start').firstOrNull;
     if (startNode == null) {
-       ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(
-           content: Text('Error: Missing "start" node.'), 
-           backgroundColor: Colors.red
-         )
-       );
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Error: Missing "start" node.'),
+          backgroundColor: Colors.red));
+      return;
     }
-    
+
     // Check path to end (BFS)
     // Assuming end node type is 'end' (checking assumption...)
     // Actually standard is 'end' type? Or maybe I should just check if edges exit?
@@ -154,15 +154,17 @@ class WorkflowActions {
     // "end로 도달 가능한 path 최소 1개"
     // Does 'end' node exist in palette?
     // Assuming there is an 'end' node. If not, maybe just check if graph is connected.
-    
+
     // Check disconnected nodes
     final connectedNodes = <String>{};
     final queue = [startNode.id];
     connectedNodes.add(startNode.id);
-    
-    while(queue.isNotEmpty) {
+
+    while (queue.isNotEmpty) {
       final current = queue.removeAt(0);
-      final outgoing = state.edges.where((e) => e.sourceNodeId == current).map((e) => e.targetNodeId);
+      final outgoing = state.edges
+          .where((e) => e.sourceNodeId == current)
+          .map((e) => e.targetNodeId);
       for (final next in outgoing) {
         if (!connectedNodes.contains(next)) {
           connectedNodes.add(next);
@@ -170,71 +172,86 @@ class WorkflowActions {
         }
       }
     }
-    
+
     bool hasEndNode = state.nodes.any((n) => n.type == 'end');
     bool pathToEnd = false;
     if (hasEndNode) {
-       pathToEnd = state.nodes.where((n) => n.type == 'end').any((n) => connectedNodes.contains(n.id));
+      pathToEnd = state.nodes
+          .where((n) => n.type == 'end')
+          .any((n) => connectedNodes.contains(n.id));
     } else {
-       // If no end node explicitly, maybe it's okay? Requirement said "end로 도달 가능한 path".
-       // I'll warn if no end node is reachable.
+      // If no end node explicitly, maybe it's okay? Requirement said "end로 도달 가능한 path".
+      // I'll warn if no end node is reachable.
     }
 
     if (hasEndNode && !pathToEnd) {
-        final proceed = await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Validation Warning'),
-            content: const Text('No path found from Start to End node. Execution may not complete properly. Run anyway?'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Run')),
-            ],
-          )
-        ) ?? false;
-        if (!proceed) return;
+      final proceed = await showDialog<bool>(
+              context: context,
+              builder: (_) => AlertDialog(
+                    title: const Text('Validation Warning'),
+                    content: const Text(
+                        'No path found from Start to End node. Execution may not complete properly. Run anyway?'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel')),
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Run')),
+                    ],
+                  )) ??
+          false;
+      if (!context.mounted) return;
+      if (!proceed) return;
     }
-    
+
     if (connectedNodes.length < state.nodes.length) {
-       final disconnectedCount = state.nodes.length - connectedNodes.length;
-       final proceed = await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Validation Warning'),
-            content: Text('$disconnectedCount nodes are not connected to the Start node and will be ignored. Proceed?'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Run')),
-            ],
-          )
-        ) ?? false;
-       if (!proceed) return;
+      final disconnectedCount = state.nodes.length - connectedNodes.length;
+      final proceed = await showDialog<bool>(
+              context: context,
+              builder: (_) => AlertDialog(
+                    title: const Text('Validation Warning'),
+                    content: Text(
+                        '$disconnectedCount nodes are not connected to the Start node and will be ignored. Proceed?'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel')),
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Run')),
+                    ],
+                  )) ??
+          false;
+      if (!context.mounted) return;
+      if (!proceed) return;
     }
 
     ref.read(workflowRunnerProvider.notifier).run(state.nodes, state.edges);
     if (context.mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Workflow execution started...')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Workflow execution started...')));
     }
   }
 
   static Future<void> handleExport(BuildContext context, WidgetRef ref) async {
-     // Optional per request ("다른 메뉴는 제거" -> Remove from menu bar app_menu_bar, but maybe keep action available?
-     // Re-reading: "Menu is exactly 2: Workflow, Settings". Export is NOT in the list.
-     // So I should remove Export from Menu. But I can keep the code here just in case, or remove it?
-     // "다른 메뉴는 제거" applies to visible menus.
-     // I'll keep the code but not expose it in AppMenuBar.
-     final state = ref.read(workflowEditorProvider);
-     final workflow = Workflow(
-       id: state.id,
-       name: state.name,
-       nodes: state.nodes,
-       edges: state.edges,
-     );
-     final jsonStr = ref.read(workflowRepositoryProvider).exportJson(workflow);
-     
-     if (context.mounted) {
-       await _showExportDialog(context, ref, state.name, jsonStr);
-     }
+    // Optional per request ("다른 메뉴는 제거" -> Remove from menu bar app_menu_bar, but maybe keep action available?
+    // Re-reading: "Menu is exactly 2: Workflow, Settings". Export is NOT in the list.
+    // So I should remove Export from Menu. But I can keep the code here just in case, or remove it?
+    // "다른 메뉴는 제거" applies to visible menus.
+    // I'll keep the code but not expose it in AppMenuBar.
+    final state = ref.read(workflowEditorProvider);
+    final workflow = Workflow(
+      id: state.id,
+      name: state.name,
+      nodes: state.nodes,
+      edges: state.edges,
+    );
+    final jsonStr = ref.read(workflowRepositoryProvider).exportJson(workflow);
+
+    if (context.mounted) {
+      await _showExportDialog(context, ref, state.name, jsonStr);
+    }
   }
 
   static Future<void> handleImport(BuildContext context, WidgetRef ref) async {
@@ -242,8 +259,9 @@ class WorkflowActions {
     // "New workflow, Save workflow, Save as, Open, Run"
     // So Import/Export are GONE from the UI.
     if (ref.read(workflowEditorProvider).isDirty) {
-       final discard = await _showDiscardConfirm(context);
-       if (!discard) return;
+      final discard = await _showDiscardConfirm(context);
+      if (!context.mounted) return;
+      if (!discard) return;
     }
 
     final controller = TextEditingController();
@@ -257,8 +275,12 @@ class WorkflowActions {
           decoration: const InputDecoration(hintText: 'Paste JSON here...'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('Import')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Import')),
         ],
       ),
     );
@@ -267,14 +289,11 @@ class WorkflowActions {
       try {
         final w = ref.read(workflowRepositoryProvider).importJson(result);
         ref.read(workflowEditorProvider.notifier).loadWorkflow(
-          const Uuid().v4(), 
-          '${w.name} (Imported)', 
-          w.nodes, 
-          w.edges
-        );
+            const Uuid().v4(), '${w.name} (Imported)', w.nodes, w.edges);
       } catch (e) {
         if (context.mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import failed: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Import failed: $e')));
         }
       }
     }
@@ -282,101 +301,116 @@ class WorkflowActions {
 
   static Future<bool> _showDiscardConfirm(BuildContext context) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Discard unsaved changes?'),
-        content: const Text('You have unsaved changes that will be lost.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true), 
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Discard')
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Discard unsaved changes?'),
+            content: const Text('You have unsaved changes that will be lost.'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  child: const Text('Discard')),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
-  }
-  
-  static Future<String?> _showNameDialog(BuildContext context, String title, String initVal) async {
-     final controller = TextEditingController(text: initVal);
-     return await showDialog<String>(
-       context: context,
-       builder: (_) => AlertDialog(
-         title: Text(title),
-         content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'Workflow Name')),
-         actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('OK')),
-         ],
-       )
-     );
+        ) ??
+        false;
   }
 
-  static Future<void> _showExportDialog(BuildContext context, WidgetRef ref, String workflowName, String jsonStr) async {
-     await showDialog(
-       context: context,
-       builder: (context) => AlertDialog(
-         title: const Text('Export Workflow JSON'),
-         content: SizedBox(
-           width: 600,
-           height: 400,
-           child: Column(
-             crossAxisAlignment: CrossAxisAlignment.start,
-             children: [
-               const Text('You can copy the JSON content below or save it as a file:'),
-               const SizedBox(height: 16),
-               Expanded(
-                 child: Container(
-                   padding: const EdgeInsets.all(8),
-                   decoration: BoxDecoration(
-                     color: Colors.grey.withOpacity(0.1),
-                     borderRadius: BorderRadius.circular(4),
-                   ),
-                   child: SingleChildScrollView(
-                     child: SelectableText(
-                       jsonStr,
-                       style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-                     ),
-                   ),
-                 ),
-               ),
-             ],
-           ),
-         ),
-         actions: [
-           TextButton(
-             onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: jsonStr));
-                if (context.mounted) {
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard!')));
-                }
-             }, 
-             child: const Text('Copy to Clipboard')
-           ),
-           TextButton(
-             onPressed: () async {
-                String? outputFile = await FilePicker.platform.saveFile(
-                  dialogTitle: 'Save Workflow JSON',
-                  fileName: '$workflowName.json',
-                  allowedExtensions: ['json'],
-                  type: FileType.custom,
-                );
-                
-                if (outputFile != null) {
-                   final file = File(outputFile);
-                   await file.writeAsString(jsonStr);
-                   if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to $outputFile')));
-                      Navigator.pop(context);
-                   }
-                }
-             }, 
-             child: const Text('Save to File')
-           ),
-           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-         ],
-       )
-     );
+  static Future<String?> _showNameDialog(
+      BuildContext context, String title, String initVal) async {
+    final controller = TextEditingController(text: initVal);
+    return await showDialog<String>(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(title),
+              content: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration:
+                      const InputDecoration(labelText: 'Workflow Name')),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel')),
+                TextButton(
+                    onPressed: () => Navigator.pop(context, controller.text),
+                    child: const Text('OK')),
+              ],
+            ));
+  }
+
+  static Future<void> _showExportDialog(BuildContext context, WidgetRef ref,
+      String workflowName, String jsonStr) async {
+    await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('Export Workflow JSON'),
+              content: SizedBox(
+                width: 600,
+                height: 400,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                        'You can copy the JSON content below or save it as a file:'),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            jsonStr,
+                            style: const TextStyle(
+                                fontFamily: 'monospace', fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: jsonStr));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Copied to clipboard!')));
+                      }
+                    },
+                    child: const Text('Copy to Clipboard')),
+                TextButton(
+                    onPressed: () async {
+                      String? outputFile = await FilePicker.platform.saveFile(
+                        dialogTitle: 'Save Workflow JSON',
+                        fileName: '$workflowName.json',
+                        allowedExtensions: ['json'],
+                        type: FileType.custom,
+                      );
+
+                      if (outputFile != null) {
+                        final file = File(outputFile);
+                        await file.writeAsString(jsonStr);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Saved to $outputFile')));
+                          Navigator.pop(context);
+                        }
+                      }
+                    },
+                    child: const Text('Save to File')),
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close')),
+              ],
+            ));
   }
 }

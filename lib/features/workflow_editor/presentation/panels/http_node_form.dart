@@ -31,7 +31,7 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
   late TextEditingController _nameController;
   late TextEditingController _bodyController;
   String _method = 'GET';
-  
+
   // Headers state
   List<KeyValueItem> _headers = [];
 
@@ -42,12 +42,16 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
     _urlController = TextEditingController(text: widget.config.url);
     _bodyController = TextEditingController(text: widget.config.body);
     _method = widget.config.method;
-    
+
     // Map existing headers Map<String,String> to List<KeyValueItem>
     if (widget.config.headers != null) {
-      _headers = widget.config.headers!.entries.map((e) => 
-        KeyValueItem(id: const Uuid().v4(), key: e.key, value: e.value, isEnabled: true)
-      ).toList();
+      _headers = widget.config.headers!.entries
+          .map((e) => KeyValueItem(
+              id: const Uuid().v4(),
+              key: e.key,
+              value: e.value,
+              isEnabled: true))
+          .toList();
     }
   }
 
@@ -73,6 +77,7 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
       method: _method,
       headers: headerMap,
       body: _bodyController.text,
+      executionPolicy: widget.config.executionPolicy,
     );
 
     // Update Node Data
@@ -80,7 +85,9 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
     final data = newConfig.toJson();
     data['name'] = _nameController.text;
 
-    ref.read(workflowEditorProvider.notifier).updateNodeConfig(widget.nodeId, data);
+    ref
+        .read(workflowEditorProvider.notifier)
+        .updateNodeConfig(widget.nodeId, data);
   }
 
   @override
@@ -133,7 +140,7 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                   ),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
-                    value: _method,
+                    initialValue: _method,
                     isExpanded: true,
                     icon: const Icon(Icons.arrow_drop_down, size: 16),
                     items: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
@@ -202,10 +209,10 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                       bottom: BorderSide(color: theme.dividerColor),
                     ),
                   ),
-                  child: TabBar(
+                  child: const TabBar(
                     isScrollable: true,
                     tabAlignment: TabAlignment.start,
-                    tabs: const [
+                    tabs: [
                       Tab(text: 'Headers'),
                       Tab(text: 'Body'),
                     ],
@@ -233,8 +240,9 @@ class _HttpNodeFormState extends ConsumerState<HttpNodeForm> {
                                 bodyType: bodyType,
                               );
                               return AutoHeaderList(
-                                autoHeaders: RequestHeaderBuilder.buildAutoHeaders(
-                                    tempRequest),
+                                autoHeaders:
+                                    RequestHeaderBuilder.buildAutoHeaders(
+                                        tempRequest),
                               );
                             }),
                             KeyValueEditor(

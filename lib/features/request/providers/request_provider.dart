@@ -1,5 +1,4 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 import '../../workgroup/application/workgroup_controller.dart';
 import '../models/request_model.dart';
 import '../models/key_value_item.dart';
@@ -94,14 +93,14 @@ class RequestNotifier extends _$RequestNotifier {
 
   void restoreRequest(RequestModel model) {
     // Use the model's group ID, not new session's
-    // But generate new ID for the session? 
-    // Usually restore is "Edit this request". 
-    // If it's "Edit", we keep ID? 
+    // But generate new ID for the session?
+    // Usually restore is "Edit this request".
+    // If it's "Edit", we keep ID?
     // If this provider is used for "New Request" and "Edit Request", we need to be careful.
     // Assuming this provider is the "Editor Buffer".
     state = model;
   }
-  
+
   void resetForNewRequest() {
     final activeGroupId = ref.read(activeWorkgroupIdProvider);
     state = RequestModel.initial(groupId: activeGroupId ?? 'no-workgroup');

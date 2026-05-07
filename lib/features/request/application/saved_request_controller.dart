@@ -22,7 +22,8 @@ class SavedRequestController extends StateNotifier<List<RequestModel>> {
   Future<void> moveRequest(String requestId, String? newGroupId) async {
     final existingIndex = state.indexWhere((r) => r.id == requestId);
     if (existingIndex != -1) {
-      final updated = state[existingIndex].copyWith(groupId: newGroupId ?? 'no-workgroup');
+      final updated =
+          state[existingIndex].copyWith(groupId: newGroupId ?? 'no-workgroup');
       await _repository.save(updated);
       refresh();
     }
@@ -32,11 +33,11 @@ class SavedRequestController extends StateNotifier<List<RequestModel>> {
     await _repository.delete(id);
     refresh();
   }
-  
+
   Future<void> importSwagger(String content, {String? targetGroupId}) async {
     final parser = SwaggerParserService();
     final requests = parser.parse(content);
-    
+
     for (final req in requests) {
       final newReq = req.copyWith(groupId: targetGroupId ?? 'no-workgroup');
       await _repository.save(newReq);
@@ -45,7 +46,8 @@ class SavedRequestController extends StateNotifier<List<RequestModel>> {
   }
 }
 
-final savedRequestControllerProvider = StateNotifierProvider<SavedRequestController, List<RequestModel>>((ref) {
+final savedRequestControllerProvider =
+    StateNotifierProvider<SavedRequestController, List<RequestModel>>((ref) {
   final repo = ref.watch(requestRepositoryProvider);
   return SavedRequestController(repo);
 });

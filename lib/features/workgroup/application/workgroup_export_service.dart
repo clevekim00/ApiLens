@@ -8,14 +8,16 @@ import '../../request/models/request_model.dart';
 import '../../workflow_editor/data/workflow_repository.dart';
 import '../../workflow_editor/domain/models/workflow.dart';
 
-final workgroupExportServiceProvider = Provider((ref) => WorkgroupExportService(ref));
+final workgroupExportServiceProvider =
+    Provider((ref) => WorkgroupExportService(ref));
 
 class WorkgroupExportService {
   final Ref _ref;
 
   WorkgroupExportService(this._ref);
 
-  WorkgroupRepository get _workgroupRepo => _ref.read(workgroupRepositoryProvider);
+  WorkgroupRepository get _workgroupRepo =>
+      _ref.read(workgroupRepositoryProvider);
   RequestRepository get _requestRepo => _ref.read(requestRepositoryProvider);
   WorkflowRepository get _workflowRepo => _ref.read(workflowRepositoryProvider);
 
@@ -26,11 +28,13 @@ class WorkgroupExportService {
 
     // Get Requests
     final allRequests = _requestRepo.getAll();
-    final groupRequests = allRequests.where((r) => r.groupId == groupId).toList();
+    final groupRequests =
+        allRequests.where((r) => r.groupId == groupId).toList();
 
     // Get Workflows
     final allWorkflows = await _workflowRepo.getAll();
-    final groupWorkflows = allWorkflows.where((w) => w.groupId == groupId).toList();
+    final groupWorkflows =
+        allWorkflows.where((w) => w.groupId == groupId).toList();
 
     final data = {
       'schemaVersion': 1,
@@ -43,7 +47,7 @@ class WorkgroupExportService {
       'workgroup': group.toJson(),
       'env': {
         // TODO: Integrate actual Environment export if they are scoped to workgroup
-        'baseUrl': '{{env.baseUrl}}', 
+        'baseUrl': '{{env.baseUrl}}',
       },
       'requests': groupRequests.map((r) => r.toJson()).toList(),
       'workflows': groupWorkflows.map((w) => w.toJson()).toList(),
@@ -52,7 +56,7 @@ class WorkgroupExportService {
         'nameCollision': 'suffixImported',
       }
     };
-    
+
     return const JsonEncoder.withIndent('  ').convert(data);
   }
 
@@ -67,16 +71,16 @@ class WorkgroupExportService {
 
     final kind = json['kind'];
     if (kind != 'apilens.workgroup.export') {
-       // Allow legacy or permissive fallback? 
-       // For now strict check as per new spec
-       // But wait, existing exports might lack 'kind'. 
-       // If meta type exists, check that.
-       final meta = json['meta'] as Map?;
-       if (kind == null && meta?['type'] == 'apilens_workgroup') {
-         // Legacy V0 support
-       } else if (kind != 'apilens.workgroup.export') {
-         throw Exception('Invalid file type: $kind');
-       }
+      // Allow legacy or permissive fallback?
+      // For now strict check as per new spec
+      // But wait, existing exports might lack 'kind'.
+      // If meta type exists, check that.
+      final meta = json['meta'] as Map?;
+      if (kind == null && meta?['type'] == 'apilens_workgroup') {
+        // Legacy V0 support
+      } else if (kind != 'apilens.workgroup.export') {
+        throw Exception('Invalid file type: $kind');
+      }
     }
 
     final groupJson = json['workgroup'] as Map<String, dynamic>;
@@ -84,9 +88,8 @@ class WorkgroupExportService {
     final workflowsJson = (json['workflows'] as List?) ?? [];
 
     // ID Regeneration
-    final oldGroupId = groupJson['id'];
     final newGroupId = const Uuid().v4();
-    
+
     // Name Collision Handling
     var name = groupJson['name'];
     final existingGroups = _workgroupRepo.getAll();
@@ -101,7 +104,7 @@ class WorkgroupExportService {
       parentId: 'no-workgroup', // Default import location
       isSystem: false,
     );
-    
+
     await _workgroupRepo.save(newGroup);
 
     // Import Requests
@@ -118,11 +121,11 @@ class WorkgroupExportService {
     // Import Workflows
     for (var w in workflowsJson) {
       if (w is Map<String, dynamic>) {
-         final newWorkflow = Workflow.fromJson(w).copyWith(
-           id: const Uuid().v4(),
-           groupId: newGroupId, // Relink to new group
-         );
-         await _workflowRepo.save(newWorkflow);
+        final newWorkflow = Workflow.fromJson(w).copyWith(
+          id: const Uuid().v4(),
+          groupId: newGroupId, // Relink to new group
+        );
+        await _workflowRepo.save(newWorkflow);
       }
     }
   }

@@ -10,14 +10,14 @@ class NodePort {
   });
 
   Map<String, dynamic> toJson() => {
-    'key': key,
-    'label': label,
-    'isMulti': isMulti,
-  };
+        'key': key,
+        'label': label,
+        'isMulti': isMulti,
+      };
 
   factory NodePort.fromJson(Map<String, dynamic> json) => NodePort(
-    key: json['key'] as String,
-    label: json['label'] as String,
-    isMulti: json['isMulti'] as bool? ?? false,
-  );
+        key: json['key'] as String,
+        label: json['label'] as String,
+        isMulti: json['isMulti'] as bool? ?? false,
+      );
 }

@@ -59,6 +59,18 @@ You can pass data between nodes dynamically using the `{{ }}` syntax.
     *   **Status Animations**: Response status codes pop up next to nodes for immediate feedback.
 4.  **Check Logs**: Expand the bottom panel to see detailed request/response data for each step.
 
+### Timeout/Retry Policy
+
+Executable nodes (HTTP, GraphQL, WebSocket Connect/Send/Wait) can include a shared `execution` policy.
+
+*   **Timeout**: `timeoutMs` limits each execution attempt, not the entire workflow.
+*   **Retry**: `retry.maxAttempts` is the number of extra attempts after the first run. The default is `0`, so existing workflows do not retry automatically.
+*   **Backoff**: `retry.backoffMs` controls the delay before the next attempt.
+*   **Status Code Retry**: HTTP/GraphQL nodes can retry on `408`, `429`, `500`, `502`, `503`, and `504` by default.
+*   **Failure Routing**: If all attempts fail, execution follows the `failure` port when it is connected.
+
+See [Workflow Timeout/Retry Policy](WORKFLOW_TIMEOUT_RETRY_POLICY.en.md) for the current JSON shape and implementation notes.
+
 ## Saving & Loading
 
 *   **Save**: `Menu -> Save` (`Cmd/Ctrl + S`) saves changes locally locally.

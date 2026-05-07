@@ -6,9 +6,10 @@ class GraphQLRequestConfig {
   final String name;
   final String url;
   final Map<String, String> headers;
-  final Map<String, dynamic> auth; // {type: 'none'|'bearer'|'basic', token: ..., username: ...}
+  final Map<String, dynamic>
+      auth; // {type: 'none'|'bearer'|'basic', token: ..., username: ...}
   final String query;
-  final Map<String, dynamic> variables;
+  final String variablesJson;
   final String? operationName;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -20,7 +21,7 @@ class GraphQLRequestConfig {
     this.headers = const {},
     this.auth = const {'type': 'none'},
     this.query = '',
-    this.variables = const {},
+    this.variablesJson = '{}',
     this.operationName,
     required this.createdAt,
     required this.updatedAt,
@@ -28,7 +29,18 @@ class GraphQLRequestConfig {
 
   // Alias for backward compatibility if needed, but we'll use url/variables now
   String get endpoint => url;
-  String get variablesJson => jsonEncode(variables);
+  Map<String, dynamic> get variables {
+    try {
+      final trimmed = variablesJson.trim();
+      if (trimmed.isEmpty) return {};
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      return {};
+    } catch (_) {
+      return {};
+    }
+  }
 
   factory GraphQLRequestConfig.create() {
     final now = DateTime.now();
@@ -46,7 +58,7 @@ class GraphQLRequestConfig {
     Map<String, String>? headers,
     Map<String, dynamic>? auth,
     String? query,
-    Map<String, dynamic>? variables,
+    String? variablesJson,
     String? operationName,
     DateTime? updatedAt,
   }) {
@@ -57,7 +69,7 @@ class GraphQLRequestConfig {
       headers: headers ?? this.headers,
       auth: auth ?? this.auth,
       query: query ?? this.query,
-      variables: variables ?? this.variables,
+      variablesJson: variablesJson ?? this.variablesJson,
       operationName: operationName ?? this.operationName,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -72,7 +84,7 @@ class GraphQLRequestConfig {
       'headers': headers,
       'auth': auth,
       'query': query,
-      'variables': variables,
+      'variablesJson': variablesJson,
       'operationName': operationName,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -80,6 +92,17 @@ class GraphQLRequestConfig {
   }
 
   factory GraphQLRequestConfig.fromJson(Map<String, dynamic> json) {
+    String variablesJson = '{}';
+    if (json['variablesJson'] != null) {
+      variablesJson = json['variablesJson'].toString();
+    } else if (json['variables'] is Map) {
+      try {
+        variablesJson = jsonEncode(json['variables']);
+      } catch (_) {
+        variablesJson = '{}';
+      }
+    }
+
     return GraphQLRequestConfig(
       id: json['id'],
       name: json['name'],
@@ -87,7 +110,7 @@ class GraphQLRequestConfig {
       headers: Map<String, String>.from(json['headers'] ?? {}),
       auth: Map<String, dynamic>.from(json['auth'] ?? {}),
       query: json['query'] ?? '',
-      variables: Map<String, dynamic>.from(json['variables'] ?? (json['variablesJson'] != null ? jsonDecode(json['variablesJson']) : {})),
+      variablesJson: variablesJson,
       operationName: json['operationName'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),

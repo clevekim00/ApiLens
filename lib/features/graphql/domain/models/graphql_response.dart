@@ -14,7 +14,7 @@ class GraphQLResponse {
     required this.durationMs,
     this.responseHeaders = const {},
   });
-  
+
   bool get hasErrors => errors != null && errors!.isNotEmpty;
   bool get isSuccess => statusCode >= 200 && statusCode < 300 && !hasErrors;
 }

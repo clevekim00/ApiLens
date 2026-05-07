@@ -26,51 +26,59 @@ class TrafficChart extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final isNarrow = constraints.maxWidth < 350;
-              return isNarrow 
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'TRAFFIC OVERVIEW (Last 24 Hours)',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          letterSpacing: 1.2,
-                          color: isDark ? const Color(0xFF958EA0) : Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.s2),
-                      Row(
-                        children: [
-                          _buildLegendItem(context, 'Requests', const Color(0xFF4CD7F6)),
-                          const SizedBox(width: AppTokens.s4),
-                          _buildLegendItem(context, 'Errors', const Color(0xFFFFB4AB)),
-                        ],
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
+              return isNarrow
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                           'TRAFFIC OVERVIEW (Last 24 Hours)',
-                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelMedium?.copyWith(
                             letterSpacing: 1.2,
-                            color: isDark ? const Color(0xFF958EA0) : Colors.grey.shade600,
+                            color: isDark
+                                ? const Color(0xFF958EA0)
+                                : Colors.grey.shade600,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppTokens.s2),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildLegendItem(context, 'Requests', const Color(0xFF4CD7F6)),
-                          const SizedBox(width: AppTokens.s4),
-                          _buildLegendItem(context, 'Errors', const Color(0xFFFFB4AB)),
-                        ],
-                      ),
-                    ],
-                  );
+                        const SizedBox(height: AppTokens.s2),
+                        Row(
+                          children: [
+                            _buildLegendItem(
+                                context, 'Requests', const Color(0xFF4CD7F6)),
+                            const SizedBox(width: AppTokens.s4),
+                            _buildLegendItem(
+                                context, 'Errors', const Color(0xFFFFB4AB)),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'TRAFFIC OVERVIEW (Last 24 Hours)',
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              letterSpacing: 1.2,
+                              color: isDark
+                                  ? const Color(0xFF958EA0)
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppTokens.s2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildLegendItem(
+                                context, 'Requests', const Color(0xFF4CD7F6)),
+                            const SizedBox(width: AppTokens.s4),
+                            _buildLegendItem(
+                                context, 'Errors', const Color(0xFFFFB4AB)),
+                          ],
+                        ),
+                      ],
+                    );
             },
           ),
           const SizedBox(height: AppTokens.s6),
@@ -81,29 +89,40 @@ class TrafficChart extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: isDark ? const Color(0xFF2D3449) : Colors.grey.shade100,
+                    color:
+                        isDark ? const Color(0xFF2D3449) : Colors.grey.shade100,
                     strokeWidth: 1,
                   ),
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
                       interval: 4,
                       getTitlesWidget: (value, meta) {
-                        const style = TextStyle(color: Color(0xFF958EA0), fontSize: 10);
+                        const style =
+                            TextStyle(color: Color(0xFF958EA0), fontSize: 10);
                         switch (value.toInt()) {
-                          case 0: return const Text('00:00', style: style);
-                          case 4: return const Text('04:00', style: style);
-                          case 8: return const Text('08:00', style: style);
-                          case 12: return const Text('12:00', style: style);
-                          case 16: return const Text('16:00', style: style);
-                          case 20: return const Text('20:00', style: style);
-                          case 23: return const Text('00:00', style: style);
+                          case 0:
+                            return const Text('00:00', style: style);
+                          case 4:
+                            return const Text('04:00', style: style);
+                          case 8:
+                            return const Text('08:00', style: style);
+                          case 12:
+                            return const Text('12:00', style: style);
+                          case 16:
+                            return const Text('16:00', style: style);
+                          case 20:
+                            return const Text('20:00', style: style);
+                          case 23:
+                            return const Text('00:00', style: style);
                         }
                         return const Text('', style: style);
                       },
@@ -116,7 +135,8 @@ class TrafficChart extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${(value / 1000).toStringAsFixed(1)}K',
-                          style: const TextStyle(color: Color(0xFF958EA0), fontSize: 10),
+                          style: const TextStyle(
+                              color: Color(0xFF958EA0), fontSize: 10),
                         );
                       },
                       reservedSize: 40,
@@ -195,7 +215,10 @@ class TrafficChart extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF958EA0)),
+          style: Theme.of(context)
+              .textTheme
+              .labelSmall
+              ?.copyWith(color: const Color(0xFF958EA0)),
         ),
       ],
     );

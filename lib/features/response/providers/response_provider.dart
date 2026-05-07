@@ -38,7 +38,7 @@ class ResponseNotifier extends _$ResponseNotifier {
         final item = list.where((e) => e.id == activeId).firstOrNull;
         if (item != null) {
           try {
-             envVars = Map<String, String>.from(jsonDecode(item.variablesJson));
+            envVars = Map<String, String>.from(jsonDecode(item.variablesJson));
           } catch (_) {}
         }
       }
@@ -51,18 +51,25 @@ class ResponseNotifier extends _$ResponseNotifier {
         ..createdAt = DateTime.now()
         ..method = request.method
         ..url = request.url
-        ..headersJson = jsonEncode(request.headers.map((e) => {'key': e.key, 'value': e.value, 'isEnabled': e.isEnabled}).toList())
-        ..paramsJson = jsonEncode(request.params.map((e) => {'key': e.key, 'value': e.value, 'isEnabled': e.isEnabled}).toList())
+        ..headersJson = jsonEncode(request.headers
+            .map((e) =>
+                {'key': e.key, 'value': e.value, 'isEnabled': e.isEnabled})
+            .toList())
+        ..paramsJson = jsonEncode(request.params
+            .map((e) =>
+                {'key': e.key, 'value': e.value, 'isEnabled': e.isEnabled})
+            .toList())
         ..body = request.body
         ..authJson = jsonEncode({
-           'type': request.authType.name,
-           'data': request.authData ?? {},
+          'type': request.authType.name,
+          'data': request.authData ?? {},
         })
         ..statusCode = response.statusCode
         ..durationMs = response.durationMs;
-      
-      await ref.read(historyNotifierProvider.notifier).addToHistory(historyItem);
 
+      await ref
+          .read(historyNotifierProvider.notifier)
+          .addToHistory(historyItem);
     } catch (e, st) {
       state = AsyncError(e, st);
     }

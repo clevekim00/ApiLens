@@ -18,12 +18,12 @@ class WorkflowNode {
   @HiveField(3)
   final double y;
 
-  // Keep 'data' for Hive backward compatibility if needed, 
+  // Keep 'data' for Hive backward compatibility if needed,
   // but logically strictly mapped to `config`.
   // For this refactor, we replace the Map<String, dynamic> with NodeConfig wrapper or keep Map but add helpers.
   // Requirement says: "Common fields... inputPorts, outputPorts".
-  
-  // Since Hive can't store Polymorphic classes easily without distinct Adapters or wrappers, 
+
+  // Since Hive can't store Polymorphic classes easily without distinct Adapters or wrappers,
   // we will map `config` to a generic Map structure for storage properties, and expose typed getters.
   @HiveField(4)
   final Map<String, dynamic> data;
@@ -43,9 +43,9 @@ class WorkflowNode {
     // Real impl might store label separately.
     return inputPortKeys.map((k) => NodePort(key: k, label: k)).toList();
   }
-  
+
   List<NodePort> get outputs {
-     return outputPortKeys.map((k) => NodePort(key: k, label: k)).toList();
+    return outputPortKeys.map((k) => NodePort(key: k, label: k)).toList();
   }
 
   // Typed config helper
@@ -68,9 +68,8 @@ class WorkflowNode {
     List<String>? inputPortKeys,
     List<String>? outputPortKeys,
     this.isCompact = false,
-  }) : 
-    this.inputPortKeys = inputPortKeys ?? _defaultInputs(type),
-    this.outputPortKeys = outputPortKeys ?? _defaultOutputs(type);
+  })  : inputPortKeys = inputPortKeys ?? _defaultInputs(type),
+        outputPortKeys = outputPortKeys ?? _defaultOutputs(type);
 
   static List<String> _defaultInputs(String type) {
     if (type == 'start') return [];
@@ -80,10 +79,16 @@ class WorkflowNode {
   static List<String> _defaultOutputs(String type) {
     if (type == 'end') return [];
     if (type == 'condition') return ['true', 'false'];
-    if (type == 'api') return ['success', 'failure'];
+    if (type == 'api' ||
+        type == 'gql_request' ||
+        type == 'ws_connect' ||
+        type == 'ws_send' ||
+        type == 'ws_wait') {
+      return ['success', 'failure'];
+    }
     return ['output'];
   }
-  
+
   WorkflowNode copyWith({
     String? id,
     String? type,
@@ -98,23 +103,23 @@ class WorkflowNode {
       x: x ?? this.x,
       y: y ?? this.y,
       data: data ?? this.data,
-      inputPortKeys: this.inputPortKeys,
-      outputPortKeys: this.outputPortKeys,
+      inputPortKeys: inputPortKeys,
+      outputPortKeys: outputPortKeys,
       isCompact: isCompact ?? this.isCompact,
     );
   }
 
   // toJson
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'x': x,
-    'y': y,
-    'data': data,
-    'inputs': inputPortKeys,
-    'outputs': outputPortKeys,
-    'isCompact': isCompact,
-  };
+        'id': id,
+        'type': type,
+        'x': x,
+        'y': y,
+        'data': data,
+        'inputs': inputPortKeys,
+        'outputs': outputPortKeys,
+        'isCompact': isCompact,
+      };
 
   factory WorkflowNode.fromJson(Map<String, dynamic> json) {
     return WorkflowNode(

@@ -121,13 +121,14 @@ class _ResponseSummaryBar extends StatelessWidget {
             builder: (context, value, child) {
               final isError = response.statusCode >= 400;
               final pulse = isError ? (0.4 + (value * 0.6)) : 1.0;
-              
+
               return Container(
                 height: 28,
                 padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.14 * pulse),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.55 * pulse)),
+                  border: Border.all(
+                      color: statusColor.withValues(alpha: 0.55 * pulse)),
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: [
                     BoxShadow(

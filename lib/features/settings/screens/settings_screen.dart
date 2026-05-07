@@ -32,19 +32,25 @@ class SettingsScreen extends ConsumerWidget {
                   key: const Key('settings_theme_light'),
                   icon: const Icon(Icons.light_mode),
                   isSelected: themeMode == ThemeMode.light,
-                  onPressed: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.light),
+                  onPressed: () => ref
+                      .read(settingsProvider.notifier)
+                      .setThemeMode(ThemeMode.light),
                 ),
                 IconButton(
                   key: const Key('settings_theme_dark'),
                   icon: const Icon(Icons.dark_mode),
                   isSelected: themeMode == ThemeMode.dark,
-                  onPressed: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.dark),
+                  onPressed: () => ref
+                      .read(settingsProvider.notifier)
+                      .setThemeMode(ThemeMode.dark),
                 ),
-                 IconButton(
+                IconButton(
                   key: const Key('settings_theme_system'),
                   icon: const Icon(Icons.brightness_auto),
                   isSelected: themeMode == ThemeMode.system,
-                  onPressed: () => ref.read(settingsProvider.notifier).setThemeMode(ThemeMode.system),
+                  onPressed: () => ref
+                      .read(settingsProvider.notifier)
+                      .setThemeMode(ThemeMode.system),
                 ),
               ],
             ),
@@ -74,17 +80,17 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Request Timeout (ms)'),
             subtitle: Text('$timeout ms'),
             trailing: SizedBox(
-               width: 100,
-               child: TextFormField(
-                 initialValue: timeout.toString(),
-                 keyboardType: TextInputType.number,
-                 onFieldSubmitted: (val) {
-                   final parsed = int.tryParse(val);
-                   if (parsed != null && parsed > 0) {
-                     ref.read(timeoutProvider.notifier).state = parsed;
-                   }
-                 },
-               ),
+              width: 100,
+              child: TextFormField(
+                initialValue: timeout.toString(),
+                keyboardType: TextInputType.number,
+                onFieldSubmitted: (val) {
+                  final parsed = int.tryParse(val);
+                  if (parsed != null && parsed > 0) {
+                    ref.read(timeoutProvider.notifier).state = parsed;
+                  }
+                },
+              ),
             ),
           ),
           SwitchListTile(
@@ -101,11 +107,16 @@ class SettingsScreen extends ConsumerWidget {
 
   String _getLanguageName(String code) {
     switch (code) {
-      case 'en': return 'English';
-      case 'ko': return '한국어';
-      case 'zh': return '中文';
-      case 'auto': return 'Auto (System)';
-      default: return code;
+      case 'en':
+        return 'English';
+      case 'ko':
+        return '한국어';
+      case 'zh':
+        return '中文';
+      case 'auto':
+        return 'Auto (System)';
+      default:
+        return code;
     }
   }
 }

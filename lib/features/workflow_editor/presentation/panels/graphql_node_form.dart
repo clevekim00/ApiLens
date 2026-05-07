@@ -47,6 +47,7 @@ class _GraphQLNodeFormState extends State<GraphQLNodeForm> {
       variablesJson: _variables,
       headers: widget.config.headers, // Preserve existing
       auth: widget.config.auth, // Preserve existing
+      executionPolicy: widget.config.executionPolicy,
     );
     widget.onSave(newConfig);
   }

@@ -1,10 +1,6 @@
 import 'package:uuid/uuid.dart';
 
-enum WorkgroupType {
-  requestCollection,
-  workflowCollection,
-  custom
-}
+enum WorkgroupType { requestCollection, workflowCollection, custom }
 
 class WorkgroupModel {
   final String id;
@@ -102,17 +98,18 @@ class WorkgroupModel {
       name: json['name'] as String? ?? 'Untitled',
       description: json['description'] as String? ?? '',
       parentId: json['parentId'] as String?,
-      type: WorkgroupType.values.firstWhere(
-          (e) => e.name == json['type'], 
+      type: WorkgroupType.values.firstWhere((e) => e.name == json['type'],
           orElse: () => WorkgroupType.requestCollection),
       icon: json['icon'] as String?,
       isSystem: json['isSystem'] as bool? ?? false,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt'] as String) 
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.parse(json['updatedAt'] as String) 
-          : (json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : DateTime.now()),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : (json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'] as String)
+              : DateTime.now()),
     );
   }
 }

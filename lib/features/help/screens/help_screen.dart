@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/ui/theme/app_theme_dark.dart';
-import '../../../../core/ui/theme/app_theme_light.dart';
 
 class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
@@ -49,12 +47,16 @@ class _HelpScreenState extends State<HelpScreen> {
                     title: Text(
                       topics[index],
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     selected: isSelected,
-                    selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    selectedTileColor:
+                        theme.colorScheme.primary.withValues(alpha: 0.1),
                     onTap: () => setState(() => _selectedTopic = index),
                   );
                 },
@@ -121,7 +123,8 @@ class _HelpScreenState extends State<HelpScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _h1(l10n.translate('rest_builder'), theme),
-        _p('Construct and test HTTP requests with a keyboard-first design.', theme),
+        _p('Construct and test HTTP requests with a keyboard-first design.',
+            theme),
         _h2('Key Features', theme),
         _bullet('Params: Key-Value editor for URL query parameters.'),
         _bullet('Headers: Auto-complete headers and manage custom tokens.'),
@@ -213,36 +216,9 @@ class _HelpScreenState extends State<HelpScreen> {
         children: [
           const Text('•', style: TextStyle(fontSize: 18, height: 1.2)),
           const SizedBox(width: AppTokens.s2),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 15, height: 1.5))),
-        ],
-      ),
-    );
-  }
-
-  Widget _card(ThemeData theme, {required String title, required String description, required IconData icon}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTokens.s3),
-      padding: const EdgeInsets.all(AppTokens.s4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: theme.colorScheme.secondary, size: 28),
-          const SizedBox(width: AppTokens.s4),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: AppTokens.s1),
-                Text(description, style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          ),
+              child: Text(text,
+                  style: const TextStyle(fontSize: 15, height: 1.5))),
         ],
       ),
     );

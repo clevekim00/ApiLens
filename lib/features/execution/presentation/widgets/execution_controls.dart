@@ -10,7 +10,7 @@ class ExecutionControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final runnerState = ref.watch(workflowRunnerProvider);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Theme.of(context).colorScheme.surface,
@@ -18,9 +18,13 @@ class ExecutionControlBar extends ConsumerWidget {
         children: [
           FilledButton.icon(
             onPressed: runnerState.isRunning ? null : onRun,
-            icon: runnerState.isRunning 
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Icon(Icons.play_arrow),
+            icon: runnerState.isRunning
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
+                : const Icon(Icons.play_arrow),
             label: Text(runnerState.isRunning ? 'Running...' : 'Run Workflow'),
           ),
           const Spacer(),
@@ -37,7 +41,7 @@ class ExecutionLogPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final runnerState = ref.watch(workflowRunnerProvider);
-    
+
     return Container(
       color: Colors.black87,
       width: double.infinity,
@@ -45,7 +49,11 @@ class ExecutionLogPanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Execution Logs', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+          const Text('Execution Logs',
+              style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Expanded(
             child: ListView.builder(
@@ -53,7 +61,8 @@ class ExecutionLogPanel extends ConsumerWidget {
               itemBuilder: (context, index) {
                 return Text(
                   runnerState.logs[index],
-                  style: const TextStyle(color: Colors.white, fontFamily: 'Courier', fontSize: 11),
+                  style: const TextStyle(
+                      color: Colors.white, fontFamily: 'Courier', fontSize: 11),
                 );
               },
             ),

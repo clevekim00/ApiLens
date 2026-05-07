@@ -6,16 +6,19 @@ import '../../features/websocket/domain/models/websocket_message.dart'; // For s
 
 class WebSocketService {
   WebSocketChannel? _channel;
-  
-  final _statusController = StreamController<WebSocketConnectionStatus>.broadcast();
+
+  final _statusController =
+      StreamController<WebSocketConnectionStatus>.broadcast();
   final _messageController = StreamController<dynamic>.broadcast();
   final _errorController = StreamController<dynamic>.broadcast();
 
-  Stream<WebSocketConnectionStatus> get statusStream => _statusController.stream;
+  Stream<WebSocketConnectionStatus> get statusStream =>
+      _statusController.stream;
   Stream<dynamic> get messageStream => _messageController.stream;
   Stream<dynamic> get errorStream => _errorController.stream;
 
-  WebSocketConnectionStatus _currentStatus = WebSocketConnectionStatus.disconnected;
+  WebSocketConnectionStatus _currentStatus =
+      WebSocketConnectionStatus.disconnected;
   WebSocketConnectionStatus get currentStatus => _currentStatus;
 
   Future<void> connect(WebSocketConfig config) async {
@@ -23,31 +26,33 @@ class WebSocketService {
 
     try {
       if (kIsWeb && config.headers.isNotEmpty) {
-         // Warning: Headers are not fully supported on Web WebSocket API
-         print('WARNING: WebSocket headers are not supported on Web.');
+        // Warning: Headers are not fully supported on Web WebSocket API
+        debugPrint('WARNING: WebSocket headers are not supported on Web.');
       }
 
       final uri = Uri.parse(config.url);
-      
+
       // Merge Headers
       final headers = Map<String, dynamic>.from(config.headers);
-      
+
       Uri finalUri = uri;
       final auth = config.auth;
       if (auth.type == WebSocketAuthType.apiKey) {
-         if (auth.addTo == 'query' && auth.key != null && auth.value != null) {
-            final query = Map<String, String>.from(uri.queryParameters);
-            query[auth.key!] = auth.value!;
-            finalUri = uri.replace(queryParameters: query);
-         } else if (auth.addTo == 'header' && auth.key != null && auth.value != null) {
-            headers[auth.key!] = auth.value!;
-         }
+        if (auth.addTo == 'query' && auth.key != null && auth.value != null) {
+          final query = Map<String, String>.from(uri.queryParameters);
+          query[auth.key!] = auth.value!;
+          finalUri = uri.replace(queryParameters: query);
+        } else if (auth.addTo == 'header' &&
+            auth.key != null &&
+            auth.value != null) {
+          headers[auth.key!] = auth.value!;
+        }
       } else if (auth.type == WebSocketAuthType.bearer && auth.token != null) {
-          headers['Authorization'] = 'Bearer ${auth.token}';
+        headers['Authorization'] = 'Bearer ${auth.token}';
       }
 
       // Connect
-      _channel = WebSocketChannel.connect(finalUri); 
+      _channel = WebSocketChannel.connect(finalUri);
       await _channel!.ready;
 
       _updateStatus(WebSocketConnectionStatus.connected);
@@ -58,7 +63,7 @@ class WebSocketService {
         },
         onError: (error) {
           _errorController.add(error);
-           _updateStatus(WebSocketConnectionStatus.error);
+          _updateStatus(WebSocketConnectionStatus.error);
         },
         onDone: () {
           _updateStatus(WebSocketConnectionStatus.disconnected);
@@ -67,12 +72,13 @@ class WebSocketService {
     } catch (e) {
       _errorController.add(e);
       _updateStatus(WebSocketConnectionStatus.error);
-      disconnect(); 
+      disconnect();
     }
   }
 
   void send(String text) {
-    if (_channel != null && _currentStatus == WebSocketConnectionStatus.connected) {
+    if (_channel != null &&
+        _currentStatus == WebSocketConnectionStatus.connected) {
       _channel!.sink.add(text);
     } else {
       throw Exception('WebSocket is not connected');
@@ -85,10 +91,10 @@ class WebSocketService {
       _channel = null;
     }
     if (_currentStatus != WebSocketConnectionStatus.disconnected) {
-       _updateStatus(WebSocketConnectionStatus.disconnected);
+      _updateStatus(WebSocketConnectionStatus.disconnected);
     }
   }
-  
+
   void _updateStatus(WebSocketConnectionStatus status) {
     if (_currentStatus != status) {
       _currentStatus = status;

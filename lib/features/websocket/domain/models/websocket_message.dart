@@ -18,22 +18,23 @@ class WebSocketMessage {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'direction': direction.name,
-    'timestamp': timestamp.toIso8601String(),
-    'payloadText': payloadText,
-    'sizeBytes': sizeBytes,
-    'parsedJson': parsedJson, // Ensure this is JSON encodable if used
-  };
+        'id': id,
+        'direction': direction.name,
+        'timestamp': timestamp.toIso8601String(),
+        'payloadText': payloadText,
+        'sizeBytes': sizeBytes,
+        'parsedJson': parsedJson, // Ensure this is JSON encodable if used
+      };
 
-  factory WebSocketMessage.fromJson(Map<String, dynamic> json) => WebSocketMessage(
-    id: json['id'],
-    direction: WebSocketMessageDirection.values.byName(json['direction']),
-    timestamp: DateTime.parse(json['timestamp']),
-    payloadText: json['payloadText'],
-    sizeBytes: json['sizeBytes'],
-    parsedJson: json['parsedJson'],
-  );
+  factory WebSocketMessage.fromJson(Map<String, dynamic> json) =>
+      WebSocketMessage(
+        id: json['id'],
+        direction: WebSocketMessageDirection.values.byName(json['direction']),
+        timestamp: DateTime.parse(json['timestamp']),
+        payloadText: json['payloadText'],
+        sizeBytes: json['sizeBytes'],
+        parsedJson: json['parsedJson'],
+      );
 }
 
 enum WebSocketConnectionStatus {
@@ -62,27 +63,28 @@ class WebSocketSessionState {
     List<WebSocketMessage>? messages,
   }) {
     var newMessages = messages ?? this.messages;
-    
+
     // Trim messages if needed
     if (newMessages.length > maxMessages) {
-       // Keep latest maxMessages
-       // Assuming list is sorted old -> new (append at end), remove from start (index 0)
-       // Or if we prepend, remove from end.
-       // Usually logs are appended.
-       final overflow = newMessages.length - maxMessages;
-       if (overflow > 0) {
-         newMessages = newMessages.sublist(overflow);
-       }
+      // Keep latest maxMessages
+      // Assuming list is sorted old -> new (append at end), remove from start (index 0)
+      // Or if we prepend, remove from end.
+      // Usually logs are appended.
+      final overflow = newMessages.length - maxMessages;
+      if (overflow > 0) {
+        newMessages = newMessages.sublist(overflow);
+      }
     }
 
     return WebSocketSessionState(
       status: status ?? this.status,
-      lastError: lastError, // Nullable override logic needs care if we want to clear it.
-                            // For simplicty: if passed, use it. If not, keep it.
-                            // If we want to clear, pass empty string or null?
-                            // copyWith convention: null means keep existing. 
-                            // To clear, we need a Sentinel or clear flag. 
-                            // Here we will assume status change usually clears error if connecting/connected.
+      lastError:
+          lastError, // Nullable override logic needs care if we want to clear it.
+      // For simplicty: if passed, use it. If not, keep it.
+      // If we want to clear, pass empty string or null?
+      // copyWith convention: null means keep existing.
+      // To clear, we need a Sentinel or clear flag.
+      // Here we will assume status change usually clears error if connecting/connected.
       messages: newMessages,
     );
   }

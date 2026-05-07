@@ -38,6 +38,7 @@ class CommandPalette extends ConsumerStatefulWidget {
 
 class _CommandPaletteState extends ConsumerState<CommandPalette> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   int _selectedIndex = 0;
   List<AppCommand> _results = [];
   List<Workflow> _allWorkflows = [];
@@ -48,9 +49,17 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     _results = ref.read(commandServiceProvider);
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   void _onQueryChanged(String query) {
-    final staticCommands = ref.read(commandServiceProvider.notifier).search(query);
-    
+    final staticCommands =
+        ref.read(commandServiceProvider.notifier).search(query);
+
     // Search workflows dynamically using pre-fetched list
     final workflowCommands = _allWorkflows
         .where((w) => w.name.toLowerCase().contains(query.toLowerCase()))
@@ -61,9 +70,11 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
               icon: Icons.account_tree_outlined,
               action: () {
                 ref.read(workflowEditorProvider.notifier).loadWorkflow(
-                  w.id, w.name, w.nodes, w.edges, groupId: w.groupId
-                );
-                ref.read(navigationProvider.notifier).setIndex(1); // Switch to Workflow Tab
+                    w.id, w.name, w.nodes, w.edges,
+                    groupId: w.groupId);
+                ref
+                    .read(navigationProvider.notifier)
+                    .setIndex(1); // Switch to Workflow Tab
               },
               tags: ['workflow', 'flow', w.name],
             ))
@@ -75,8 +86,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     });
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       setState(() {
@@ -84,19 +95,26 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
           _selectedIndex = (_selectedIndex + 1) % _results.length;
         }
       });
+      return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       setState(() {
         if (_results.isNotEmpty) {
-          _selectedIndex = (_selectedIndex - 1 + _results.length) % _results.length;
+          _selectedIndex =
+              (_selectedIndex - 1 + _results.length) % _results.length;
         }
       });
+      return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.enter) {
       if (_results.isNotEmpty) {
         _executeCommand(_results[_selectedIndex]);
       }
+      return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.escape) {
       Navigator.pop(context);
+      return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
   }
 
   void _executeCommand(AppCommand command) {
@@ -112,7 +130,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     ref.listen(allWorkflowsProvider, (prev, next) {
       next.whenData((workflows) {
         if (mounted) {
-           setState(() => _allWorkflows = workflows);
+          setState(() => _allWorkflows = workflows);
         }
       });
     });
@@ -124,10 +142,11 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
         _allWorkflows = workflows;
       }
     });
-    
-    return RawKeyboardListener(
-      focusNode: FocusNode()..requestFocus(),
-      onKey: _handleKeyEvent,
+
+    return KeyboardListener(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
       child: Center(
         child: Container(
           width: 600,
@@ -165,7 +184,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                       prefixIcon: const Icon(Icons.search_rounded),
                       border: InputBorder.none,
                       hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        color: theme.colorScheme.onSurfaceVariant
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                     style: theme.textTheme.bodyLarge,
@@ -181,7 +201,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                           itemBuilder: (context, index) {
                             final command = _results[index];
                             final isSelected = index == _selectedIndex;
-                            return _buildCommandTile(command, isSelected, theme);
+                            return _buildCommandTile(
+                                command, isSelected, theme);
                           },
                         ),
                 ),
@@ -195,31 +216,39 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     );
   }
 
-  Widget _buildCommandTile(AppCommand command, bool isSelected, ThemeData theme) {
+  Widget _buildCommandTile(
+      AppCommand command, bool isSelected, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: 1),
       decoration: BoxDecoration(
-        color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.15) : Colors.transparent,
+        color: isSelected
+            ? theme.colorScheme.primary.withValues(alpha: 0.15)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(AppTokens.radiusMd),
       ),
       child: ListTile(
         leading: Icon(
           command.icon,
           size: 20,
-          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurfaceVariant,
         ),
         title: Text(
           command.title,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface,
           ),
         ),
         subtitle: command.description.isNotEmpty
             ? Text(
                 command.description,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               )
             : null,
@@ -231,14 +260,19 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     );
   }
 
-  Widget _buildShortcutBadge(String shortcut, bool isSelected, ThemeData theme) {
+  Widget _buildShortcutBadge(
+      String shortcut, bool isSelected, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : theme.dividerColor.withValues(alpha: 0.2),
+        color: isSelected
+            ? theme.colorScheme.primary.withValues(alpha: 0.1)
+            : theme.dividerColor.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
         border: Border.all(
-          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.2) : theme.dividerColor.withValues(alpha: 0.3),
+          color: isSelected
+              ? theme.colorScheme.primary.withValues(alpha: 0.2)
+              : theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       child: Text(
@@ -246,7 +280,9 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
         style: theme.textTheme.labelSmall?.copyWith(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -257,7 +293,9 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded, size: 40, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
+          Icon(Icons.search_off_rounded,
+              size: 40,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
           const SizedBox(height: AppTokens.s2),
           Text(
             'No commands found',
@@ -272,7 +310,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
 
   Widget _buildFooter(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4, vertical: AppTokens.s2),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.s4, vertical: AppTokens.s2),
       color: theme.colorScheme.surface.withValues(alpha: 0.5),
       child: Row(
         children: [
@@ -297,7 +336,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
           ),
           child: Text(
             key,
-            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.labelSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(width: 4),

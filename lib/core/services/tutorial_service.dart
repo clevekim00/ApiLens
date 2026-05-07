@@ -7,7 +7,8 @@ class AppTutorialService {
   late TutorialCoachMark tutorialCoachMark;
   List<TargetFocus> targets = [];
 
-  void showTutorial(BuildContext context, {
+  void showTutorial(
+    BuildContext context, {
     required GlobalKey keyRequests,
     required GlobalKey keyWorkflows,
     required GlobalKey keyImport,
@@ -28,7 +29,8 @@ class AppTutorialService {
             builder: (context, controller) {
               return _buildTutorialContent(
                 title: l10n.translate('requests'),
-                description: "Test individual REST, WebSocket, or GraphQL endpoints here.",
+                description:
+                    "Test individual REST, WebSocket, or GraphQL endpoints here.",
                 theme: theme,
               );
             },
@@ -48,7 +50,8 @@ class AppTutorialService {
             builder: (context, controller) {
               return _buildTutorialContent(
                 title: l10n.translate('workflows'),
-                description: "Design complex API logic by connecting nodes in the Workflow Editor.",
+                description:
+                    "Design complex API logic by connecting nodes in the Workflow Editor.",
                 theme: theme,
               );
             },
@@ -68,7 +71,8 @@ class AppTutorialService {
             builder: (context, controller) {
               return _buildTutorialContent(
                 title: l10n.translate('import'),
-                description: "Import Swagger/OpenAPI specifications to quickly populate your workspace.",
+                description:
+                    "Import Swagger/OpenAPI specifications to quickly populate your workspace.",
                 theme: theme,
               );
             },
@@ -88,7 +92,8 @@ class AppTutorialService {
             builder: (context, controller) {
               return _buildTutorialContent(
                 title: l10n.translate('explorer'),
-                description: "Create folders and workgroups to organize your API assets.",
+                description:
+                    "Create folders and workgroups to organize your API assets.",
                 theme: theme,
               );
             },

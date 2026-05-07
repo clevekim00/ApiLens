@@ -9,11 +9,14 @@ class EnvironmentRepository {
   Future<List<EnvironmentItem>> getAllEnvironments() async {
     return await _isar.environmentItems.where().findAll();
   }
-  
+
   Future<EnvironmentItem?> getActiveEnvironment() async {
     // Assuming single active env concept persisted in DB or just local state.
     // For MVP, using isSelected flag in DB.
-    return await _isar.environmentItems.filter().isSelectedEqualTo(true).findFirst();
+    return await _isar.environmentItems
+        .filter()
+        .isSelectedEqualTo(true)
+        .findFirst();
   }
 
   Future<void> saveEnvironment(EnvironmentItem item) async {
@@ -21,7 +24,7 @@ class EnvironmentRepository {
       await _isar.environmentItems.put(item);
     });
   }
-  
+
   Future<void> setActive(Id id) async {
     await _isar.writeTxn(() async {
       // Unset all

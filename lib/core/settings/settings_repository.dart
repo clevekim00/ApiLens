@@ -8,7 +8,7 @@ class SettingsRepository {
   static const String _languageKey = 'language';
   static const String _lastWsConfigIdKey = 'last_selected_ws_config_id';
   static const String _hasSeenTutorialKey = 'has_seen_tutorial';
-  
+
   late Box _box;
 
   Future<void> init() async {
@@ -51,7 +51,7 @@ class SettingsRepository {
   Future<void> setLastSelectedWsConfigId(String id) async {
     await _box.put(_lastWsConfigIdKey, id);
   }
-  
+
   bool getHasSeenTutorial() {
     if (!_box.isOpen) return false;
     return _box.get(_hasSeenTutorialKey, defaultValue: false) as bool;
@@ -73,9 +73,13 @@ class SettingsState {
   final String language;
   final bool hasSeenTutorial;
 
-  SettingsState({required this.themeMode, required this.language, required this.hasSeenTutorial});
+  SettingsState(
+      {required this.themeMode,
+      required this.language,
+      required this.hasSeenTutorial});
 
-  SettingsState copyWith({ThemeMode? themeMode, String? language, bool? hasSeenTutorial}) {
+  SettingsState copyWith(
+      {ThemeMode? themeMode, String? language, bool? hasSeenTutorial}) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
       language: language ?? this.language,
@@ -116,7 +120,8 @@ class SettingsController extends StateNotifier<SettingsState> {
   }
 }
 
-final settingsProvider = StateNotifierProvider<SettingsController, SettingsState>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsController, SettingsState>((ref) {
   final repo = ref.watch(settingsRepositoryProvider);
   return SettingsController(repo);
 });

@@ -26,7 +26,7 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
   @override
   Widget build(BuildContext context) {
     final sections = [
-      _NodeSection(
+      const _NodeSection(
         title: 'Core',
         items: [
           _NodePaletteItem('API Request', 'api', Icons.api, Colors.blue),
@@ -36,14 +36,14 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
           _NodePaletteItem('End', 'end', Icons.stop, Colors.redAccent),
         ],
       ),
-      _NodeSection(
+      const _NodeSection(
         title: 'GraphQL',
         items: [
           _NodePaletteItem(
               'GraphQL Request', 'gql_request', Icons.code, Colors.pink),
         ],
       ),
-      _NodeSection(
+      const _NodeSection(
         title: 'WebSocket',
         items: [
           _NodePaletteItem(
@@ -57,19 +57,25 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
     ];
 
     // Filter logic
-    final filteredSections = sections.map((section) {
-      final filteredItems = section.items.where((item) {
-        return item.label.toLowerCase().contains(_searchQuery.toLowerCase());
-      }).toList();
-      return _NodeSection(title: section.title, items: filteredItems);
-    }).where((section) => section.items.isNotEmpty).toList();
+    final filteredSections = sections
+        .map((section) {
+          final filteredItems = section.items.where((item) {
+            return item.label
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase());
+          }).toList();
+          return _NodeSection(title: section.title, items: filteredItems);
+        })
+        .where((section) => section.items.isNotEmpty)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _PaletteHeader(),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.s2, vertical: AppTokens.s1),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.s2, vertical: AppTokens.s1),
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -83,10 +89,15 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-                borderSide: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+                borderSide: BorderSide(
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.5)),
               ),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              fillColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.3),
             ),
             style: Theme.of(context).textTheme.bodySmall,
             onChanged: (val) => setState(() => _searchQuery = val),
@@ -99,7 +110,8 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
               : ListView.separated(
                   padding: const EdgeInsets.all(AppTokens.s2),
                   itemCount: filteredSections.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: AppTokens.s3),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: AppTokens.s3),
                   itemBuilder: (context, sectionIndex) {
                     final section = filteredSections[sectionIndex];
 
@@ -113,10 +125,16 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
                           ),
                           child: Text(
                             section.title.toUpperCase(),
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.7,
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.8),
                                 ),
                           ),
                         ),
@@ -141,7 +159,8 @@ class _NodePaletteState extends ConsumerState<NodePalette> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 32, color: Theme.of(context).disabledColor),
+          Icon(Icons.search_off,
+              size: 32, color: Theme.of(context).disabledColor),
           const SizedBox(height: 12),
           Text(
             'No nodes found',

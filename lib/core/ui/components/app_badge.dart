@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../tokens/app_tokens.dart';
 
@@ -41,7 +40,8 @@ class AppBadge extends StatelessWidget {
         methodColor = colorScheme.onSecondary;
         break;
       case AppBadgeVariant.success:
-        bgColor = Colors.green; // Hardcoded or from extensions? Let's use standard green for success
+        bgColor = Colors
+            .green; // Hardcoded or from extensions? Let's use standard green for success
         methodColor = Colors.white;
         break;
       case AppBadgeVariant.warning:
@@ -65,7 +65,9 @@ class AppBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-        border: variant == AppBadgeVariant.outline ? Border.all(color: borderColor) : null,
+        border: variant == AppBadgeVariant.outline
+            ? Border.all(color: borderColor)
+            : null,
       ),
       alignment: Alignment.center,
       child: Text(

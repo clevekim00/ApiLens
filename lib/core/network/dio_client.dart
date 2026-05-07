@@ -10,8 +10,10 @@ class DioClient {
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
-        responseType: ResponseType.bytes, // Decode manually so compressed/plain responses are handled consistently
-        validateStatus: (status) => true, // Accept all status codes (4xx/5xx are valid responses)
+        responseType: ResponseType
+            .bytes, // Decode manually so compressed/plain responses are handled consistently
+        validateStatus: (status) =>
+            true, // Accept all status codes (4xx/5xx are valid responses)
       ),
     );
 
@@ -20,7 +22,7 @@ class DioClient {
         onRequest: (options, handler) {
           options.extra['start_time'] = DateTime.now().millisecondsSinceEpoch;
           if (kDebugMode) {
-             print('--> ${options.method} ${options.uri}');
+            print('--> ${options.method} ${options.uri}');
           }
           return handler.next(options);
         },
@@ -31,12 +33,13 @@ class DioClient {
             response.extra['duration'] = end - start;
           }
           if (kDebugMode) {
-            print('<-- ${response.statusCode} ${response.requestOptions.uri} (${response.extra['duration']}ms)');
+            print(
+                '<-- ${response.statusCode} ${response.requestOptions.uri} (${response.extra['duration']}ms)');
           }
           return handler.next(response);
         },
         onError: (DioException e, handler) {
-          // Add custom logic for standardizing errors if needed, 
+          // Add custom logic for standardizing errors if needed,
           // but since validStatus is true, most http errors come as Response.
           // Network errors (no internet) will land here.
           if (kDebugMode) {

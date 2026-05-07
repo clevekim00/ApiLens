@@ -30,7 +30,8 @@ class WorkflowEditorState {
     this.isDirty = false,
     this.lastSavedAt,
     this.selectedEdgeId,
-    this.viewportCenter = const Offset(2500, 2500), // Default center of 5000x5000
+    this.viewportCenter =
+        const Offset(2500, 2500), // Default center of 5000x5000
   });
 
   WorkflowEditorState copyWith({
@@ -65,15 +66,16 @@ class WorkflowEditorState {
 }
 
 class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
-  WorkflowEditorController() : super(WorkflowEditorState(
-    id: const Uuid().v4(),
-    nodes: [
-        WorkflowNode(id: 'start', type: 'start', x: 100, y: 100),
-    ],
-  ));
-  
+  WorkflowEditorController()
+      : super(WorkflowEditorState(
+          id: const Uuid().v4(),
+          nodes: [
+            WorkflowNode(id: 'start', type: 'start', x: 100, y: 100),
+          ],
+        ));
+
   void initNewWithGroup(String? groupId) {
-     state = WorkflowEditorState(
+    state = WorkflowEditorState(
       id: const Uuid().v4(),
       name: 'Untitled Workflow',
       groupId: groupId ?? 'no-workgroup',
@@ -82,18 +84,19 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     );
   }
 
-  void loadWorkflow(String id, String name, List<WorkflowNode> nodes, List<WorkflowEdge> edges, {String? groupId}) {
+  void loadWorkflow(String id, String name, List<WorkflowNode> nodes,
+      List<WorkflowEdge> edges,
+      {String? groupId}) {
     state = WorkflowEditorState(
-        id: id, 
-        name: name, 
+        id: id,
+        name: name,
         groupId: groupId,
-        nodes: nodes, 
-        edges: edges, 
-        isDirty: false, 
-        lastSavedAt: DateTime.now()
-    );
+        nodes: nodes,
+        edges: edges,
+        isDirty: false,
+        lastSavedAt: DateTime.now());
   }
-  
+
   void clearWorkflow() {
     state = WorkflowEditorState(
       id: const Uuid().v4(),
@@ -104,13 +107,14 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   }
 
   void saveAs(String newId, String newName) {
-     state = state.copyWith(id: newId, name: newName, isDirty: false, lastSavedAt: DateTime.now());
+    state = state.copyWith(
+        id: newId, name: newName, isDirty: false, lastSavedAt: DateTime.now());
   }
 
   void markSaved() {
     state = state.copyWith(isDirty: false, lastSavedAt: DateTime.now());
   }
-  
+
   void updateName(String name) {
     state = state.copyWith(name: name, isDirty: true);
   }
@@ -130,6 +134,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       isDirty: true,
     );
   }
+
   void updateViewportCenter(Offset center) {
     state = state.copyWith(viewportCenter: center);
   }
@@ -138,8 +143,8 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
     state = state.copyWith(
       nodes: state.nodes.map((n) {
         if (n.id == id) {
-           final mergedData = Map<String, dynamic>.from(n.data)..addAll(newData);
-           return n.copyWith(data: mergedData);
+          final mergedData = Map<String, dynamic>.from(n.data)..addAll(newData);
+          return n.copyWith(data: mergedData);
         }
         return n;
       }).toList(),
@@ -183,7 +188,8 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   }
 
   void selectAll() {
-    state = state.copyWith(selectedNodeIds: state.nodes.map((n) => n.id).toList());
+    state =
+        state.copyWith(selectedNodeIds: state.nodes.map((n) => n.id).toList());
   }
 
   void selectEdge(String? id) {
@@ -209,16 +215,19 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   void deleteNodes(List<String> ids) {
     if (ids.isEmpty) return;
 
-    final newEdges = state.edges.where((e) => 
-      !ids.contains(e.sourceNodeId) && !ids.contains(e.targetNodeId)
-    ).toList();
-    
+    final newEdges = state.edges
+        .where((e) =>
+            !ids.contains(e.sourceNodeId) && !ids.contains(e.targetNodeId))
+        .toList();
+
     final newNodes = state.nodes.where((n) => !ids.contains(n.id)).toList();
-    
-    final newSelectedNodes = state.selectedNodeIds.where((sid) => !ids.contains(sid)).toList();
-    
+
+    final newSelectedNodes =
+        state.selectedNodeIds.where((sid) => !ids.contains(sid)).toList();
+
     String? newSelectedEdgeForState = state.selectedEdgeId;
-    if (newSelectedEdgeForState != null && !newEdges.any((e) => e.id == newSelectedEdgeForState)) {
+    if (newSelectedEdgeForState != null &&
+        !newEdges.any((e) => e.id == newSelectedEdgeForState)) {
       newSelectedEdgeForState = null;
     }
 
@@ -237,9 +246,10 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       viewportCenter: state.viewportCenter,
     );
   }
-  
+
   void duplicateNode(String id) {
-    final original = state.nodes.firstWhere((n) => n.id == id, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+    final original = state.nodes.firstWhere((n) => n.id == id,
+        orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
     if (original.id.isEmpty) return;
 
     final newNode = original.copyWith(
@@ -261,7 +271,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       final original = state.nodes.firstWhere((n) => n.id == id);
       final newId = const Uuid().v4();
       idMapping[id] = newId;
-      
+
       newNodes.add(original.copyWith(
         id: newId,
         x: original.x + 40,
@@ -279,10 +289,10 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   void deleteEdge(String edgeId) {
     final newEdges = state.edges.where((e) => e.id != edgeId).toList();
     state = state.copyWith(
-        edges: newEdges, 
-        isDirty: true, 
-        selectedEdgeId: state.selectedEdgeId == edgeId ? null : state.selectedEdgeId
-    );
+        edges: newEdges,
+        isDirty: true,
+        selectedEdgeId:
+            state.selectedEdgeId == edgeId ? null : state.selectedEdgeId);
   }
 
   // Connection Logic
@@ -304,11 +314,13 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   }
 
   void completeConnection(String targetNodeId, String targetPortKey) {
-    if (state.connectingNodeId == null || state.connectingPortKey == null) return;
-    
+    if (state.connectingNodeId == null || state.connectingPortKey == null) {
+      return;
+    }
+
     final sourceId = state.connectingNodeId!;
     final sourcePort = state.connectingPortKey!;
-    
+
     // Prevent self-connection
     if (sourceId == targetNodeId) return;
 
@@ -332,23 +344,25 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
       viewportCenter: state.viewportCenter,
     );
   }
-  
-  void addEdge(String sourceId, String targetId, [String sourcePort = 'output', String targetPort = 'input']) {
+
+  void addEdge(String sourceId, String targetId,
+      [String sourcePort = 'output', String targetPort = 'input']) {
     // Prevent duplicates
-    if (state.edges.any((e) => 
-       e.sourceNodeId == sourceId && 
-       e.targetNodeId == targetId &&
-       e.sourcePort == sourcePort &&
-       e.targetPort == targetPort
-    )) {
-        return;
+    if (state.edges.any((e) =>
+        e.sourceNodeId == sourceId &&
+        e.targetNodeId == targetId &&
+        e.sourcePort == sourcePort &&
+        e.targetPort == targetPort)) {
+      return;
     }
-    state = state.copyWith(edges: [...state.edges, WorkflowEdge(
-      sourceNodeId: sourceId, 
-      targetNodeId: targetId,
-      sourcePort: sourcePort,
-      targetPort: targetPort
-    )], isDirty: true);
+    state = state.copyWith(edges: [
+      ...state.edges,
+      WorkflowEdge(
+          sourceNodeId: sourceId,
+          targetNodeId: targetId,
+          sourcePort: sourcePort,
+          targetPort: targetPort)
+    ], isDirty: true);
   }
 
   void toggleNodeCompact(String id) {
@@ -369,6 +383,7 @@ class WorkflowEditorController extends StateNotifier<WorkflowEditorState> {
   }
 }
 
-final workflowEditorProvider = StateNotifierProvider<WorkflowEditorController, WorkflowEditorState>((ref) {
+final workflowEditorProvider =
+    StateNotifierProvider<WorkflowEditorController, WorkflowEditorState>((ref) {
   return WorkflowEditorController();
 });

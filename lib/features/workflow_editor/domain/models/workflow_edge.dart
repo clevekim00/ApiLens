@@ -15,7 +15,7 @@ class WorkflowEdge {
 
   @HiveField(3)
   final String targetPort;
-  
+
   @HiveField(4)
   final String id;
 
@@ -25,21 +25,22 @@ class WorkflowEdge {
     this.sourcePort = 'output',
     this.targetPort = 'input',
     String? id,
-  }) : this.id = id ?? '${sourceNodeId}_${sourcePort}_${targetNodeId}_${targetPort}'; // Simple ID generation
+  }) : id = id ??
+            '${sourceNodeId}_${sourcePort}_${targetNodeId}_$targetPort'; // Simple ID generation
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'from': sourceNodeId,
-    'to': targetNodeId,
-    'fromPort': sourcePort,
-    'toPort': targetPort,
-  };
+        'id': id,
+        'from': sourceNodeId,
+        'to': targetNodeId,
+        'fromPort': sourcePort,
+        'toPort': targetPort,
+      };
 
   factory WorkflowEdge.fromJson(Map<String, dynamic> json) => WorkflowEdge(
-    id: json['id'],
-    sourceNodeId: json['from'],
-    targetNodeId: json['to'],
-    sourcePort: json['fromPort'] ?? 'output',
-    targetPort: json['toPort'] ?? 'input',
-  );
+        id: json['id'],
+        sourceNodeId: json['from'],
+        targetNodeId: json['to'],
+        sourcePort: json['fromPort'] ?? 'output',
+        targetPort: json['toPort'] ?? 'input',
+      );
 }

@@ -14,18 +14,22 @@ class ExecutionEngine {
   final WebSocketManager? _wsManager;
   final GraphQLService? _gqlService;
   final void Function(String message)? onLog;
-  
+
   // Runtime state for active connections within a workflow run
   // Maps stored sessionKey to underlying connectionId form WSManager
   final Map<String, String> _sessionKeyToConnectionId = {};
 
-  ExecutionEngine({Dio? dio, WebSocketManager? wsManager, GraphQLService? gqlService, this.onLog}) 
-    : _dio = dio ?? Dio(),
-      _wsManager = wsManager,
-      _gqlService = gqlService {
+  ExecutionEngine(
+      {Dio? dio,
+      WebSocketManager? wsManager,
+      GraphQLService? gqlService,
+      this.onLog})
+      : _dio = dio ?? Dio(),
+        _wsManager = wsManager,
+        _gqlService = gqlService {
     _dio.options.validateStatus = (status) => true;
     _dio.options.responseType = ResponseType.plain;
-    
+
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         onLog?.call('--> ${options.method} ${options.uri}');
@@ -34,8 +38,10 @@ class ExecutionEngine {
       },
       onResponse: (response, handler) {
         final start = response.requestOptions.extra['start_time'] as int?;
-        final duration = start != null ? DateTime.now().millisecondsSinceEpoch - start : 0;
-        onLog?.call('<-- ${response.statusCode} ${response.requestOptions.uri} (${duration}ms)');
+        final duration =
+            start != null ? DateTime.now().millisecondsSinceEpoch - start : 0;
+        onLog?.call(
+            '<-- ${response.statusCode} ${response.requestOptions.uri} (${duration}ms)');
         return handler.next(response);
       },
       onError: (DioException e, handler) {
@@ -46,10 +52,7 @@ class ExecutionEngine {
   }
 
   Map<String, dynamic> _buildContext(Map<String, NodeRunResult> results) {
-    final context = <String, dynamic>{
-      'node': {},
-      'env': {}
-    };
+    final context = <String, dynamic>{'node': {}, 'env': {}};
     for (final entry in results.entries) {
       final nodeId = entry.key;
       final result = entry.value;
@@ -66,11 +69,76 @@ class ExecutionEngine {
     return context;
   }
 
-  Stream<WorkflowExecutionEvent> runWorkflow(List<WorkflowNode> nodes, List<WorkflowEdge> edges) async* {
-    final startNode = nodes.firstWhere(
-      (n) => n.type == 'start', 
-      orElse: () => throw Exception('No Start Node found')
-    );
+  Future<_NodeExecutionOutcome> _runWithPolicy({
+    required WorkflowNode node,
+    required ExecutionPolicy policy,
+    required Future<_NodeExecutionOutcome> Function() operation,
+    bool Function(_NodeExecutionOutcome outcome)? shouldRetryOutcome,
+  }) async {
+    final retry = policy.retry;
+    final maxAttempts = retry.maxAttempts.clamp(0, 100);
+
+    for (var attempt = 0; attempt <= maxAttempts; attempt++) {
+      final attemptNumber = attempt + 1;
+      try {
+        if (attempt > 0) {
+          onLog?.call(
+            '[${node.id}] Retry attempt $attemptNumber/${maxAttempts + 1}',
+          );
+        }
+
+        final operationFuture = operation();
+        final outcome = policy.timeoutMs != null && policy.timeoutMs! > 0
+            ? await operationFuture.timeout(
+                Duration(milliseconds: policy.timeoutMs!),
+              )
+            : await operationFuture;
+
+        final shouldRetry = shouldRetryOutcome?.call(outcome) ?? false;
+        if (shouldRetry && attempt < maxAttempts) {
+          await _delayBeforeRetry(node, retry, attemptNumber);
+          continue;
+        }
+
+        return outcome;
+      } on TimeoutException catch (error) {
+        if (retry.retryOnTimeout && attempt < maxAttempts) {
+          onLog?.call('[${node.id}] Timeout: ${error.message ?? error}');
+          await _delayBeforeRetry(node, retry, attemptNumber);
+          continue;
+        }
+        rethrow;
+      } catch (error) {
+        if (attempt < maxAttempts) {
+          onLog?.call('[${node.id}] Attempt $attemptNumber failed: $error');
+          await _delayBeforeRetry(node, retry, attemptNumber);
+          continue;
+        }
+        rethrow;
+      }
+    }
+
+    throw StateError('Retry loop exhausted unexpectedly for node ${node.id}');
+  }
+
+  Future<void> _delayBeforeRetry(
+    WorkflowNode node,
+    RetryPolicy retry,
+    int failedAttemptNumber,
+  ) async {
+    final delayMs = retry.backoffMs.clamp(0, 60000);
+    if (delayMs > 0) {
+      onLog?.call(
+        '[${node.id}] Waiting ${delayMs}ms before retry after attempt $failedAttemptNumber',
+      );
+      await Future<void>.delayed(Duration(milliseconds: delayMs));
+    }
+  }
+
+  Stream<WorkflowExecutionEvent> runWorkflow(
+      List<WorkflowNode> nodes, List<WorkflowEdge> edges) async* {
+    final startNode = nodes.firstWhere((n) => n.type == 'start',
+        orElse: () => throw Exception('No Start Node found'));
 
     final results = <String, NodeRunResult>{};
     final visitedPath = <String>{};
@@ -87,10 +155,10 @@ class ExecutionEngine {
         return;
       }
       visitedPath.add(currentNodeId);
-      
+
       final node = nodes.firstWhere((n) => n.id == currentNodeId);
       final context = _buildContext(results);
-      
+
       var result = NodeRunResult(
         nodeId: node.id,
         status: NodeStatus.running,
@@ -98,157 +166,258 @@ class ExecutionEngine {
       );
       yield NodeExecutionEvent(result);
 
-      String? targetPort; 
-      
+      String? targetPort;
+
       try {
         if (node.type == 'api') {
-           final config = node.config as HttpNodeConfig;
-           final url = TemplateResolver.resolve(config.url, context);
-           onLog?.call('[${node.id}] Requesting: $url');
-           
-           final response = await _dio.request(
-             url,
-             options: Options(method: config.method, headers: config.headers),
-             data: config.body
-           );
-           
-           result = result.copyWith(
-             status: NodeStatus.success,
-             statusCode: response.statusCode,
-             responseBody: response.data,
-             responseHeaders: response.headers.map.map((k, v) => MapEntry(k, v.join(','))),
-             finishedAt: DateTime.now(),
-           );
-           
-           if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-             targetPort = 'success';
-           } else {
-             targetPort = 'failure';
-           }
-           
+          final config = node.config as HttpNodeConfig;
+          final outcome = await _runWithPolicy(
+            node: node,
+            policy: config.executionPolicy,
+            shouldRetryOutcome: (outcome) {
+              final statusCode = outcome.result.statusCode;
+              return statusCode != null &&
+                  config.executionPolicy.retry.retryOnStatusCodes
+                      .contains(statusCode);
+            },
+            operation: () async {
+              final url = TemplateResolver.resolve(config.url, context);
+              onLog?.call('[${node.id}] Requesting: $url');
+
+              final response = await _dio.request(
+                url,
+                options:
+                    Options(method: config.method, headers: config.headers),
+                data: config.body,
+              );
+
+              final nextResult = result.copyWith(
+                status: NodeStatus.success,
+                statusCode: response.statusCode,
+                responseBody: response.data,
+                responseHeaders: response.headers.map
+                    .map((k, v) => MapEntry(k, v.join(','))),
+                finishedAt: DateTime.now(),
+              );
+
+              final nextPort = response.statusCode != null &&
+                      response.statusCode! >= 200 &&
+                      response.statusCode! < 300
+                  ? 'success'
+                  : 'failure';
+
+              return _NodeExecutionOutcome(nextResult, nextPort);
+            },
+          );
+
+          result = outcome.result;
+          targetPort = outcome.targetPort;
         } else if (node.type == 'condition') {
-           final config = node.config as ConditionNodeConfig;
-           final match = ExpressionEvaluator.evaluate(config.expression, context);
-           result = result.copyWith(
-             status: NodeStatus.success,
-             finishedAt: DateTime.now(),
-             responseBody: {'result': match},
-           );
-           targetPort = match ? 'true' : 'false';
-           
+          final config = node.config as ConditionNodeConfig;
+          final match =
+              ExpressionEvaluator.evaluate(config.expression, context);
+          result = result.copyWith(
+            status: NodeStatus.success,
+            finishedAt: DateTime.now(),
+            responseBody: {'result': match},
+          );
+          targetPort = match ? 'true' : 'false';
         } else if (node.type == 'ws_connect') {
-           final config = node.config as WebSocketConnectNodeConfig;
-           if (_wsManager == null) throw Exception('WebSocketManager not initialized');
-           
-           String urlToConnect;
-           if (config.mode == 'configRef') {
-              if (config.configRefId == 'ws-config-001') {
-                 urlToConnect = 'wss://echo.websocket.org/'; 
+          final config = node.config as WebSocketConnectNodeConfig;
+          if (_wsManager == null) {
+            throw Exception('WebSocketManager not initialized');
+          }
+
+          final outcome = await _runWithPolicy(
+            node: node,
+            policy: config.executionPolicy,
+            operation: () async {
+              String urlToConnect;
+              if (config.mode == 'configRef') {
+                if (config.configRefId == 'ws-config-001') {
+                  urlToConnect = 'wss://echo.websocket.org/';
+                } else {
+                  urlToConnect = config.url ?? '';
+                }
               } else {
-                 urlToConnect = config.url ?? '';
+                urlToConnect =
+                    TemplateResolver.resolve(config.url ?? '', context);
               }
-           } else {
-              urlToConnect = TemplateResolver.resolve(config.url ?? '', context);
-           }
-           
-           onLog?.call('[${node.id}] WS Connect: $urlToConnect (as "${config.storeAs}")');
 
-           try {
-             final cid = await _wsManager!.connect(urlToConnect, headers: config.headers);
-             _sessionKeyToConnectionId[config.storeAs] = cid;
-             
-             result = result.copyWith(status: NodeStatus.success, finishedAt: DateTime.now(), responseBody: {'connectionId': cid});
-             targetPort = 'success';
-             onLog?.call('[${node.id}] Connected (ID: $cid)');
-           } catch (e) {
-             onLog?.call('[${node.id}] Connection Failed: $e');
-             rethrow;
-           }
+              onLog?.call(
+                  '[${node.id}] WS Connect: $urlToConnect (as "${config.storeAs}")');
 
+              try {
+                final cid = await _wsManager.connect(
+                  urlToConnect,
+                  headers: config.headers,
+                );
+                _sessionKeyToConnectionId[config.storeAs] = cid;
+
+                final nextResult = result.copyWith(
+                    status: NodeStatus.success,
+                    finishedAt: DateTime.now(),
+                    responseBody: {'connectionId': cid});
+                onLog?.call('[${node.id}] Connected (ID: $cid)');
+                return _NodeExecutionOutcome(nextResult, 'success');
+              } catch (e) {
+                onLog?.call('[${node.id}] Connection Failed: $e');
+                rethrow;
+              }
+            },
+          );
+
+          result = outcome.result;
+          targetPort = outcome.targetPort;
         } else if (node.type == 'ws_send') {
-           final config = node.config as WebSocketSendNodeConfig;
-           final cid = _sessionKeyToConnectionId[config.sessionKey];
-           if (cid == null) throw Exception('No active WS session for key: ${config.sessionKey}');
-           
-           final payload = TemplateResolver.resolve(config.payload, context);
-           onLog?.call('[${node.id}] WS Send (${config.sessionKey}): $payload');
-           
-           _wsManager!.send(cid, payload);
-           
-           result = result.copyWith(status: NodeStatus.success, finishedAt: DateTime.now());
-           targetPort = 'success';
+          final config = node.config as WebSocketSendNodeConfig;
+          final outcome = await _runWithPolicy(
+            node: node,
+            policy: config.executionPolicy,
+            operation: () async {
+              final cid = _sessionKeyToConnectionId[config.sessionKey];
+              if (cid == null) {
+                throw Exception(
+                    'No active WS session for key: ${config.sessionKey}');
+              }
 
+              final payload = TemplateResolver.resolve(config.payload, context);
+              onLog?.call(
+                  '[${node.id}] WS Send (${config.sessionKey}): $payload');
+
+              _wsManager!.send(cid, payload);
+
+              return _NodeExecutionOutcome(
+                result.copyWith(
+                    status: NodeStatus.success, finishedAt: DateTime.now()),
+                'success',
+              );
+            },
+          );
+
+          result = outcome.result;
+          targetPort = outcome.targetPort;
         } else if (node.type == 'ws_wait') {
-           final config = node.config as WebSocketWaitNodeConfig;
-           final cid = _sessionKeyToConnectionId[config.sessionKey];
-           if (cid == null) throw Exception('No active WS session for key: ${config.sessionKey}');
-           
-           final matchType = config.match['type'] as String? ?? 'containsText';
-           final matchValue = config.match['value'].toString();
-           
-           onLog?.call('[${node.id}] WS Wait (${config.sessionKey}) for $matchType: "$matchValue"');
-           
-           final conn = _wsManager!.getConnection(cid);
-           if (conn == null) throw Exception('Connection closed');
+          final config = node.config as WebSocketWaitNodeConfig;
+          final outcome = await _runWithPolicy(
+            node: node,
+            policy: config.executionPolicy,
+            operation: () async {
+              final cid = _sessionKeyToConnectionId[config.sessionKey];
+              if (cid == null) {
+                throw Exception(
+                    'No active WS session for key: ${config.sessionKey}');
+              }
 
-           try {
-             final matchEvent = await conn.stream.firstWhere((event) {
-               final str = event.toString();
-               if (matchType == 'containsText') return str.contains(matchValue);
-               if (matchType == 'anyMessage') return true;
-               if (matchType == 'jsonPathEquals') {
-                  if (str.contains(matchValue.split('==').last.replaceAll('"', ''))) return true; 
-                  return false; 
-               }
-               return false;
-             }).timeout(Duration(milliseconds: config.timeoutMs));
-             
-             onLog?.call('[${node.id}] Match found: $matchEvent');
-             result = result.copyWith(status: NodeStatus.success, finishedAt: DateTime.now(), responseBody: {'message': matchEvent});
-             targetPort = 'success'; 
-           } catch (e) {
-             onLog?.call('[${node.id}] Wait Timeout or Error: $e');
-             throw Exception('Timeout waiting for $matchType');
-           }
+              final matchType =
+                  config.match['type'] as String? ?? 'containsText';
+              final matchValue = config.match['value'].toString();
 
+              onLog?.call(
+                  '[${node.id}] WS Wait (${config.sessionKey}) for $matchType: "$matchValue"');
+
+              final conn = _wsManager!.getConnection(cid);
+              if (conn == null) {
+                throw Exception('Connection closed');
+              }
+
+              try {
+                final matchEvent = await conn.stream.firstWhere((event) {
+                  final str = event.toString();
+                  if (matchType == 'containsText') {
+                    return str.contains(matchValue);
+                  }
+                  if (matchType == 'anyMessage') return true;
+                  if (matchType == 'jsonPathEquals') {
+                    if (str.contains(
+                        matchValue.split('==').last.replaceAll('"', ''))) {
+                      return true;
+                    }
+                    return false;
+                  }
+                  return false;
+                });
+
+                onLog?.call('[${node.id}] Match found: $matchEvent');
+                return _NodeExecutionOutcome(
+                  result.copyWith(
+                      status: NodeStatus.success,
+                      finishedAt: DateTime.now(),
+                      responseBody: {'message': matchEvent}),
+                  'success',
+                );
+              } catch (e) {
+                onLog?.call('[${node.id}] Wait Timeout or Error: $e');
+                throw Exception('Timeout waiting for $matchType');
+              }
+            },
+          );
+
+          result = outcome.result;
+          targetPort = outcome.targetPort;
         } else if (node.type == 'gql_request') {
-           final config = node.config as GraphQLNodeConfig;
-           if (_gqlService == null) throw Exception('GraphQLService not initialized');
-           
-           final url = TemplateResolver.resolve(config.url, context);
-           final query = TemplateResolver.resolve(config.query, context);
-           
-           onLog?.call('[${node.id}] GQL Request to $url');
-           
-           try {
-             final response = await _gqlService!.query(
-               url,
-               query,
-               variables: config.variables.map((k, v) => MapEntry(k, TemplateResolver.resolve(v.toString(), context))),
-               headers: config.headers?.map((k, v) => MapEntry(k, TemplateResolver.resolve(v.toString(), context))) ?? {},
-             );
-             
-             result = result.copyWith(
-               status: response.isSuccess ? NodeStatus.success : NodeStatus.failure,
-               finishedAt: DateTime.now(),
-               responseBody: {
-                 'data': response.data,
-                 'errors': response.errors,
-                 'statusCode': response.statusCode,
-                 'durationMs': response.durationMs,
-               },
-             );
-             targetPort = response.isSuccess ? 'success' : 'failure';
-           } catch (e) {
-             onLog?.call('[${node.id}] GQL Error: $e');
-             rethrow;
-           }
+          final config = node.config as GraphQLNodeConfig;
+          if (_gqlService == null) {
+            throw Exception('GraphQLService not initialized');
+          }
 
+          final outcome = await _runWithPolicy(
+            node: node,
+            policy: config.executionPolicy,
+            shouldRetryOutcome: (outcome) {
+              final statusCode = outcome.result.statusCode;
+              return statusCode != null &&
+                  config.executionPolicy.retry.retryOnStatusCodes
+                      .contains(statusCode);
+            },
+            operation: () async {
+              final url = TemplateResolver.resolve(config.url, context);
+              final query = TemplateResolver.resolve(config.query, context);
+
+              onLog?.call('[${node.id}] GQL Request to $url');
+
+              try {
+                final response = await _gqlService.query(
+                  url,
+                  query,
+                  variables: config.variables.map((k, v) => MapEntry(
+                      k, TemplateResolver.resolve(v.toString(), context))),
+                  headers: config.headers?.map((k, v) => MapEntry(k,
+                          TemplateResolver.resolve(v.toString(), context))) ??
+                      {},
+                );
+
+                final nextResult = result.copyWith(
+                  status: response.isSuccess
+                      ? NodeStatus.success
+                      : NodeStatus.failure,
+                  statusCode: response.statusCode,
+                  finishedAt: DateTime.now(),
+                  responseBody: {
+                    'data': response.data,
+                    'errors': response.errors,
+                    'statusCode': response.statusCode,
+                    'durationMs': response.durationMs,
+                  },
+                );
+                return _NodeExecutionOutcome(
+                  nextResult,
+                  response.isSuccess ? 'success' : 'failure',
+                );
+              } catch (e) {
+                onLog?.call('[${node.id}] GQL Error: $e');
+                rethrow;
+              }
+            },
+          );
+
+          result = outcome.result;
+          targetPort = outcome.targetPort;
         } else {
-           result = result.copyWith(status: NodeStatus.success, finishedAt: DateTime.now());
-           targetPort = 'output'; 
+          result = result.copyWith(
+              status: NodeStatus.success, finishedAt: DateTime.now());
+          targetPort = 'output';
         }
-        
       } catch (e) {
         result = result.copyWith(
           status: NodeStatus.failure,
@@ -256,8 +425,11 @@ class ExecutionEngine {
           errorMessage: e.toString(),
         );
         yield NodeExecutionEvent(result);
-        
-        if (node.type == 'api' || node.type == 'ws_connect' || node.type == 'ws_send' || node.type == 'ws_wait') {
+
+        if (node.type == 'api' ||
+            node.type == 'ws_connect' ||
+            node.type == 'ws_send' ||
+            node.type == 'ws_wait') {
           targetPort = 'failure';
         } else {
           return;
@@ -271,7 +443,12 @@ class ExecutionEngine {
 
       final nextEdge = edges.firstWhere(
         (e) => e.sourceNodeId == node.id && e.sourcePort == targetPort,
-        orElse: () => WorkflowEdge(sourceNodeId: '', targetNodeId: '', sourcePort: '', targetPort: '', id: ''),
+        orElse: () => WorkflowEdge(
+            sourceNodeId: '',
+            targetNodeId: '',
+            sourcePort: '',
+            targetPort: '',
+            id: ''),
       );
 
       if (nextEdge.sourceNodeId.isNotEmpty) {
@@ -282,4 +459,11 @@ class ExecutionEngine {
       }
     }
   }
+}
+
+class _NodeExecutionOutcome {
+  final NodeRunResult result;
+  final String? targetPort;
+
+  const _NodeExecutionOutcome(this.result, this.targetPort);
 }

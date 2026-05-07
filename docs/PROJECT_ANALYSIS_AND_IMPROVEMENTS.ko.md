@@ -1,6 +1,6 @@
 # ApiLens 프로젝트 분석 및 개선 제안
 
-작성일: 2026-05-01
+작성일: 2026-05-06
 
 ## 1. 한 줄 요약
 
@@ -151,15 +151,16 @@ ApiLens의 가장 큰 차별화 포인트입니다. Canvas, NodePalette, Inspect
 - Start/End/API/Condition/WebSocket/GraphQL 노드 방향성이 있음
 - 저장된 workflow 목록과 editor state가 분리되어 있음
 - 실행 로그와 node result 표시를 위한 기반이 있음
+- HTTP/GraphQL/WebSocket 실행 노드에 공통 timeout/retry 정책이 적용됨
+- HTTP retry/timeout failure routing 회귀 테스트가 추가되어 실행 엔진 신뢰성이 올라감
 
 개선 포인트:
 
-- 실행 엔진에서 일부 노드 타입 처리가 아직 빠져 있거나 임시 로직임
 - `ws-config-001` 같은 하드코딩은 제거해야 함
-- GraphQL node config 모델은 있지만 실행 엔진 연동은 더 확인해야 함
 - 노드 실행 context의 변수 참조 문법과 JSON path 정책을 명확히 해야 함
-- cycle detection은 있으나 branch/parallel/retry/timeout 정책은 아직 제한적임
-- Workflow 실행 회귀 테스트가 필요함
+- retry/backoff 정책은 엔진에 적용되었지만 Inspector UI에서 직접 편집하는 UX는 아직 필요함
+- branch/parallel 정책은 아직 제한적임
+- Workflow 실행 회귀 테스트를 WebSocket timeout, GraphQL retry, template resolver까지 더 넓힐 필요가 있음
 
 ## 5. 기술 부채 및 리스크
 
@@ -172,8 +173,8 @@ ApiLens의 가장 큰 차별화 포인트입니다. Canvas, NodePalette, Inspect
 ### P1: 워크플로 실행 신뢰성
 
 - Workflow Editor의 UI 완성도에 비해 ExecutionEngine은 아직 MVP 성격이 강함
-- 노드별 실패/성공 port, context 저장, retry, timeout 정책이 제품 스펙으로 정리되어야 함
-- WebSocket/GraphQL 노드가 REST 노드만큼 테스트되지 않으면 핵심 차별화 기능의 신뢰도가 떨어질 수 있음
+- 노드별 실패/성공 port와 timeout/retry 정책은 1차 구현되었고, 문서화도 추가됨
+- WebSocket/GraphQL 노드의 timeout/retry 회귀 테스트가 REST 노드만큼 충분하지 않으면 핵심 차별화 기능의 신뢰도가 떨어질 수 있음
 
 ### P1: 테스트 전략
 
@@ -200,7 +201,7 @@ ApiLens의 가장 큰 차별화 포인트입니다. Canvas, NodePalette, Inspect
 
 - Start, End, HTTP, Condition, GraphQL, WS Connect, WS Send, WS Wait 노드 실행 스펙 확정
 - configRef 하드코딩 제거
-- 노드별 timeout/retry/error port 정책 추가
+- Inspector에서 노드별 timeout/retry/error port 정책을 편집하는 UX 추가
 - workflow run result를 저장하거나 export할 수 있게 설계
 - 샘플 workflow를 테스트 fixture로 활용
 
@@ -378,3 +379,35 @@ GraphQL:
 - `dart analyze`로 변경 UI 파일 전체 정적 분석 통과
 - `flutter test test/widget_test.dart test/smoke/app_smoke_test.dart test/network_test.dart test/response_viewer_test.dart test/graphql_validation_test.dart test/ui_size_qa_test.dart` 회귀 테스트 통과
 - `git diff --check`로 공백/패치 위생 검사 통과
+
+## 11. 2026-05-06 업데이트 요약
+
+2026-05-06 기준으로 UI 리팩터링의 “남은 후보”였던 항목 중 상당수를 실제 변경/검증까지 완료했습니다. 특히 GraphQL schema explorer와 OpenAPI import 화면은 정보 구조를 바꾸는 작업이라, 좁은 화면에서의 오버플로우까지 회귀 테스트로 고정해둔 점이 큽니다.
+
+업데이트(핵심):
+
+- GraphQL schema explorer:
+  - endpoint schema introspection 요청 추가
+  - type 검색, 타입 선택, field/input/enum member preview
+  - argument/type label 표기(Non-null, List 등)
+- OpenAPI import:
+  - tag filter + operation table + preview/options 패널로 리디자인
+  - 390px 급 좁은 폭에서는 세로 스크롤 스택으로 전환(테이블/프리뷰 동시 표시로 인한 height 부족 회피)
+  - action bar는 768px 급에서도 compact 모드로 전환(라벨 축약/배치 변경)
+- 공통 컴포넌트:
+  - `AppStatusChip`, `AppEmptyState`, `AppSplitPane`, `AppToolbar`, `AppCodeEditorShell`
+  - 좁은 폭에서도 버튼/칩 텍스트가 overflow 나지 않도록 `AppButton`, `AppStatusChip`이 ellipsis 지원
+- 사이즈별 QA:
+  - `test/ui_size_qa_test.dart`로 390x844, 768x1024, 1280x800, 1440x900 렌더/오버플로우 회귀 테스트 추가
+
+검증 노트:
+
+- 변경 범위 파일 대상으로 `dart analyze`는 통과하는 상태입니다.
+- 다만 리포 전체 `dart analyze`는 기존 코드에 남아 있는 미사용 import/필드, deprecated API 사용 경고가 다수(수십 건)라 “전체 분석 0경고” 목표는 별도 정리 작업이 필요합니다.
+
+이후 우선순위(추천):
+
+1. Workflow execution 회귀 테스트: 엔진 신뢰도가 제품 신뢰도에 직결
+2. OpenAPI parser/transform 회귀 테스트: `$ref`, securitySchemes 변환, multipart/x-www-form-urlencoded 등
+3. GraphQL schema explorer 고도화: query/mutation root에서 빠른 삽입, breadcrumb/탐색성, query builder 연계
+4. WebSocket pinned persistence + 파일 export: 로그 사용성 마무리

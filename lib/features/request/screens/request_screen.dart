@@ -25,10 +25,11 @@ import '../../../../features/websocket/presentation/widgets/websocket_client_pan
 import '../../../../features/graphql/presentation/screens/graphql_client_tab.dart';
 import '../../workflow_editor/presentation/workflow_editor_screen.dart';
 import '../../workgroup/presentation/widgets/workgroup_selector.dart';
+import '../../workgroup/presentation/widgets/workgroup_explorer.dart';
 
 class RequestScreen extends ConsumerStatefulWidget {
   final bool isStandalone;
-  
+
   const RequestScreen({super.key, this.isStandalone = true});
 
   @override
@@ -70,7 +71,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     );
 
     if (!widget.isStandalone) {
-      return body;
+      return KeyedSubtree(
+        key: const Key('screen_request_builder'),
+        child: body,
+      );
     }
 
     return DefaultTabController(
@@ -86,7 +90,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                 ? null
                 : Drawer(
                     width: _sidebarWidth,
-                    child: HistoryPanel(
+                    child: _RequestSidebarDrawer(
                       onClose: () => Navigator.of(context).pop(),
                     ),
                   ),
@@ -99,8 +103,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                           key: const Key('btn_open_sidebar'),
                           icon: const Icon(Icons.view_sidebar_outlined),
                           tooltip: 'Open Workspace Sidebar',
-                          onPressed: () =>
-                              Scaffold.of(context).openDrawer(),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
                         );
                       },
                     ),
@@ -308,7 +311,8 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
 
           final sendButton = FilledButton.icon(
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: AppTokens.s4, vertical: AppTokens.s3),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTokens.s4, vertical: AppTokens.s3),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTokens.radiusMd),
               ),
@@ -333,7 +337,9 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
             onSelected: (val) {
               if (val == 'save') {
                 final currentRequest = ref.read(requestNotifierProvider);
-                ref.read(savedRequestControllerProvider.notifier).saveRequest(currentRequest);
+                ref
+                    .read(savedRequestControllerProvider.notifier)
+                    .saveRequest(currentRequest);
               }
               if (val == 'import') {
                 _showImportDialog(context, ref);
@@ -350,7 +356,7 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
             ],
           );
 
-          Widget _buildLabeled(String label, Widget child) {
+          Widget buildLabeled(String label, Widget child) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -374,15 +380,16 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
               children: [
                 Row(
                   children: [
-                    _buildLabeled('Environment', const EnvironmentSelector()),
+                    buildLabeled('Environment', const EnvironmentSelector()),
                     const SizedBox(width: AppTokens.s2),
-                    _buildLabeled('Method', const MethodSelector(key: Key('selector_method'))),
+                    buildLabeled('Method',
+                        const MethodSelector(key: Key('selector_method'))),
                   ],
                 ),
                 const SizedBox(height: AppTokens.s2),
-                Row(
+                const Row(
                   children: [
-                    const Expanded(child: UrlInput(key: Key('input_url_bar'))),
+                    Expanded(child: UrlInput(key: Key('input_url_bar'))),
                   ],
                 ),
                 const SizedBox(height: AppTokens.s2),
@@ -401,9 +408,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _buildLabeled('Environment', const EnvironmentSelector()),
+              buildLabeled('Environment', const EnvironmentSelector()),
               const SizedBox(width: AppTokens.s3),
-              _buildLabeled('Method', const MethodSelector(key: Key('selector_method'))),
+              buildLabeled(
+                  'Method', const MethodSelector(key: Key('selector_method'))),
               const SizedBox(width: AppTokens.s3),
               const Expanded(child: UrlInput(key: Key('input_url_bar'))),
               const SizedBox(width: AppTokens.s3),
@@ -481,7 +489,8 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
                         ),
                       ),
                       const BodyEditor(),
-                      const Center(child: Text('Scripts (Pre-request / Tests)')),
+                      const Center(
+                          child: Text('Scripts (Pre-request / Tests)')),
                     ],
                   ),
                 ),
@@ -509,7 +518,8 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
               const SizedBox(width: 4),
               const InfoButton(
                 title: 'Headers',
-                message: 'HTTP headers allow the client and the server to pass additional information with an HTTP request or response.\n\nCommon headers:\n- Content-Type: application/json\n- Authorization: Bearer <token>',
+                message:
+                    'HTTP headers allow the client and the server to pass additional information with an HTTP request or response.\n\nCommon headers:\n- Content-Type: application/json\n- Authorization: Bearer <token>',
               ),
             ],
           ),
@@ -522,7 +532,8 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
               const SizedBox(width: 4),
               const InfoButton(
                 title: 'Request Body',
-                message: 'The request body is used to send data to the server (e.g., in POST/PUT requests).\n\nSupported types:\n- JSON\n- Form Data\n- Raw Text\n- Binary',
+                message:
+                    'The request body is used to send data to the server (e.g., in POST/PUT requests).\n\nSupported types:\n- JSON\n- Form Data\n- Raw Text\n- Binary',
               ),
             ],
           ),
@@ -546,10 +557,10 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppTokens.s3),
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
             child: tabBar,
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(
               AppTokens.s3,
               0,
@@ -563,12 +574,12 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppTokens.s3),
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.s3),
       child: Row(
         children: [
           Expanded(child: tabBar),
-          SizedBox(width: AppTokens.s3),
-          Flexible(
+          const SizedBox(width: AppTokens.s3),
+          const Flexible(
               child: Align(
                   alignment: Alignment.centerRight, child: contextControls)),
         ],
@@ -689,6 +700,114 @@ class _RequestScreenState extends ConsumerState<RequestScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RequestSidebarDrawer extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _RequestSidebarDrawer({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const SizedBox(width: AppTokens.s2),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Close',
+                        onPressed: onClose,
+                      ),
+                      const SizedBox(width: AppTokens.s1),
+                      Text(
+                        'Sidebar',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                    ],
+                  ),
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'Workspace'),
+                      Tab(text: 'Explorer'),
+                      Tab(text: 'History'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _WorkspaceSidebarOverview(onClose: onClose),
+                const WorkgroupExplorer(),
+                HistoryPanel(onClose: onClose),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkspaceSidebarOverview extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _WorkspaceSidebarOverview({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListView(
+      padding: const EdgeInsets.all(AppTokens.s3),
+      children: [
+        Text(
+          'Explorer Preview',
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: AppTokens.s2),
+        SizedBox(
+          height: 260,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+            child: const WorkgroupExplorer(),
+          ),
+        ),
+        const SizedBox(height: AppTokens.s4),
+        Text(
+          'Recent History',
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: AppTokens.s2),
+        SizedBox(
+          height: 260,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+            child: HistoryPanel(onClose: onClose, showCloseButton: false),
+          ),
+        ),
+      ],
     );
   }
 }

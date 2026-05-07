@@ -23,23 +23,29 @@ class AppMenuBar extends ConsumerWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () => WorkflowActions.handleNew(context, ref),
-              shortcut: const SingleActivator(LogicalKeyboardKey.keyN, meta: true),
+              shortcut:
+                  const SingleActivator(LogicalKeyboardKey.keyN, meta: true),
               child: const MenuAcceleratorLabel('&New Workflow'),
             ),
-             MenuItemButton(
+            MenuItemButton(
               onPressed: () => WorkflowActions.handleOpen(context, ref),
-              shortcut: const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
+              shortcut:
+                  const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
               child: const MenuAcceleratorLabel('&Open...'),
             ),
             const PopupMenuDivider(),
             MenuItemButton(
-              onPressed: () => WorkflowActions.handleSave(context, ref, saveAs: false),
-              shortcut: const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
+              onPressed: () =>
+                  WorkflowActions.handleSave(context, ref, saveAs: false),
+              shortcut:
+                  const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
               child: const MenuAcceleratorLabel('&Save'),
             ),
             MenuItemButton(
-              onPressed: () => WorkflowActions.handleSave(context, ref, saveAs: true),
-              shortcut: const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true),
+              onPressed: () =>
+                  WorkflowActions.handleSave(context, ref, saveAs: true),
+              shortcut: const SingleActivator(LogicalKeyboardKey.keyS,
+                  meta: true, shift: true),
               child: const MenuAcceleratorLabel('Save &As...'),
             ),
             const PopupMenuDivider(),
@@ -54,7 +60,8 @@ class AppMenuBar extends ConsumerWidget {
             const PopupMenuDivider(),
             MenuItemButton(
               onPressed: () => WorkflowActions.handleRun(context, ref),
-              shortcut: const SingleActivator(LogicalKeyboardKey.enter, meta: true),
+              shortcut:
+                  const SingleActivator(LogicalKeyboardKey.enter, meta: true),
               child: const MenuAcceleratorLabel('&Run Workflow'),
             ),
           ],
@@ -66,9 +73,8 @@ class AppMenuBar extends ConsumerWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const WebSocketClientScreen())
-                );
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const WebSocketClientScreen()));
               },
               child: const MenuAcceleratorLabel('&Open Client'),
             ),
@@ -84,19 +90,22 @@ class AppMenuBar extends ConsumerWidget {
                 RadioMenuButton<ThemeMode>(
                   value: ThemeMode.light,
                   groupValue: themeMode,
-                  onChanged: (val) => ref.read(settingsProvider.notifier).setThemeMode(val!),
+                  onChanged: (val) =>
+                      ref.read(settingsProvider.notifier).setThemeMode(val!),
                   child: const Text('Light'),
                 ),
                 RadioMenuButton<ThemeMode>(
                   value: ThemeMode.dark,
                   groupValue: themeMode,
-                  onChanged: (val) => ref.read(settingsProvider.notifier).setThemeMode(val!),
+                  onChanged: (val) =>
+                      ref.read(settingsProvider.notifier).setThemeMode(val!),
                   child: const Text('Dark'),
                 ),
                 RadioMenuButton<ThemeMode>(
                   value: ThemeMode.system,
                   groupValue: themeMode,
-                  onChanged: (val) => ref.read(settingsProvider.notifier).setThemeMode(val!),
+                  onChanged: (val) =>
+                      ref.read(settingsProvider.notifier).setThemeMode(val!),
                   child: const Text('System'),
                 ),
               ],

@@ -7,7 +7,7 @@ class EnvironmentItem {
   Id id = Isar.autoIncrement;
 
   late String name;
-  
+
   // Storing variables as JSON string: {"baseUrl": "http://...", "token": "xyz"}
   late String variablesJson;
 

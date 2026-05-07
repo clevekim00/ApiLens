@@ -8,11 +8,11 @@ class EdgePainter extends CustomPainter {
   final List<WorkflowEdge> edges;
   final Offset? dragStart;
   final Offset? dragEnd;
-  final String? selectedEdgeId; 
+  final String? selectedEdgeId;
   final Map<String, bool>? traversedEdgeIds; // edgeId -> isError
 
   EdgePainter({
-    required this.nodes, 
+    required this.nodes,
     required this.edges,
     this.dragStart,
     this.dragEnd,
@@ -44,12 +44,14 @@ class EdgePainter extends CustomPainter {
 
     // Draw existing edges
     for (final edge in edges) {
-      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
-      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
-      
+      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId,
+          orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId,
+          orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+
       if (source.id.isNotEmpty && target.id.isNotEmpty) {
         final path = EdgePathUtil.createEdgePath(edge, source, target);
-        
+
         final isSelected = edge.id == selectedEdgeId;
         final isError = traversedEdgeIds?[edge.id] ?? false;
         final isTraversed = traversedEdgeIds?.containsKey(edge.id) ?? false;
@@ -60,18 +62,24 @@ class EdgePainter extends CustomPainter {
         }
 
         canvas.drawPath(path, edgePaint);
-        
+
         // Draw arrow at end (simplified)
         final metrics = path.computeMetrics().toList();
         if (metrics.isNotEmpty) {
-           final endPos = metrics.last.getTangentForOffset(metrics.last.length)?.position;
-           if (endPos != null) {
-              canvas.drawCircle(endPos, 4, Paint()..color = edgePaint.color..style = PaintingStyle.fill);
-           }
+          final endPos =
+              metrics.last.getTangentForOffset(metrics.last.length)?.position;
+          if (endPos != null) {
+            canvas.drawCircle(
+                endPos,
+                4,
+                Paint()
+                  ..color = edgePaint.color
+                  ..style = PaintingStyle.fill);
+          }
         }
       }
     }
-    
+
     // Draw temporary drag line
     if (dragStart != null && dragEnd != null) {
       final tempPaint = Paint()
@@ -79,14 +87,15 @@ class EdgePainter extends CustomPainter {
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-      
+
       final path = Path();
       path.moveTo(dragStart!.dx, dragStart!.dy);
       // Cubic Bezier for smooth curve similar to _createEdgePath logic
       final controlPoint1 = Offset(dragStart!.dx + 50, dragStart!.dy);
       final controlPoint2 = Offset(dragEnd!.dx - 50, dragEnd!.dy);
-      path.cubicTo(controlPoint1.dx, controlPoint1.dy, controlPoint2.dx, controlPoint2.dy, dragEnd!.dx, dragEnd!.dy);
-      
+      path.cubicTo(controlPoint1.dx, controlPoint1.dy, controlPoint2.dx,
+          controlPoint2.dy, dragEnd!.dx, dragEnd!.dy);
+
       canvas.drawPath(path, tempPaint);
     }
   }
@@ -94,26 +103,27 @@ class EdgePainter extends CustomPainter {
   @override
   bool hitTest(Offset position) {
     for (final edge in edges) {
-      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
-      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId, orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      final source = nodes.firstWhere((n) => n.id == edge.sourceNodeId,
+          orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
+      final target = nodes.firstWhere((n) => n.id == edge.targetNodeId,
+          orElse: () => WorkflowNode(id: '', type: '', x: 0, y: 0));
       if (source.id.isEmpty || target.id.isEmpty) continue;
 
       final path = EdgePathUtil.createEdgePath(edge, source, target);
       if (EdgePathUtil.isPointNearPath(path, position)) {
-         return true;
+        return true;
       }
     }
     return false;
   }
 
-
   @override
   bool shouldRepaint(covariant EdgePainter oldDelegate) {
-    return oldDelegate.nodes != nodes || 
-           oldDelegate.edges != edges || 
-           oldDelegate.dragStart != dragStart || 
-           oldDelegate.dragEnd != dragEnd ||
-           oldDelegate.selectedEdgeId != selectedEdgeId ||
-           oldDelegate.traversedEdgeIds != traversedEdgeIds;
+    return oldDelegate.nodes != nodes ||
+        oldDelegate.edges != edges ||
+        oldDelegate.dragStart != dragStart ||
+        oldDelegate.dragEnd != dragEnd ||
+        oldDelegate.selectedEdgeId != selectedEdgeId ||
+        oldDelegate.traversedEdgeIds != traversedEdgeIds;
   }
 }

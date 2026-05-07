@@ -109,7 +109,8 @@ void main() {
       expect(find.text('/users'), findsAtLeastNWidgets(1));
       final exception = tester.takeException();
       if (exception is FlutterError) {
-        debugPrint(exception.toStringDeep());
+        // ignore: avoid_print
+        print(exception.toStringDeep());
       }
       expect(
         exception,

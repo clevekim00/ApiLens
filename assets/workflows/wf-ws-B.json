@@ -55,6 +55,13 @@
                 "reconnectPolicy": {
                     "maxAttempts": 3,
                     "backoffMs": 500
+                },
+                "execution": {
+                    "timeoutMs": 5000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
                 }
             }
         },
@@ -85,7 +92,14 @@
             "config": {
                 "sessionKey": "mainWs",
                 "payloadFormat": "text",
-                "payload": "hello"
+                "payload": "hello",
+                "execution": {
+                    "timeoutMs": 5000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
+                }
             }
         },
         {
@@ -118,6 +132,13 @@
                 "match": {
                     "type": "anyMessage",
                     "value": ""
+                },
+                "execution": {
+                    "timeoutMs": 3000,
+                    "retry": {
+                        "maxAttempts": 1,
+                        "backoffMs": 500
+                    }
                 }
             }
         },

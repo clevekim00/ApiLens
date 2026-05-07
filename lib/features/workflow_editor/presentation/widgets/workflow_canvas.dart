@@ -60,7 +60,9 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
       if (viewport != Size.zero) {
         final centerGlobal = Offset(viewport.width / 2, viewport.height / 2);
         final worldCenter = _toWorld(centerGlobal);
-        ref.read(workflowEditorProvider.notifier).updateViewportCenter(worldCenter);
+        ref
+            .read(workflowEditorProvider.notifier)
+            .updateViewportCenter(worldCenter);
       }
       setState(() {});
     }
@@ -114,26 +116,6 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
             type: type,
             x: snappedPosition.dx - 80, // Center on node width (160/2)
             y: snappedPosition.dy - 40, // Center on node height (80/2)
-            data: {'name': label},
-          ),
-        );
-  }
-
-  void _addNodeAtCenter(String type, String label) {
-    final viewport = _viewportSize;
-    if (viewport == Size.zero) return;
-
-    final centerGlobal = Offset(viewport.width / 2, viewport.height / 2);
-    // Convert center global to local viewport pos, then to world
-    final worldPosition = _toWorld(centerGlobal);
-    final snappedPosition = _snapToGrid(worldPosition);
-
-    ref.read(workflowEditorProvider.notifier).addNode(
-          WorkflowNode(
-            id: const Uuid().v4(),
-            type: type,
-            x: snappedPosition.dx - 80,
-            y: snappedPosition.dy - 40,
             data: {'name': label},
           ),
         );
@@ -276,9 +258,10 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                       child: Listener(
                         onPointerDown: (event) {
                           // Check for right click
-                          final isRightClick = event.kind == PointerDeviceKind.mouse && 
-                                              event.buttons == kSecondaryMouseButton;
-                          
+                          final isRightClick =
+                              event.kind == PointerDeviceKind.mouse &&
+                                  event.buttons == kSecondaryMouseButton;
+
                           final localPos = event.localPosition;
                           final edgeId = _findEdgeAt(localPos, nodes, edges);
                           final nodeId = _findNodeAt(localPos, nodes);
@@ -332,7 +315,8 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                                     nodes: nodes,
                                     edges: edges,
                                     selectedEdgeId: state.selectedEdgeId,
-                                    traversedEdgeIds: runnerState.traversedEdgeIds,
+                                    traversedEdgeIds:
+                                        runnerState.traversedEdgeIds,
                                   ),
                                 ),
                               ),
@@ -347,58 +331,66 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                                 final isFailure =
                                     execResult?.status == NodeStatus.failure;
 
-                                  return Positioned(
-                                    left: node.x,
-                                    top: node.y,
-                                    child: NodeWidget(
-                                        node: node,
-                                        isActive: state.selectedNodeIds.contains(node.id),
-                                        isRunning: isRunning,
-                                        isSuccess: isSuccess,
-                                        hasError: isFailure,
-                                        onDragStart: (globalPos) {
-                                          final worldPos = _toWorld(globalPos);
-                                          _dragNodeId = node.id;
-                                          _grabOffset =
-                                              worldPos - Offset(node.x, node.y);
-                                          setState(() => _panEnabled =
-                                              false);
-                                        },
-                                        onDragUpdate: (globalPos) {
-                                          if (_dragNodeId != node.id) return;
-                                          final worldPos = _toWorld(globalPos);
-                                          final newPos = worldPos - _grabOffset;
-                                          final snappedPos = _snapToGrid(newPos);
-                                          
-                                          final deltaX = snappedPos.dx - node.x;
-                                          final deltaY = snappedPos.dy - node.y;
+                                return Positioned(
+                                  left: node.x,
+                                  top: node.y,
+                                  child: NodeWidget(
+                                      node: node,
+                                      isActive: state.selectedNodeIds
+                                          .contains(node.id),
+                                      isRunning: isRunning,
+                                      isSuccess: isSuccess,
+                                      hasError: isFailure,
+                                      onDragStart: (globalPos) {
+                                        final worldPos = _toWorld(globalPos);
+                                        _dragNodeId = node.id;
+                                        _grabOffset =
+                                            worldPos - Offset(node.x, node.y);
+                                        setState(() => _panEnabled = false);
+                                      },
+                                      onDragUpdate: (globalPos) {
+                                        if (_dragNodeId != node.id) return;
+                                        final worldPos = _toWorld(globalPos);
+                                        final newPos = worldPos - _grabOffset;
+                                        final snappedPos = _snapToGrid(newPos);
 
-                                          if (deltaX == 0 && deltaY == 0) return;
+                                        final deltaX = snappedPos.dx - node.x;
+                                        final deltaY = snappedPos.dy - node.y;
 
-                                          final notifier = ref.read(workflowEditorProvider.notifier);
-                                          
-                                          // If dragged node is in selection, move all selected nodes
-                                          if (state.selectedNodeIds.contains(node.id)) {
-                                            for (final sid in state.selectedNodeIds) {
-                                              final n = state.nodes.firstWhere((n) => n.id == sid);
-                                              notifier.setNodePosition(sid, n.x + deltaX, n.y + deltaY);
-                                            }
-                                          } else {
-                                            // Otherwise just move this node
-                                            notifier.setNodePosition(node.id, snappedPos.dx, snappedPos.dy);
+                                        if (deltaX == 0 && deltaY == 0) return;
+
+                                        final notifier = ref.read(
+                                            workflowEditorProvider.notifier);
+
+                                        // If dragged node is in selection, move all selected nodes
+                                        if (state.selectedNodeIds
+                                            .contains(node.id)) {
+                                          for (final sid
+                                              in state.selectedNodeIds) {
+                                            final n = state.nodes
+                                                .firstWhere((n) => n.id == sid);
+                                            notifier.setNodePosition(sid,
+                                                n.x + deltaX, n.y + deltaY);
                                           }
-                                        },
+                                        } else {
+                                          // Otherwise just move this node
+                                          notifier.setNodePosition(node.id,
+                                              snappedPos.dx, snappedPos.dy);
+                                        }
+                                      },
                                       onDragEnd: () {
                                         _dragNodeId = null;
                                         _grabOffset = Offset.zero;
                                         setState(() => _panEnabled = true);
                                       },
                                       onTap: () {
-                                        final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+                                        final isShiftPressed = HardwareKeyboard
+                                            .instance.isShiftPressed;
                                         ref
                                             .read(
                                                 workflowEditorProvider.notifier)
-                                            .selectNode(node.id, multi: isShiftPressed);
+                                            .selectNode(node.id,
+                                                multi: isShiftPressed);
                                       },
                                       onToggleCompact: () {
                                         ref
@@ -440,7 +432,8 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                     child: EmptyStateWidget(
                       icon: Icons.account_tree_outlined,
                       title: 'Canvas is Empty',
-                      description: 'Drag nodes from the left palette to start building your workflow.',
+                      description:
+                          'Drag nodes from the left palette to start building your workflow.',
                       actionLabel: 'Browse Templates',
                       onAction: () {
                         // This will trigger the template selector logic or a search in command palette
@@ -453,13 +446,16 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                 right: AppTokens.s3,
                 child: _CanvasControls(
                   scale: _currentScale,
-                  isAllCompact: nodes.isNotEmpty && nodes.every((n) => n.isCompact),
+                  isAllCompact:
+                      nodes.isNotEmpty && nodes.every((n) => n.isCompact),
                   onZoomIn: () => _zoomBy(1.2),
                   onZoomOut: () => _zoomBy(1 / 1.2),
                   onFit: () => _fitToNodes(nodes),
                   onReset: _resetZoom,
                   onToggleAllCompact: (compact) {
-                    ref.read(workflowEditorProvider.notifier).setAllNodesCompact(compact);
+                    ref
+                        .read(workflowEditorProvider.notifier)
+                        .setAllNodesCompact(compact);
                   },
                 ),
               ),
@@ -576,12 +572,18 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
       items: <PopupMenuEntry<void>>[
         if (selectionCount > 1) ...[
           PopupMenuItem(
-            child: _MenuItem(icon: Icons.copy, label: 'Duplicate Selection ($selectionCount)'),
+            child: _MenuItem(
+                icon: Icons.copy,
+                label: 'Duplicate Selection ($selectionCount)'),
             onTap: () => Future.microtask(() => notifier.duplicateSelection()),
           ),
           PopupMenuItem(
-            child: _MenuItem(icon: Icons.delete_outline, label: 'Delete Selection ($selectionCount)', color: Colors.redAccent),
-            onTap: () => Future.microtask(() => notifier.deleteNodes(state.selectedNodeIds)),
+            child: _MenuItem(
+                icon: Icons.delete_outline,
+                label: 'Delete Selection ($selectionCount)',
+                color: Colors.redAccent),
+            onTap: () => Future.microtask(
+                () => notifier.deleteNodes(state.selectedNodeIds)),
           ),
         ] else if (nodeId != null) ...[
           PopupMenuItem(
@@ -589,26 +591,38 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
             onTap: () => Future.microtask(() => notifier.duplicateNode(nodeId)),
           ),
           PopupMenuItem(
-            child: const _MenuItem(icon: Icons.delete_outline, label: 'Delete Node', color: Colors.redAccent),
+            child: const _MenuItem(
+                icon: Icons.delete_outline,
+                label: 'Delete Node',
+                color: Colors.redAccent),
             onTap: () => Future.microtask(() => notifier.deleteNode(nodeId)),
           ),
         ] else if (edgeId != null) ...[
           PopupMenuItem(
-            child: const _MenuItem(icon: Icons.link_off, label: 'Delete Edge', color: Colors.redAccent),
+            child: const _MenuItem(
+                icon: Icons.link_off,
+                label: 'Delete Edge',
+                color: Colors.redAccent),
             onTap: () => Future.microtask(() => notifier.deleteEdge(edgeId)),
           ),
         ] else ...[
           PopupMenuItem(
-            child: const _MenuItem(icon: Icons.center_focus_strong, label: 'Fit to View'),
-            onTap: () => Future.microtask(() => _fitToNodes(ref.read(workflowEditorProvider).nodes)),
+            child: const _MenuItem(
+                icon: Icons.center_focus_strong, label: 'Fit to View'),
+            onTap: () => Future.microtask(
+                () => _fitToNodes(ref.read(workflowEditorProvider).nodes)),
           ),
           PopupMenuItem(
-            child: const _MenuItem(icon: Icons.grid_view, label: 'Auto Layout (Simple)'),
+            child: const _MenuItem(
+                icon: Icons.grid_view, label: 'Auto Layout (Simple)'),
             onTap: () => Future.microtask(() => _applySimpleAutoLayout()),
           ),
           const PopupMenuDivider(),
           PopupMenuItem(
-            child: const _MenuItem(icon: Icons.delete_sweep_outlined, label: 'Clear Canvas', color: Colors.redAccent),
+            child: const _MenuItem(
+                icon: Icons.delete_sweep_outlined,
+                label: 'Clear Canvas',
+                color: Colors.redAccent),
             onTap: () => Future.microtask(() => notifier.clearWorkflow()),
           ),
         ],
@@ -847,11 +861,11 @@ class _CanvasMiniMap extends StatelessWidget {
 
   void _handleMove(Offset localPos) {
     if (onMove == null) return;
-    
+
     // Reverse painter logic to get world coords from local minimap coords
     final bounds = _calculateWorldBounds(nodes, canvasSize, nodeSize);
-    final minimapSize = const Size(180, 126);
-    
+    const minimapSize = Size(180, 126);
+
     final scale = _calculateFitScale(bounds, minimapSize);
     final offset = Offset(
       (minimapSize.width - bounds.width * scale) / 2 - bounds.left * scale,
@@ -860,11 +874,12 @@ class _CanvasMiniMap extends StatelessWidget {
 
     final worldX = (localPos.dx - offset.dx) / scale;
     final worldY = (localPos.dy - offset.dy) / scale;
-    
+
     onMove!(Offset(worldX, worldY));
   }
 
-  static Rect _calculateWorldBounds(List<WorkflowNode> nodes, Size canvasSize, Size nodeSize) {
+  static Rect _calculateWorldBounds(
+      List<WorkflowNode> nodes, Size canvasSize, Size nodeSize) {
     if (nodes.isEmpty) return Offset.zero & canvasSize;
     var minX = double.infinity;
     var minY = double.infinity;
@@ -1071,7 +1086,8 @@ class _MenuItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.onSurface),
+        Icon(icon,
+            size: 18, color: color ?? Theme.of(context).colorScheme.onSurface),
         const SizedBox(width: 12),
         Text(
           label,

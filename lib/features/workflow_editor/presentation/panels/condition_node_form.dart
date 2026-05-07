@@ -28,7 +28,8 @@ class _ConditionNodeFormState extends ConsumerState<ConditionNodeForm> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.nodeName);
-    _expressionController = TextEditingController(text: widget.config.expression);
+    _expressionController =
+        TextEditingController(text: widget.config.expression);
   }
 
   @override
@@ -46,7 +47,9 @@ class _ConditionNodeFormState extends ConsumerState<ConditionNodeForm> {
     final data = newConfig.toJson();
     data['name'] = _nameController.text;
 
-    ref.read(workflowEditorProvider.notifier).updateNodeConfig(widget.nodeId, data);
+    ref
+        .read(workflowEditorProvider.notifier)
+        .updateNodeConfig(widget.nodeId, data);
   }
 
   @override
@@ -55,21 +58,23 @@ class _ConditionNodeFormState extends ConsumerState<ConditionNodeForm> {
       children: [
         TextFormField(
           controller: _nameController,
-          decoration: const InputDecoration(labelText: 'Node Name', border: OutlineInputBorder()),
+          decoration: const InputDecoration(
+              labelText: 'Node Name', border: OutlineInputBorder()),
           onChanged: (_) => _save(),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _expressionController,
           decoration: const InputDecoration(
-            labelText: 'Expression', 
+            labelText: 'Expression',
             hintText: '{{result}} == 200',
             border: OutlineInputBorder(),
             helperText: 'Supported: ==, !=, >, <, contains',
             helperMaxLines: 2,
             suffixIcon: InfoButton(
               title: 'Expressions',
-              message: 'Use dynamic expressions to branch your workflow.\n\nVariables: {{node.<id>.response.body}}\nOperations: ==, !=, >, <, >=, <=, contains\n\nExample: {{lastResult.status}} == 200',
+              message:
+                  'Use dynamic expressions to branch your workflow.\n\nVariables: {{node.<id>.response.body}}\nOperations: ==, !=, >, <, >=, <=, contains\n\nExample: {{lastResult.status}} == 200',
             ),
           ),
           onChanged: (_) => _save(),

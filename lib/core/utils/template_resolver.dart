@@ -2,11 +2,11 @@ class TemplateResolver {
   // Replaces {{key.path}} with value from nested context map
   static String resolve(String input, Map<String, dynamic> context) {
     if (input.isEmpty || context.isEmpty) return input;
-    
+
     String result = input;
     // Regex to find {{...}} patterns. Key can contain dots.
     final RegExp regex = RegExp(r'\{\{([a-zA-Z0-9_.]+)\}\}');
-    
+
     result = result.replaceAllMapped(regex, (match) {
       final keyPath = match.group(1);
       if (keyPath != null) {
@@ -17,7 +17,7 @@ class TemplateResolver {
       }
       return match.group(0)!; // Keep original if resolve fails
     });
-    
+
     return result;
   }
 

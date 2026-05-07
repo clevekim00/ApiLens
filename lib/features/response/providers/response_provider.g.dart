@@ -20,7 +20,7 @@ final apiServiceProvider = AutoDisposeProvider<ApiService>.internal(
 );
 
 typedef ApiServiceRef = AutoDisposeProviderRef<ApiService>;
-String _$responseNotifierHash() => r'37e32e06434cb45058754051caba821a545d2649';
+String _$responseNotifierHash() => r'7f04dab6af22d0d32a72b2f3c393442a79d8cc0f';
 
 /// See also [ResponseNotifier].
 @ProviderFor(ResponseNotifier)

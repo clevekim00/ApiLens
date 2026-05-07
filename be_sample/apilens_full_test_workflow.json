@@ -19,7 +19,14 @@
       "config": {
         "endpoint": "{{env.baseUrl}}/graphql",
         "query": "query { hello getItems { id name value } }",
-        "variablesJson": "{}"
+        "variablesJson": "{}",
+        "execution": {
+          "timeoutMs": 10000,
+          "retry": {
+            "maxAttempts": 1,
+            "backoffMs": 500
+          }
+        }
       }
     },
     {
@@ -32,7 +39,14 @@
       "config": {
         "mode": "direct",
         "url": "{{env.wsUrl}}",
-        "storeAs": "testWs"
+        "storeAs": "testWs",
+        "execution": {
+          "timeoutMs": 5000,
+          "retry": {
+            "maxAttempts": 1,
+            "backoffMs": 500
+          }
+        }
       }
     },
     {
@@ -45,7 +59,14 @@
       "config": {
         "sessionKey": "testWs",
         "payloadFormat": "json",
-        "payload": "{\"text\": \"Hello from Workflow\"}"
+        "payload": "{\"text\": \"Hello from Workflow\"}",
+        "execution": {
+          "timeoutMs": 5000,
+          "retry": {
+            "maxAttempts": 1,
+            "backoffMs": 500
+          }
+        }
       }
     },
     { "id": "end_ok", "type": "end", "name": "All OK", "position": { "x": 950, "y": 200 }, "inputPorts": [{ "key": "in" }], "outputPorts": [], "config": {}, "data": { "name": "End OK" } }

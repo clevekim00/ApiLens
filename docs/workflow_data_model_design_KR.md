@@ -7,6 +7,7 @@ erDiagram
     Workflow ||--|{ WorkflowEdge : "노드 연결 (connects nodes)"
     WorkflowNode ||--|{ NodePort : "입출력 포트 보유 (has inputs/outputs)"
     WorkflowNode ||--|| NodeConfig : "설정 보유 (has configuration)"
+    NodeConfig ||--|| ExecutionPolicy : "실행 정책 보유 (has runtime policy)"
     
     WorkflowEdge {
         string id
@@ -34,6 +35,10 @@ erDiagram
 
     NodeConfig ||--|{ HttpNodeConfig : "type=http"
     NodeConfig ||--|{ ConditionNodeConfig : "type=condition"
+    NodeConfig ||--|{ GraphQLNodeConfig : "type=gql_request"
+    NodeConfig ||--|{ WebSocketConnectNodeConfig : "type=ws_connect"
+    NodeConfig ||--|{ WebSocketSendNodeConfig : "type=ws_send"
+    NodeConfig ||--|{ WebSocketWaitNodeConfig : "type=ws_wait"
 ```
 
 ## JSON 구조 모델
@@ -75,8 +80,34 @@ class WorkflowNode {
 ```
 
 **설정 (Configurations)**:
-- **HttpNodeConfig**: `method` (GET/POST...), `url`, `headers` (Map), `query` (Map), `body`, `auth`.
-- **ConditionNodeConfig**: `expression` (String).
+- **HttpNodeConfig**: `method` (GET/POST...), `url`, `headers` (Map), `body`, 선택적 `execution`.
+- **ConditionNodeConfig**: `expression` (String), 선택적 `execution`.
+- **GraphQLNodeConfig**: `endpoint`, `headers`, `query`, `variablesJson`, `storeAs`, 선택적 `execution`.
+- **WebSocketConnectNodeConfig**: `mode`, `url`, `configRefId`, `storeAs`, `headers`, 선택적 `execution`.
+- **WebSocketSendNodeConfig**: `sessionKey`, `payloadFormat`, `payload`, 선택적 `execution`.
+- **WebSocketWaitNodeConfig**: `sessionKey`, `timeoutMs`, `match`, 선택적 `execution`.
+
+**실행 정책 (Execution Policy)**:
+```dart
+class ExecutionPolicy {
+  final int? timeoutMs;
+  final RetryPolicy retry;
+}
+
+class RetryPolicy {
+  final int maxAttempts;
+  final int backoffMs;
+  final List<int> retryOnStatusCodes;
+  final bool retryOnTimeout;
+}
+```
+
+실행 규칙:
+- `timeoutMs`는 실행 시도 1회당 적용됩니다.
+- `maxAttempts`는 최초 실행 이후 추가 재시도 횟수입니다.
+- HTTP/GraphQL 노드는 `408`, `429`, `5xx` 계열 등 설정된 상태 코드에서 재시도할 수 있습니다.
+- WebSocket 노드는 예외와 timeout 상황에서 재시도할 수 있습니다.
+- 재시도를 모두 소진하면 실행형 노드는 `failure` 포트로 이동합니다.
 
 ## 구현 세부사항
 - **다형성 (Polymorphism)**: `NodeConfig`는 추상 클래스 또는 Union으로 구현되며, `type` 식별자를 통해 직렬화하거나 부모인 `WorkflowNode`의 직렬화 로직 내에서 `type` 필드를 기반으로 처리됩니다.

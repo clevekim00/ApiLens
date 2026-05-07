@@ -6,7 +6,8 @@ import 'package:apilens/features/dashboard/presentation/widgets/traffic_chart.da
 
 void main() {
   group('Dashboard UI Tests', () {
-    testWidgets('DashboardScreen renders all key components', (WidgetTester tester) async {
+    testWidgets('DashboardScreen renders all key components',
+        (WidgetTester tester) async {
       // Build the DashboardScreen
       await tester.pumpWidget(
         const MaterialApp(
@@ -17,8 +18,12 @@ void main() {
       );
 
       // Verify Header
-      expect(find.text('API Dashboard Summary - Global Payments'), findsOneWidget);
-      expect(find.text('Real-time overview of your API orchestration health and performance.'), findsOneWidget);
+      expect(
+          find.text('API Dashboard Summary - Global Payments'), findsOneWidget);
+      expect(
+          find.text(
+              'Real-time overview of your API orchestration health and performance.'),
+          findsOneWidget);
 
       // Verify StatCards exist
       expect(find.byType(StatCard), findsNWidgets(4));
@@ -33,7 +38,8 @@ void main() {
       expect(find.text('Checkout API'), findsOneWidget);
     });
 
-    testWidgets('StatCard displays correct data and trend', (WidgetTester tester) async {
+    testWidgets('StatCard displays correct data and trend',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -53,12 +59,13 @@ void main() {
       expect(find.text('100%'), findsOneWidget);
       expect(find.text('5%'), findsOneWidget);
       expect(find.byIcon(Icons.check), findsOneWidget);
-      
+
       // Verify positive trend icon
       expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
     });
 
-    testWidgets('Dashboard handles responsive layout (Narrow Width)', (WidgetTester tester) async {
+    testWidgets('Dashboard handles responsive layout (Narrow Width)',
+        (WidgetTester tester) async {
       // Set a narrow screen size
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -75,7 +82,7 @@ void main() {
       // We can check if they are laid out vertically by checking their offsets
       final checkoutApiFinder = find.text('Checkout API');
       final paymentInitFinder = find.text('Payment-Init');
-      
+
       final checkoutOffset = tester.getTopLeft(checkoutApiFinder);
       final paymentOffset = tester.getTopLeft(paymentInitFinder);
 

@@ -21,7 +21,8 @@ class WorkflowTemplateSelector extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppTokens.s3),
           child: Row(
             children: [
-              Icon(Icons.auto_awesome_outlined, size: 16, color: theme.colorScheme.primary),
+              Icon(Icons.auto_awesome_outlined,
+                  size: 16, color: theme.colorScheme.primary),
               const SizedBox(width: AppTokens.s2),
               Text(
                 'Start from Template',
@@ -86,7 +87,7 @@ class _TemplateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       width: 160,
       margin: const EdgeInsets.only(right: AppTokens.s3, bottom: 4),
@@ -96,7 +97,8 @@ class _TemplateCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(AppTokens.s4),
           decoration: BoxDecoration(
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+            border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1)),
             borderRadius: BorderRadius.circular(AppTokens.radiusMd),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -141,7 +143,8 @@ class _TemplateCard extends StatelessWidget {
                 description,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   fontSize: 11,
                 ),
               ),

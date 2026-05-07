@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'key_value_item.dart';
 
 enum RequestBodyType { json, text, form, none }
+
 enum AuthType { none, bearer, basic, apiKey }
 
 @immutable
@@ -42,7 +43,7 @@ class RequestModel {
       id: const Uuid().v4(),
       headers: [KeyValueItem.initial()],
       params: [KeyValueItem.initial()],
-      pathParams: [],
+      pathParams: const [],
       groupId: groupId,
     );
   }
@@ -86,14 +87,17 @@ class RequestModel {
       method: json['method'] as String? ?? 'GET',
       url: json['url'] as String? ?? '',
       headers: (json['headers'] as List?)
-          ?.map((e) => KeyValueItem.fromJson(e))
-          .toList() ?? [],
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
       params: (json['params'] as List?) // Query
-          ?.map((e) => KeyValueItem.fromJson(e))
-          .toList() ?? [],
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
       pathParams: (json['pathParams'] as List?)
-          ?.map((e) => KeyValueItem.fromJson(e))
-          .toList() ?? [],
+              ?.map((e) => KeyValueItem.fromJson(e))
+              .toList() ??
+          [],
       body: json['body'] as String?,
       bodyType: RequestBodyType.values.firstWhere(
           (e) => e.toString() == 'RequestBodyType.${json['bodyType']}',

@@ -19,15 +19,15 @@ class DataInitializationService {
     final workflowRepo = _ref.read(workflowRepositoryProvider);
 
     // Only seed if there are no workgroups
-    final existingGroups = await workgroupRepo.getAll();
+    final existingGroups = workgroupRepo.getAll();
     if (existingGroups.isNotEmpty) return;
 
     // 1. Create Sample Workgroup
     final sampleGroup = WorkgroupModel.create(
-      name: 'Welcome to ApiLens',
-      type: WorkgroupType.requestCollection,
-      description: 'Check out these samples to get started with API workflows.'
-    );
+        name: 'Welcome to ApiLens',
+        type: WorkgroupType.requestCollection,
+        description:
+            'Check out these samples to get started with API workflows.');
     await workgroupRepo.save(sampleGroup);
 
     // 2. Create Sample REST Request
@@ -56,4 +56,5 @@ class DataInitializationService {
   }
 }
 
-final dataInitializationServiceProvider = Provider((ref) => DataInitializationService(ref));
+final dataInitializationServiceProvider =
+    Provider((ref) => DataInitializationService(ref));

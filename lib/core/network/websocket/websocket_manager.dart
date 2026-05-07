@@ -60,7 +60,8 @@ class WebSocketConnection {
 
 class WebSocketManager {
   final Map<String, WebSocketConnection> _connections = {};
-  final StreamController<WebSocketLog> _logController = StreamController.broadcast();
+  final StreamController<WebSocketLog> _logController =
+      StreamController.broadcast();
 
   // Expose logs stream
   Stream<WebSocketLog> get logStream => _logController.stream;
@@ -71,7 +72,7 @@ class WebSocketManager {
     try {
       final uri = Uri.parse(url);
       final channel = WebSocketChannel.connect(uri);
-      
+
       // Wait for connection ready (optional, but good for verification)
       await channel.ready;
 
@@ -85,18 +86,14 @@ class WebSocketManager {
       _connections[connectionId] = connection;
 
       // Listen for incoming messages to log
-      connection.stream.listen(
-        (data) {
-          _log(connectionId, data.toString(), isSent: false);
-        },
-        onError: (e) {
-           _log(connectionId, 'Error: $e', isSent: false);
-        },
-        onDone: () {
-           _log(connectionId, 'Connection Closed', isSent: false);
-           _connections.remove(connectionId);
-        }
-      );
+      connection.stream.listen((data) {
+        _log(connectionId, data.toString(), isSent: false);
+      }, onError: (e) {
+        _log(connectionId, 'Error: $e', isSent: false);
+      }, onDone: () {
+        _log(connectionId, 'Connection Closed', isSent: false);
+        _connections.remove(connectionId);
+      });
 
       _log(connectionId, 'Connected to $url', isSent: true);
       return connectionId;
@@ -129,10 +126,10 @@ class WebSocketManager {
       _log(connectionId, 'Disconnected by user', isSent: true);
     }
   }
-  
+
   /// Get active connection IDs
   List<String> getActiveConnections() => _connections.keys.toList();
-  
+
   /// Get connection by ID (internal use mainly)
   WebSocketConnection? getConnection(String id) => _connections[id];
 
@@ -145,7 +142,7 @@ class WebSocketManager {
       isSent: isSent,
     ));
   }
-  
+
   void dispose() {
     for (var conn in _connections.values) {
       conn.close();

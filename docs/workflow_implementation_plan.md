@@ -29,6 +29,11 @@ Build an n8n-style API Workflow Orchestrator where users can visually chain API 
     - **Variable Resolver**:
         - Syntax: `{{node.nodeId.data.response.body.token}}`.
         - Logic: Regex parse `{{...}}` -> lookup in `executionContext`.
+    - **Timeout/Retry Policy**:
+        - Executable nodes can include `execution.timeoutMs`.
+        - `execution.retry.maxAttempts` defines extra attempts after the first run.
+        - HTTP/GraphQL can retry on configured status codes such as `408`, `429`, and `5xx`.
+        - Exhausted retries route the node to the `failure` port when connected.
 
 ### 3. Canvas UI (`lib/features/workflow/ui`)
 - **WorkflowCanvas**: 
@@ -57,6 +62,7 @@ Build an n8n-style API Workflow Orchestrator where users can visually chain API 
 ### Phase 4: Execution Engine
 - [ ] Build the `Runner`.
 - [ ] Implement Variable Substitution logic.
+- [x] Add per-attempt timeout/retry policy for HTTP, GraphQL, and WebSocket executable nodes.
 - [ ] UI: "Run Workflow" button and execution visualization (highlight active node).
 
 ## User Review Required

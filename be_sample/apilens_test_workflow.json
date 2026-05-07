@@ -35,7 +35,14 @@
           "Content-Type": "application/json"
         },
         "body": "{\"username\": \"{{env.username}}\", \"password\": \"{{env.password}}\"}",
-        "storeResultAs": "loginResponse"
+        "storeResultAs": "loginResponse",
+        "execution": {
+          "timeoutMs": 10000,
+          "retry": {
+            "maxAttempts": 2,
+            "backoffMs": 500
+          }
+        }
       }
     },
     {
@@ -63,6 +70,13 @@
         "method": "GET",
         "headers": {
           "Authorization": "Bearer {{env.jwtToken}}"
+        },
+        "execution": {
+          "timeoutMs": 10000,
+          "retry": {
+            "maxAttempts": 2,
+            "backoffMs": 500
+          }
         }
       }
     },

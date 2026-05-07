@@ -8,7 +8,6 @@ import '../../history/models/history_item.dart';
 import '../../request/providers/request_provider.dart';
 import '../../request/models/key_value_item.dart';
 import '../../request/models/request_model.dart'; // for AuthType enum mapping
-import '../../workgroup/presentation/widgets/workgroup_explorer.dart';
 import '../../../core/ui/tokens/app_tokens.dart';
 
 class HistoryPanel extends ConsumerStatefulWidget {
@@ -313,16 +312,16 @@ class _TinyChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-              shadows: [
-                Shadow(
-                  color: color.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                ),
-              ],
+          color: color,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+          shadows: [
+            Shadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 2,
             ),
+          ],
+        ),
       ),
     );
   }
@@ -344,33 +343,37 @@ class _SidebarEmptyState extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTokens.s4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 30,
-              color: theme.colorScheme.primary.withValues(alpha: 0.62),
-            ),
-            const SizedBox(height: AppTokens.s2),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 30,
+                color: theme.colorScheme.primary.withValues(alpha: 0.62),
               ),
-            ),
-            const SizedBox(height: AppTokens.s1),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+              const SizedBox(height: AppTokens.s2),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              const SizedBox(height: AppTokens.s1),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

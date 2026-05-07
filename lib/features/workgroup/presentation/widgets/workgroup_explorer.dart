@@ -514,7 +514,9 @@ void _showCreateWorkflowDialog(
               final id = await ref
                   .read(savedWorkflowControllerProvider.notifier)
                   .createWorkflow(
-                    name: controller.text.isNotEmpty ? controller.text : template.name,
+                    name: controller.text.isNotEmpty
+                        ? controller.text
+                        : template.name,
                     groupId: targetGroupId,
                     nodes: template.nodes,
                     edges: template.edges,
@@ -841,8 +843,6 @@ class _ExplorerCountBadge extends StatelessWidget {
   }
 }
 
-
-
 class _ExplorerEmptyState extends StatelessWidget {
   const _ExplorerEmptyState();
 
@@ -853,7 +853,9 @@ class _ExplorerEmptyState extends StatelessWidget {
       title: 'Explorer is Empty',
       description: 'Create a folder to start organizing your API projects.',
       actionLabel: 'Create Folder',
-      onAction: () => (context.findAncestorStateOfType<_WorkgroupExplorerState>())?._showCreateFolderDialog(context),
+      onAction: () =>
+          (context.findAncestorStateOfType<_WorkgroupExplorerState>())
+              ?._showCreateFolderDialog(context),
     );
   }
 }

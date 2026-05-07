@@ -23,7 +23,11 @@
         "protocols": [],
         "autoReconnect": false,
         "reconnectPolicy": { "maxAttempts": 0, "backoffMs": 0 },
-        "storeAs": "mainWs"
+        "storeAs": "mainWs",
+        "execution": {
+          "timeoutMs": 5000,
+          "retry": { "maxAttempts": 1, "backoffMs": 500 }
+        }
       }
     },
     {
@@ -37,7 +41,11 @@
       "config": {
         "sessionKey": "mainWs",
         "payloadFormat": "text",
-        "payload": "{\"type\":\"ping\"}"
+        "payload": "{\"type\":\"ping\"}",
+        "execution": {
+          "timeoutMs": 5000,
+          "retry": { "maxAttempts": 1, "backoffMs": 500 }
+        }
       }
     },
     {
@@ -51,7 +59,11 @@
       "config": {
         "sessionKey": "mainWs",
         "timeoutMs": 5000,
-        "match": { "type": "containsText", "value": "ping" }
+        "match": { "type": "containsText", "value": "ping" },
+        "execution": {
+          "timeoutMs": 5000,
+          "retry": { "maxAttempts": 1, "backoffMs": 500 }
+        }
       }
     },
     { "id": "endOk", "type": "end", "name": "End OK", "position": { "x": 1160, "y": 140 }, "inputPorts": [{ "key": "in" }], "outputPorts": [], "config": {}, "data": {"name": "End OK"} },

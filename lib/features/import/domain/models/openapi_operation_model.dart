@@ -9,9 +9,9 @@ class OpenApiOperation {
   final String? operationId;
   final List<String> tags;
   final List<dynamic> parameters; // Raw parameters from parsing
-  final dynamic requestBody;      // Raw requestBody
-  final List<dynamic> security;   // Raw security requirements
-  
+  final dynamic requestBody; // Raw requestBody
+  final List<dynamic> security; // Raw security requirements
+
   // Helper for UI
   final String id; // Unique ID for keying (internal use)
 
@@ -56,8 +56,11 @@ class OpenApiOperation {
 }
 
 enum BaseUrlBehavior { fixed, env }
+
 enum DuplicateBehavior { skip, rename, createNew }
+
 enum BodySampleStrategy { minimal, schema, example }
+
 enum AuthBehavior { detect, ignore }
 
 class ImportOptions {
