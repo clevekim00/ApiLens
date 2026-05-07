@@ -35,6 +35,15 @@ After adding new providers or models, be sure to run the following command:
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
+### Data Migrations
+When changing local storage schemas, add a versioned migration to `MigrationService`.
+
+- Migration code: `lib/core/data/migration_service.dart`
+- Strategy document: `docs/DATA_MIGRATION_STRATEGY.en.md`
+- Regression tests: `test/migration_service_test.dart`
+
+New steps should use monotonic IDs such as `004_...`, and changed values should be backed up before writing.
+
 ---
 
 ## 🎨 Design System & Theming

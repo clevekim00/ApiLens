@@ -35,6 +35,15 @@ ApiLens는 **Riverpod**을 상태 관리의 핵심으로 사용합니다.
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
+### 데이터 마이그레이션
+로컬 저장 스키마를 바꾸는 경우 `MigrationService`에 버전형 마이그레이션을 추가해야 합니다.
+
+- 마이그레이션 코드: `lib/core/data/migration_service.dart`
+- 전략 문서: `docs/DATA_MIGRATION_STRATEGY.ko.md`
+- 회귀 테스트: `test/migration_service_test.dart`
+
+새 단계는 `004_...`처럼 단조 증가 ID를 사용하고, 변경 전 값은 백업 박스에 저장해야 합니다.
+
 ---
 
 ## 🎨 디자인 시스템 및 테마

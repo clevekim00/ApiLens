@@ -319,20 +319,26 @@ class GraphQLNodeConfig implements NodeConfig {
         'execution': executionPolicy.toJson(),
       };
 
-  factory GraphQLNodeConfig.fromJson(Map<String, dynamic> json) =>
-      GraphQLNodeConfig(
-        mode: json['mode'] as String? ?? 'direct',
-        endpoint: json['endpoint'] as String?,
-        configRefId: json['configRefId'] as String?,
-        headers:
-            (json['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
-        auth: Map<String, dynamic>.from(json['auth'] ?? {'type': 'none'}),
-        query: json['query'] ?? '',
-        variablesJson: json['variablesJson'] ?? '{}',
-        storeAs: json['storeAs'] ?? 'gqlResult',
-        executionPolicy: ExecutionPolicy.fromJson(
-            json['execution'] as Map<String, dynamic>?),
-      );
+  factory GraphQLNodeConfig.fromJson(Map<String, dynamic> json) {
+    final legacyConfig = json['config'] is Map
+        ? Map<String, dynamic>.from(json['config'] as Map)
+        : null;
+    final source = legacyConfig ?? json;
+
+    return GraphQLNodeConfig(
+      mode: source['mode'] as String? ?? 'direct',
+      endpoint: (source['endpoint'] ?? source['url']) as String?,
+      configRefId: source['configRefId'] as String?,
+      headers:
+          (source['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
+      auth: Map<String, dynamic>.from(source['auth'] ?? {'type': 'none'}),
+      query: source['query'] ?? '',
+      variablesJson: source['variablesJson'] ?? '{}',
+      storeAs: source['storeAs'] ?? 'gqlResult',
+      executionPolicy:
+          ExecutionPolicy.fromJson(json['execution'] as Map<String, dynamic>?),
+    );
+  }
 }
 
 class EmptyNodeConfig implements NodeConfig {

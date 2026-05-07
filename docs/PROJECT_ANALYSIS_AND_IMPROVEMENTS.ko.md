@@ -33,7 +33,7 @@ ApiLens의 핵심 가치는 "API 요청을 만들고 실행하는 화면"에서 
 - Hive 기반 저장소: Workgroup, Request, Workflow, WebSocket Config
 - Isar 기반 저장소: History, Environment
 
-현재 `main.dart`는 Hive 초기화, Workflow Hive adapter 등록, 주요 Repository 초기화를 수행한 뒤 Provider override로 앱에 주입합니다. 이 구조는 이전보다 안전한 방향입니다. 다만 저장소 종류가 Hive와 Isar로 나뉘어 있어 장기적으로는 데이터 계층의 경계와 책임을 더 명확히 할 필요가 있습니다.
+현재 `main.dart`는 Hive 초기화, Workflow Hive adapter 등록, 주요 Repository 초기화를 수행한 뒤 Provider override로 앱에 주입합니다. 이후 `MigrationService`가 버전 기록 기반 마이그레이션을 실행하여 Workgroup, Request, Workflow 데이터를 최신 저장 구조로 보정합니다. 저장소 종류가 Hive와 Isar로 나뉘어 있으므로 장기적으로도 데이터 계층의 경계와 책임은 계속 명확히 유지해야 합니다.
 
 ### Feature 구조
 
@@ -168,7 +168,8 @@ ApiLens의 가장 큰 차별화 포인트입니다. Canvas, NodePalette, Inspect
 
 - 저장소 초기화와 provider 주입 경로가 조금만 어긋나도 late initialization 문제가 날 수 있음
 - Hive adapter 등록은 앱 진입점에 있으나 테스트/도구 실행 경로에서도 일관되게 보장해야 함
-- History와 Environment는 Isar, 나머지는 Hive라 백업/마이그레이션 전략이 복잡해질 수 있음
+- Workgroup/Request/Workflow는 버전 기록 기반 마이그레이션과 백업 박스를 사용하도록 개선됨
+- History와 Environment는 Isar 기반이라, 향후 Isar schema 변경 시 별도 마이그레이션 절차가 필요함
 
 ### P1: 워크플로 실행 신뢰성
 
@@ -193,7 +194,7 @@ ApiLens의 가장 큰 차별화 포인트입니다. Canvas, NodePalette, Inspect
 ### 1단계: 안정화
 
 - `flutter analyze` 경고 정리
-- 저장소 초기화, adapter 등록, migration 경로 문서화
+- 저장소 초기화, adapter 등록, migration 경로 문서화 및 회귀 테스트 유지
 - `test/network_test.dart` 같은 회귀 테스트 패턴을 parser/execution에도 확장
 - `ApiService`, `GraphQLService`, `ExecutionEngine`의 응답 디코딩 방식을 일관화
 

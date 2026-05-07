@@ -108,7 +108,7 @@ class RequestModel {
       authData: (json['authData'] as Map<String, dynamic>?)?.map(
         (k, v) => MapEntry(k, v.toString()),
       ),
-      groupId: json['groupId'] as String?,
+      groupId: (json['groupId'] ?? json['workgroupId']) as String?,
       source: json['source'],
     );
   }
