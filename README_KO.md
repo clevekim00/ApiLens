@@ -29,6 +29,13 @@
 - **Timeout/Retry 정책**: HTTP, GraphQL, WebSocket 워크플로우 노드에 시도별 timeout, retry backoff, 재시도 상태 코드 규칙을 적용할 수 있습니다.
 - **워크플로우 템플릿**: "인증 흐름", "CRUD 동기화", "GraphQL 탐색기" 등 미리 구축된 시나리오 라이브러리를 제공합니다.
 
+### 🧭 Load Hub 분산 성능 테스트
+- **원격 워크플로우 부하 실행**: 하나의 Workflow를 여러 원격 머신의 에이전트로 나누어 실행하는 LoadRunner 스타일 성능 테스트 흐름을 제공합니다.
+- **원격 머신/에이전트 관제**: 머신 상태, 에이전트 heartbeat, capacity, 버전, 연결 품질을 중앙에서 확인합니다.
+- **실시간 지표 취합**: 에이전트가 집계한 `MetricWindowEvent`를 Load Hub에서 합산해 RPS, 오류율, p50/p90/p95/p99 latency를 보여줍니다.
+- **에이전트 업그레이드 오케스트레이션**: drain, install, restart, health check, rollback 흐름으로 원격 에이전트를 단계적으로 업그레이드합니다.
+- **Report/Export**: 실행 결과를 JSON, CSV, Markdown report로 내보낼 수 있습니다.
+
 ### 📊 실시간 대시보드 및 분석
 - **중앙 관제 센터**: 앱 실행 시 가장 먼저 만나는 프리미엄 대시보드입니다. 전체 API 에코시스템의 상태를 한눈에 파악하세요.
 - **성능 메트릭 시각화**: API 헬스체크, 평균 응답 시간, 요청 성공률 및 에러율을 실시간 통계 카드로 제공합니다.
@@ -71,7 +78,13 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 - 불안정한 네트워크 호출에는 timeout/retry 정책을 설정하고, 복구 흐름이 필요하면 `failure` 포트를 연결합니다.
 - **실행(Run)**을 클릭하여 시각적 디버깅 과정을 확인합니다.
 
-### 4. 커맨드 팔레트로 효율성 극대화하기
+### 4. Load Hub로 성능 테스트 관제하기
+- 상단 내비게이션의 **Load Hub / 로드 허브** 탭으로 이동합니다.
+- Machines 탭에서 원격 머신과 에이전트 상태를 확인합니다.
+- Runs와 Metrics 탭에서 분산 실행 상태, RPS, 오류율, latency percentile을 모니터링합니다.
+- Agent Updates 탭에서 원격 에이전트 업그레이드와 rollback 상태를 추적합니다.
+
+### 5. 커맨드 팔레트로 효율성 극대화하기
 - 언제 어디서든 **Cmd + K** (또는 **Ctrl + K**)를 누르세요.
 - 특정 요청, 워크플로우 또는 앱 명령어를 입력하여 검색합니다.
 - 방향키와 **Enter**를 사용하여 즉시 이동하세요.
@@ -95,6 +108,9 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 ### 📖 가이드
 - **설치 방법**: [전체 설치 가이드](docs/INSTALLATION_GUIDE_KO.md)
 - **사용 방법**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
+- **Load Hub 설계**: [원격 로드 러너 설계](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
+- **Load Hub 운영**: [Load Hub 운영 가이드](docs/LOAD_HUB_OPERATIONS.ko.md)
+- **원격 에이전트**: [원격 에이전트 설정 가이드](docs/REMOTE_AGENT_SETUP.ko.md)
 - **테스트 서버**: [샘플 백엔드 구축 및 사용법](be_sample/README.md)
 - **App Store 배포**: [App Store 출시 가이드](docs/APP_STORE_PUBLISH_GUIDE_KO.md)
 - **직접 배포**: [실행 파일 직접 배포 가이드](docs/DIRECT_DISTRIBUTION_GUIDE_KO.md)
@@ -109,6 +125,7 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 
 ## 🌍 관련 리소스
 - **사용 가이드**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
+- **Load Hub 문서**: [설계](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [운영](docs/LOAD_HUB_OPERATIONS.ko.md), [에이전트 설정](docs/REMOTE_AGENT_SETUP.ko.md)
 - **기술 문서**: `docs/` 디렉토리에서 프로토콜별 가이드(GraphQL, WebSocket)를 확인하세요.
 
 ---

@@ -123,4 +123,49 @@ void main() {
     expect(data['execution'], isA<Map>());
     expect((data['execution'] as Map)['retry'], isA<Map>());
   });
+
+  test('normalizes workflow nodes with missing http fields instead of crashing',
+      () async {
+    final workflows = await Hive.openBox('workflows_box');
+    await workflows.put(
+      'wf-malformed-node',
+      {
+        'id': 'wf-malformed-node',
+        'name': 'Malformed Node Workflow',
+        'schemaVersion': 1,
+        'nodes': [
+          {
+            'id': 'api-missing-url',
+            'type': 'api',
+            'x': 12,
+            'y': 34,
+            'data': {
+              'name': 'Broken API',
+              'type': 'http',
+              'url': null,
+              'method': null,
+              'headers': {'accept': 'application/json'},
+              'execution': {
+                'retry': {'maxAttempts': 1}
+              },
+            },
+          },
+        ],
+        'edges': [],
+      },
+    );
+
+    await MigrationService().run();
+
+    final migrated = jsonDecode(workflows.get('wf-malformed-node') as String)
+        as Map<String, dynamic>;
+    final node =
+        ((migrated['nodes'] as List).single as Map).cast<String, dynamic>();
+    final data = (node['data'] as Map).cast<String, dynamic>();
+
+    expect(data['url'], '');
+    expect(data['method'], 'GET');
+    expect(data['name'], 'Broken API');
+    expect(data['execution'], isA<Map>());
+  });
 }

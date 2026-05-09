@@ -7,6 +7,7 @@ import '../../features/request/screens/request_screen.dart';
 
 import '../../features/workflow_editor/presentation/workflow_editor_screen.dart';
 import '../../features/import/presentation/screens/openapi_import_screen.dart';
+import '../../features/remote_runner/presentation/screens/load_hub_screen.dart';
 import '../../features/environments/widgets/environment_selector.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/workgroup/presentation/widgets/workgroup_explorer.dart';
@@ -76,6 +77,16 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       action: () => nav.setIndex(3),
       tags: ['swagger', 'postman', 'import'],
     ));
+
+    commandService.registerCommand(AppCommand(
+      id: 'open_load_hub',
+      title: 'Open Load Hub',
+      description: 'Monitor distributed workflow load tests',
+      icon: Icons.hub_outlined,
+      action: () => nav.setIndex(4),
+      tags: ['load', 'performance', 'remote', 'agent'],
+    ));
+
     commandService.registerCommand(AppCommand(
       id: 'open_settings',
       title: 'Settings',
@@ -162,11 +173,12 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                       Expanded(
                         child: IndexedStack(
                           index: currentIndex,
-                          children: const [
-                            DashboardScreen(),
-                            RequestScreen(isStandalone: false),
-                            WorkflowEditorScreen(),
-                            OpenApiImportScreen(targetGroupId: 'root'),
+                          children: [
+                            const DashboardScreen(),
+                            const RequestScreen(isStandalone: false),
+                            const WorkflowEditorScreen(),
+                            const OpenApiImportScreen(targetGroupId: 'root'),
+                            LoadHubScreen.sample(),
                           ],
                         ),
                       ),
@@ -206,6 +218,7 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 860;
+          final veryCompact = constraints.maxWidth < 520;
 
           final logo = Row(
             mainAxisSize: MainAxisSize.min,
@@ -265,17 +278,35 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                 _keyImport,
                 currentIndex,
               ),
+              const SizedBox(width: AppTokens.s2),
+              _buildNavTab(
+                l10n.translate('load_hub'),
+                4,
+                theme,
+                null,
+                currentIndex,
+              ),
             ],
           );
 
           final rightActions = Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: compact ? 120 : 160,
-                child: const EnvironmentSelector(),
+              if (!veryCompact) ...[
+                SizedBox(
+                  width: compact ? 120 : 160,
+                  child: const EnvironmentSelector(),
+                ),
+                const SizedBox(width: AppTokens.s2),
+              ],
+              IconButton(
+                key: const Key('menu_load_hub'),
+                icon: const Icon(Icons.hub_outlined, size: 20),
+                tooltip: 'Load Hub',
+                onPressed: () {
+                  ref.read(navigationProvider.notifier).setIndex(4);
+                },
               ),
-              const SizedBox(width: AppTokens.s2),
               IconButton(
                 key: const Key('menu_workflow'),
                 icon: const Icon(Icons.account_tree_outlined, size: 20),
@@ -284,24 +315,49 @@ class _MainWorkspaceScreenState extends ConsumerState<MainWorkspaceScreen> {
                   ref.read(navigationProvider.notifier).setIndex(2);
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.help_outline, size: 20),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HelpScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, size: 20),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                },
-              ),
+              if (!veryCompact) ...[
+                IconButton(
+                  icon: const Icon(Icons.help_outline, size: 20),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpScreen()),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined, size: 20),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    );
+                  },
+                ),
+              ] else
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_horiz, size: 20),
+                  tooltip: 'More',
+                  onSelected: (value) {
+                    if (value == 'help') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HelpScreen()),
+                      );
+                    }
+                    if (value == 'settings') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsScreen()),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'help', child: Text('Help')),
+                    PopupMenuItem(value: 'settings', child: Text('Settings')),
+                  ],
+                ),
             ],
           );
 

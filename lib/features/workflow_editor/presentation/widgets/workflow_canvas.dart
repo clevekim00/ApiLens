@@ -459,30 +459,33 @@ class _WorkflowCanvasState extends ConsumerState<WorkflowCanvas> {
                   },
                 ),
               ),
-              Positioned(
-                right: AppTokens.s3,
-                bottom: AppTokens.s3,
-                child: _CanvasMiniMap(
-                  nodes: nodes,
-                  edges: edges,
-                  transform: _transformationController.value,
-                  viewportSize: _viewportSize,
-                  canvasSize: _canvasSize,
-                  nodeSize: _nodeSize,
-                  onMove: (worldOffset) {
-                    final viewport = _viewportSize;
-                    final currentScale = _currentScale;
-                    _transformationController.value = Matrix4.identity()
-                      ..translateByDouble(
-                        viewport.width / 2 - worldOffset.dx * currentScale,
-                        viewport.height / 2 - worldOffset.dy * currentScale,
-                        0,
-                        1,
-                      )
-                      ..scaleByDouble(currentScale, currentScale, 1, 1);
-                  },
+              if (nodes.length > 1 &&
+                  _viewportSize.width >= 520 &&
+                  _viewportSize.height >= 340)
+                Positioned(
+                  right: AppTokens.s3,
+                  bottom: AppTokens.s3,
+                  child: _CanvasMiniMap(
+                    nodes: nodes,
+                    edges: edges,
+                    transform: _transformationController.value,
+                    viewportSize: _viewportSize,
+                    canvasSize: _canvasSize,
+                    nodeSize: _nodeSize,
+                    onMove: (worldOffset) {
+                      final viewport = _viewportSize;
+                      final currentScale = _currentScale;
+                      _transformationController.value = Matrix4.identity()
+                        ..translateByDouble(
+                          viewport.width / 2 - worldOffset.dx * currentScale,
+                          viewport.height / 2 - worldOffset.dy * currentScale,
+                          0,
+                          1,
+                        )
+                        ..scaleByDouble(currentScale, currentScale, 1, 1);
+                    },
+                  ),
                 ),
-              ),
 
               // Fixed Connection Feedback Overlay (Outside InteractiveViewer)
               if (connectingNodeId != null)

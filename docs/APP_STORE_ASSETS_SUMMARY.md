@@ -25,6 +25,16 @@ App Store 등록에 필요한 1024x1024 앱 아이콘과 고해상도 macOS 스�
 *경로: `assets/images/screenshot_client.png`*
 *설명: REST, WebSocket, GraphQL 요청 및 응답을 처리하는 전문적인 개발자 도구 인터페이스입니다.*
 
+### 4. Load Hub 분산 성능 테스트
+*권장 신규 스크린샷: `assets/images/screenshot_load_hub.png`*
+*설명: 원격 머신과 원격 에이전트를 관리하고, 워크플로우 기반 분산 성능 테스트의 RPS, 오류율, latency percentile, agent upgrade 상태를 실시간으로 관제하는 화면입니다.*
+
+## 홍보 문구 업데이트 포인트
+
+- 워크플로우 자동화뿐 아니라 여러 원격 에이전트에서 실행하는 분산 성능 테스트를 지원합니다.
+- Load Hub에서 원격 머신 상태, 에이전트 heartbeat, shard lifecycle, backpressure, report/export 흐름을 확인할 수 있습니다.
+- 에이전트 업그레이드는 drain, install, restart, health check, rollback 흐름으로 안전하게 관리됩니다.
+
 ---
 
 > [!NOTE]

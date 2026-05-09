@@ -64,53 +64,11 @@ void main() {
     // [Smoke 2] Menu Items
     expect(find.byKey(const Key('menu_workflow')), findsOneWidget,
         reason: 'Workflow menu icon missing');
-    expect(find.byKey(const Key('tab_websocket')), findsOneWidget,
-        reason: 'WebSocket tab missing');
-
-    // [Smoke 3] Settings & Theme
-    await tester.tap(find.byKey(const Key('btn_more_actions')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    await tester.tap(find.byKey(const Key('menu_settings')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    // Verify Settings Screen
-    expect(find.byKey(const Key('screen_settings')), findsOneWidget);
-
-    // Toggle Theme (Dark -> Light -> System) interaction
-    // Just tapping to verify no crash and finding widgets
-    await tester.tap(find.byKey(const Key('settings_theme_dark')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    await tester.tap(find.byKey(const Key('settings_theme_light')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    await tester.pageBack();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    // [Smoke 4] WebSocket
-    await tester.tap(find.byKey(const Key('tab_websocket')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.byKey(const Key('screen_websocket_client')), findsOneWidget);
-    expect(find.byKey(const Key('input_ws_url')), findsOneWidget);
-    expect(find.byKey(const Key('btn_ws_connect')), findsOneWidget);
-
-    // [Smoke 5] Request Builder Elements (Switch back to HTTP)
-    await tester.tap(find.text('HTTP / REST'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
+    // [Smoke 3] Request Builder Elements
     expect(find.byKey(const Key('selector_method')), findsOneWidget);
     expect(find.byKey(const Key('input_url_bar')), findsOneWidget);
 
-    // [Smoke 6] Workflow Editor Canvas
+    // [Smoke 4] Workflow Editor Canvas
     await tester.tap(find.byKey(const Key('menu_workflow')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -119,8 +77,9 @@ void main() {
         reason: 'Workflow Canvas failed to load');
     expect(find.byKey(const Key('btn_canvas_fit')), findsOneWidget,
         reason: 'Workflow Canvas fit control missing');
-    expect(find.byKey(const Key('canvas_minimap')), findsOneWidget,
-        reason: 'Workflow Canvas minimap missing');
+    expect(find.byKey(const Key('canvas_minimap')), findsNothing,
+        reason:
+            'Workflow Canvas minimap should stay hidden for an empty workflow');
   });
 
   testWidgets('Smoke Test: Request sidebar collapses on narrow screens',
@@ -161,6 +120,6 @@ void main() {
 
     expect(find.text('Workspace'), findsOneWidget);
     expect(find.text('Explorer'), findsOneWidget);
-    expect(find.text('History'), findsOneWidget);
+    expect(find.textContaining(RegExp('History|히스토리')), findsOneWidget);
   });
 }

@@ -4,12 +4,13 @@
 
 ## 빠르게 둘러보기 (Quick Tour)
 
-화면은 크게 5가지 영역으로 구성됩니다:
+화면은 크게 6가지 영역으로 구성됩니다:
 
     *   **Dashboard (메인)**: 실시간 API 헬스체크, 응답 시간, 트래픽 통계를 보여주는 중앙 관제 센터.
-    *   **Navigation (상단)**: 대시보드, 요청(Requests), 워크플로우(Workflows), 가져오기(Import) 간의 빠른 전환.
+    *   **Navigation (상단)**: 대시보드, 요청(Requests), 워크플로우(Workflows), 가져오기(Import), Load Hub 간의 빠른 전환.
     *   **Explorer (좌측)**: 워크그룹 및 폴더 단위의 요청 관리.
     *   **Canvas (중앙)**: 워크플로우를 디자인하는 무한 작업 공간.
+    *   **Load Hub**: 원격 머신과 원격 에이전트 기반 분산 성능 테스트를 관제하는 화면.
     *   **Command Palette (Cmd + K)**: 작업 검색, 워크플로우 전환, 설정을 한 번에 실행하는 전역 검색창.
 
 ## 첫 번째 워크플로우 만들기
@@ -68,6 +69,29 @@
 *   **Failure Routing**: 모든 재시도가 실패하면 노드는 `failure` 포트로 이동합니다. 실패 처리 경로를 연결해두면 에러 로깅/복구 시나리오를 구성할 수 있습니다.
 
 자세한 정책 JSON 예시는 [Workflow Timeout/Retry 정책](WORKFLOW_TIMEOUT_RETRY_POLICY.ko.md)을 참고하세요.
+
+## Load Hub로 분산 성능 테스트하기
+
+Load Hub는 작성한 Workflow를 여러 원격 에이전트에 shard 단위로 나누어 실행하고, 결과를 실시간으로 취합하는 성능 테스트 콘솔입니다.
+
+### 1. Load Hub 진입
+*   상단 내비게이션에서 **Load Hub / 로드 허브** 탭을 선택합니다.
+*   우측 상단 hub 아이콘이나 커맨드 팔레트의 `Open Load Hub` 명령으로도 이동할 수 있습니다.
+
+### 2. 원격 머신과 에이전트 확인
+*   **Machines** 탭에서 원격 머신의 admin state(`enabled`, `disabled`, `draining`)와 에이전트 상태를 확인합니다.
+*   heartbeat, version, capacity, supported node type을 기준으로 shard 배정 가능 여부를 판단합니다.
+
+### 3. 실행과 지표 모니터링
+*   **Runs** 탭은 run 상태와 shard lifecycle을 보여줍니다.
+*   **Metrics** 탭은 RPS, 오류율, p50/p90/p95/p99 latency, agent utilization을 보여줍니다.
+*   Load Hub는 개별 요청 raw event 전체가 아니라 에이전트가 짧은 시간창으로 집계한 `MetricWindowEvent`를 취합합니다.
+
+### 4. 에이전트 업그레이드와 결과 export
+*   **Agent Updates** 탭에서 drain, install, restart, health check, rollback 흐름을 확인합니다.
+*   완료된 run은 JSON, CSV, Markdown report로 내보낼 수 있습니다.
+
+자세한 운영 절차는 [Load Hub 운영 가이드](LOAD_HUB_OPERATIONS.ko.md), 원격 에이전트 계약은 [원격 에이전트 설정 가이드](REMOTE_AGENT_SETUP.ko.md)를 참고하세요.
 
 ## 저장 및 불러오기
 

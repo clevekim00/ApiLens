@@ -1,5 +1,18 @@
 import 'dart:convert';
 
+Map<String, dynamic>? _jsonMap(dynamic value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return null;
+}
+
+Map<String, String>? _stringMap(dynamic value) {
+  final map = _jsonMap(value);
+  if (map == null) return null;
+  return map.map((key, value) => MapEntry(key, value?.toString() ?? ''));
+}
+
 abstract class NodeConfig {
   Map<String, dynamic> toJson();
 
@@ -33,7 +46,8 @@ class RetryPolicy {
       maxAttempts: (json['maxAttempts'] as num?)?.toInt() ?? 0,
       backoffMs: (json['backoffMs'] as num?)?.toInt() ?? 250,
       retryOnStatusCodes: (json['retryOnStatusCodes'] as List?)
-              ?.map((value) => (value as num).toInt())
+              ?.whereType<num>()
+              .map((value) => value.toInt())
               .toList() ??
           const [408, 429, 500, 502, 503, 504],
       retryOnTimeout: json['retryOnTimeout'] as bool? ?? true,
@@ -70,7 +84,7 @@ class ExecutionPolicy {
 
     return ExecutionPolicy(
       timeoutMs: (json['timeoutMs'] as num?)?.toInt(),
-      retry: RetryPolicy.fromJson(json['retry'] as Map<String, dynamic>?),
+      retry: RetryPolicy.fromJson(_jsonMap(json['retry'])),
     );
   }
 }
@@ -102,13 +116,11 @@ class HttpNodeConfig implements NodeConfig {
       };
 
   factory HttpNodeConfig.fromJson(Map<String, dynamic> json) => HttpNodeConfig(
-        url: json['url'] as String,
-        method: json['method'] as String,
-        headers:
-            (json['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
-        body: json['body'] as String?,
-        executionPolicy: ExecutionPolicy.fromJson(
-            json['execution'] as Map<String, dynamic>?),
+        url: json['url']?.toString() ?? '',
+        method: json['method']?.toString().toUpperCase() ?? 'GET',
+        headers: _stringMap(json['headers']),
+        body: json['body']?.toString(),
+        executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution'])),
       );
 }
 
@@ -131,9 +143,8 @@ class ConditionNodeConfig implements NodeConfig {
 
   factory ConditionNodeConfig.fromJson(Map<String, dynamic> json) =>
       ConditionNodeConfig(
-        expression: json['expression'] as String,
-        executionPolicy: ExecutionPolicy.fromJson(
-            json['execution'] as Map<String, dynamic>?),
+        expression: json['expression']?.toString() ?? '',
+        executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution'])),
       );
 }
 
@@ -185,13 +196,11 @@ class WebSocketConnectNodeConfig implements NodeConfig {
         configRefId: json['configRefId'] as String?,
         protocols: (json['protocols'] as List?)?.cast<String>() ?? const [],
         autoReconnect: json['autoReconnect'] as bool? ?? false,
-        reconnectPolicy: json['reconnectPolicy'] as Map<String, dynamic>? ??
+        reconnectPolicy: _jsonMap(json['reconnectPolicy']) ??
             const {'maxAttempts': 0, 'backoffMs': 0},
         storeAs: json['storeAs'] as String? ?? 'mainWs',
-        headers:
-            (json['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
-        executionPolicy: ExecutionPolicy.fromJson(
-            json['execution'] as Map<String, dynamic>?),
+        headers: _stringMap(json['headers']),
+        executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution'])),
       );
 }
 
@@ -222,10 +231,9 @@ class WebSocketSendNodeConfig implements NodeConfig {
       WebSocketSendNodeConfig(
         sessionKey: json['sessionKey'] as String? ?? 'mainWs',
         payloadFormat: json['payloadFormat'] as String? ?? 'text',
-        payload: (json['payload'] ?? json['message'])
-            as String, // failover for backward compat
-        executionPolicy: ExecutionPolicy.fromJson(
-            json['execution'] as Map<String, dynamic>?),
+        payload: (json['payload'] ?? json['message'])?.toString() ??
+            '', // failover for backward compat
+        executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution'])),
       );
 }
 
@@ -262,10 +270,10 @@ class WebSocketWaitNodeConfig implements NodeConfig {
                 'type': 'containsText',
                 'value': json['match']
               } // Backward compat
-            : json['match'] as Map<String, dynamic>,
-        executionPolicy:
-            ExecutionPolicy.fromJson(json['execution'] as Map<String, dynamic>?)
-                .copyWith(timeoutMs: (json['timeoutMs'] as int?) ?? 5000),
+            : _jsonMap(json['match']) ??
+                const {'type': 'containsText', 'value': ''},
+        executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution']))
+            .copyWith(timeoutMs: (json['timeoutMs'] as int?) ?? 5000),
       );
 }
 
@@ -329,14 +337,12 @@ class GraphQLNodeConfig implements NodeConfig {
       mode: source['mode'] as String? ?? 'direct',
       endpoint: (source['endpoint'] ?? source['url']) as String?,
       configRefId: source['configRefId'] as String?,
-      headers:
-          (source['headers'] as Map<String, dynamic>?)?.cast<String, String>(),
-      auth: Map<String, dynamic>.from(source['auth'] ?? {'type': 'none'}),
-      query: source['query'] ?? '',
-      variablesJson: source['variablesJson'] ?? '{}',
-      storeAs: source['storeAs'] ?? 'gqlResult',
-      executionPolicy:
-          ExecutionPolicy.fromJson(json['execution'] as Map<String, dynamic>?),
+      headers: _stringMap(source['headers']),
+      auth: _jsonMap(source['auth']) ?? {'type': 'none'},
+      query: source['query']?.toString() ?? '',
+      variablesJson: source['variablesJson']?.toString() ?? '{}',
+      storeAs: source['storeAs']?.toString() ?? 'gqlResult',
+      executionPolicy: ExecutionPolicy.fromJson(_jsonMap(json['execution'])),
     );
   }
 }

@@ -15,6 +15,7 @@
 - **협업의 어려움**: API 명세와 테스트 시나리오를 파일(`json`) 하나로 쉽게 공유할 수 있습니다.
 - **지능형 작업**: **커맨드 팔레트(Cmd+K)**를 통해 수천 개의 API와 워크플로우를 즉시 검색하고 제어합니다.
 - **복잡한 테스트**: "로그인 후 토큰을 받아 웹소켓 연결"과 같은 연속적인 시나리오를 코딩 없이 워크플로우로 구성하고, **실시간 시각적 디버깅**으로 흐름을 관찰합니다.
+- **분산 성능 검증**: Load Hub로 하나의 Workflow를 여러 원격 에이전트에 나누어 실행하고, 실시간 지표와 report를 중앙에서 확인합니다.
 
 ### 대상 사용자
 - API를 개발하고 테스트하는 **백엔드/프론트엔드 개발자**
@@ -66,6 +67,13 @@ API 호출의 기본 단위입니다.
 
 ### Environment
 `{{env.baseUrl}}`과 같이 전역 변수를 관리하여 개발/운영 환경을 쉽게 전환할 수 있습니다. (현재 개발 중)
+
+### Load Hub
+Workflow 기반 성능 테스트를 여러 원격 머신에서 실행하고 중앙에서 관제하는 기능입니다.
+- **원격 머신**: 원격 에이전트가 설치되는 host입니다.
+- **원격 에이전트**: shard를 실행하고 `MetricWindowEvent`를 Load Hub로 보내는 daemon입니다.
+- **Shard**: 하나의 run을 agent별 실행 조각으로 나눈 단위입니다.
+- **Backpressure**: Load Hub가 ingest 부하를 감지해 에이전트 전송량을 조절하는 흐름 제어입니다.
 
 ---
 
@@ -198,7 +206,32 @@ ApiLens의 워크플로우는 실행 과정을 실시간으로 생중계합니�
 
 ---
 
-## 10. 테마 및 환경 설정
+## 10. Load Hub
+
+Load Hub는 Workflow를 여러 원격 에이전트로 분산 실행하고, 성능 지표와 에이전트 운영 상태를 실시간으로 확인하는 화면입니다.
+
+### 진입 방법
+- 상단 내비게이션의 `Load Hub / 로드 허브` 탭을 선택합니다.
+- 우측 hub 아이콘 또는 커맨드 팔레트의 `Open Load Hub` 명령으로 이동할 수 있습니다.
+
+### 화면 구성
+- **Machines**: 원격 머신, 에이전트 상태, version, capacity, admin state를 확인합니다.
+- **Runs**: 분산 run과 shard lifecycle을 확인합니다.
+- **Metrics**: RPS, 오류율, p50/p90/p95/p99 latency, agent utilization을 확인합니다.
+- **Logs**: warning/error 중심 로그를 확인합니다.
+- **Agent Updates**: staged upgrade와 rollback 결과를 확인합니다.
+
+### 성능 취합 방식
+Load Hub는 모든 요청 raw event를 실시간으로 전송하지 않습니다. 원격 에이전트가 1초 또는 5초 단위로 local aggregation한 `MetricWindowEvent`를 보내고, Load Hub가 이를 dedupe, merge, backpressure 제어로 처리합니다.
+
+### 참고 문서
+- [Load Hub 원격 로드 러너 설계](REMOTE_LOAD_RUNNER_DESIGN.ko.md)
+- [Load Hub 운영 가이드](LOAD_HUB_OPERATIONS.ko.md)
+- [원격 에이전트 설정 가이드](REMOTE_AGENT_SETUP.ko.md)
+
+---
+
+## 11. 테마 및 환경 설정
 ![Theme Settings](assets/screenshots/10_settings_theme.png)
 
 ### Dark / Light 전환
@@ -211,7 +244,7 @@ ApiLens의 워크플로우는 실행 과정을 실시간으로 생중계합니�
 
 ---
 
-## 11. 지능형 기능 (Intelligent Features)
+## 12. 지능형 기능 (Intelligent Features)
 
 ### 커맨드 팔레트 (Command Palette)
 어느 화면에서든 `Cmd + K` (또는 `Ctrl + K`)를 눌러 앱의 모든 기능을 제어하세요.
@@ -221,7 +254,7 @@ ApiLens의 워크플로우는 실행 과정을 실시간으로 생중계합니�
 
 ---
 
-## 12. 문제 해결
+## 13. 문제 해결
 ### 자주 묻는 질문 (FAQ)
 **Q. REST 요청 시 CORS 에러가 발생합니다.**
 A. Web 버전에서는 브라우저 보안 정책상 CORS 제약이 있습니다. 데스크톱 앱을 사용하거나, 서버에서 CORS를 허용해주세요.

@@ -4,12 +4,14 @@
 
 ## 빠르게 둘러보기 (Quick Tour)
 
-화면은 크게 5가지 영역으로 구성됩니다:
+화면은 크게 6가지 영역으로 구성됩니다:
 
 1.  **仪表板 (Dashboard)**: 显示实时 API 健康检查、响应时间和流量统计的中央控制中心。
-2.  **导航栏 (Top Bar)**: 在仪表板、请求 (Requests)、工作流 (Workflows) 和导入 (Import) 之间快速切换。
+2.  **导航栏 (Top Bar)**: 在仪表板、请求 (Requests)、工作流 (Workflows)、导入 (Import) 和 Load Hub 之间快速切换。
 3.  **资源管理器 (Explorer)**: 按工作组和文件夹管理您的请求。
 4.  **画布 (Canvas)**: 设计工作流的无限工作空间。
+5.  **Load Hub**: 管理远程机器和远程代理的分布式性能测试控制台。
+6.  **Command Palette (Cmd + K)**: 快速搜索和执行应用命令。
 
 ## 첫 번째 워크플로우 만들기
 
@@ -52,6 +54,18 @@
     *   성공한 노드: **초록색** 테두리.
     *   실패한 노드: **빨간색** 테두리.
 4.  **로그 확인**: 하단 패널을 열어 각 단계의 요청/응답 상세 내용을 확인합니다.
+
+## Load Hub로 분산 성능 테스트하기
+
+Load Hub는 하나의 Workflow를 여러 원격 에이전트에 shard 단위로 나누어 실행하고, 실시간 성능 지표를 한 화면에서 취합합니다.
+
+*   **Load Hub 열기**: 상단 `Load Hub` 탭, hub 아이콘, 또는 `Open Load Hub` 명령을 사용합니다.
+*   **Machines**: 원격 머신의 admin state, agent heartbeat, version, capacity를 확인합니다.
+*   **Runs / Metrics**: shard lifecycle, RPS, 오류율, p50/p90/p95/p99 latency를 확인합니다.
+*   **Agent Updates**: drain, install, restart, health check, rollback 진행 상태를 추적합니다.
+*   **Reports**: 완료된 run을 JSON, CSV, Markdown으로 내보냅니다.
+
+자세한 내용은 [Load Hub 운영 가이드](LOAD_HUB_OPERATIONS.ko.md)와 [원격 에이전트 설정 가이드](REMOTE_AGENT_SETUP.ko.md)를 참고하세요.
 
 ## 저장 및 불러오기
 

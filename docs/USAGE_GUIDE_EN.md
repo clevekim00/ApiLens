@@ -4,13 +4,14 @@ This guide explains the interface and how to build, configure, and execute autom
 
 ## Quick Tour
 
-The primary interface consists of five main areas:
+The primary interface consists of six main areas:
 
 1.  **Dashboard (Home)**: The central command center showing real-time API health, performance metrics, and traffic trends.
-2.  **Navigation (Top Bar)**: Quick switching between Dashboard, Requests, Workflows, and Import.
+2.  **Navigation (Top Bar)**: Quick switching between Dashboard, Requests, Workflows, Import, and Load Hub.
 3.  **Explorer (Left Sidebar)**: Organize and manage your requests by workgroups and folders.
 4.  **Canvas (Center)**: The infinite workspace where you design your flow.
-5.  **Command Palette (Cmd + K)**: A global search and action bar to navigate and execute commands instantly.
+5.  **Load Hub**: The distributed performance testing console for remote machines and agents.
+6.  **Command Palette (Cmd + K)**: A global search and action bar to navigate and execute commands instantly.
 
 ## Create Your First Workflow
 
@@ -70,6 +71,18 @@ Executable nodes (HTTP, GraphQL, WebSocket Connect/Send/Wait) can include a shar
 *   **Failure Routing**: If all attempts fail, execution follows the `failure` port when it is connected.
 
 See [Workflow Timeout/Retry Policy](WORKFLOW_TIMEOUT_RETRY_POLICY.en.md) for the current JSON shape and implementation notes.
+
+## Distributed Performance Tests with Load Hub
+
+Load Hub runs a Workflow across multiple remote agents as shards, then aggregates live metrics into one operational view.
+
+*   **Open Load Hub**: Use the main `Load Hub` tab, the hub icon, or the `Open Load Hub` command.
+*   **Machines**: Inspect machine admin state, agent heartbeat, version, capacity, and scheduling eligibility.
+*   **Runs and Metrics**: Monitor shard lifecycle, RPS, error rate, p50/p90/p95/p99 latency, and agent utilization.
+*   **Agent Updates**: Track drain, install, restart, health check, and rollback progress.
+*   **Reports**: Export completed run results as JSON, CSV, or Markdown.
+
+See [Load Hub Operations](LOAD_HUB_OPERATIONS.ko.md) and [Remote Agent Setup](REMOTE_AGENT_SETUP.ko.md) for implementation and operations details.
 
 ## Saving & Loading
 

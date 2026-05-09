@@ -127,7 +127,9 @@ class WorkflowNode {
       type: json['type'] as String? ?? 'api',
       x: (json['x'] as num?)?.toDouble() ?? 0.0,
       y: (json['y'] as num?)?.toDouble() ?? 0.0,
-      data: json['data'] as Map<String, dynamic>? ?? {},
+      data: json['data'] is Map
+          ? Map<String, dynamic>.from(json['data'] as Map)
+          : {},
       inputPortKeys: (json['inputs'] as List?)?.cast<String>(),
       outputPortKeys: (json['outputs'] as List?)?.cast<String>(),
       isCompact: json['isCompact'] as bool? ?? false,

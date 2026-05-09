@@ -14,6 +14,7 @@
 - **Fragmented Tools**: Solves the issue of managing REST (Postman), WebSocket (wscat), and automation scripts (Python) separately.
 - **Collaboration Difficulties**: Easily share API specs and test scenarios via a single file (`.json`).
 - **Complex Testing**: Configure sequential scenarios like "Receive token after login -> Connect WebSocket" without writing code.
+- **Distributed Performance Validation**: Use Load Hub to run one Workflow across multiple remote agents, aggregate live metrics, and export reports.
 
 ### Target Audience
 - **Backend/Frontend Developers** developing and testing APIs.
@@ -64,6 +65,13 @@ A project-level folder concept. Isolates Requests and Workflows just like folder
 
 ### Environment
 Manages global variables like `{{env.baseUrl}}` to easily switch between Development/Production environments. (Currently under development)
+
+### Load Hub
+A distributed performance testing console for running Workflow-based load tests across remote machines.
+- **Remote Machine**: A host where a remote agent can run.
+- **Remote Agent**: A daemon that executes shards and sends `MetricWindowEvent` data back to Load Hub.
+- **Shard**: A deterministic piece of a distributed run assigned to an agent.
+- **Backpressure**: Flow control that reduces agent event volume when ingest pressure rises.
 
 ---
 
@@ -189,7 +197,32 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 
 ---
 
-## 10. Theme & Settings
+## 10. Load Hub
+
+Load Hub distributes Workflow execution across remote agents and shows performance metrics plus agent operations in one view.
+
+### How to Open
+- Select the `Load Hub` tab in the main navigation.
+- Use the hub icon or the `Open Load Hub` command in the command palette.
+
+### Views
+- **Machines**: Remote machines, agent status, version, capacity, and admin state.
+- **Runs**: Distributed runs and shard lifecycle.
+- **Metrics**: RPS, error rate, p50/p90/p95/p99 latency, and agent utilization.
+- **Logs**: Warning/error focused operational logs.
+- **Agent Updates**: Staged upgrades and rollback results.
+
+### Metrics Ingestion
+Load Hub does not stream every raw request event in real time. Remote agents locally aggregate short windows into `MetricWindowEvent` payloads, then Load Hub deduplicates, merges, and applies backpressure.
+
+### References
+- [Remote Load Runner Design](REMOTE_LOAD_RUNNER_DESIGN.ko.md)
+- [Load Hub Operations Guide](LOAD_HUB_OPERATIONS.ko.md)
+- [Remote Agent Setup Guide](REMOTE_AGENT_SETUP.ko.md)
+
+---
+
+## 11. Theme & Settings
 ![Theme Settings](assets/screenshots/10_settings_theme.png)
 
 ### Dark / Light Switch
@@ -202,7 +235,7 @@ In a Workflow, obtain an auth token via REST API, then inject it into GraphQL He
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 ### FAQ
 **Q. CORS Error occurs during REST request.**
 A. The Web version has CORS restrictions due to browser security policies. Use the Desktop app or allow CORS on the server.

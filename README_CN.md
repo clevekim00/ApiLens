@@ -28,6 +28,13 @@
 - **实时可视化调试**：实时观看工作流的执行。成功的路径变为**绿色**，失败变为**红色**，活动节点会以**蓝色**光晕脉动显示。
 - **工作流模板**：内置场景库，如“认证流程”、“CRUD 同步”和“GraphQL 资源管理器”。
 
+### 🧭 Load Hub 分布式性能测试
+- **远程工作流压测**：将一个 Workflow 分配给多台远程机器上的代理执行，支持类似 LoadRunner 的性能测试流程。
+- **远程机器与代理管理**：集中查看机器状态、代理 heartbeat、容量、版本和连接健康度。
+- **实时指标汇总**：汇总代理侧 `MetricWindowEvent`，展示 RPS、错误率和 p50/p90/p95/p99 延迟。
+- **代理升级编排**：通过 drain、install、restart、health check、rollback 流程分阶段升级远程代理。
+- **报告导出**：将完成的执行结果导出为 JSON、CSV 或 Markdown 报告。
+
 ### 📊 实时仪表板与分析
 - **中央控制中心**：启动应用程序时首先看到的专业级仪表板。一目了然地掌握整个 API 生态系统的健康状况。
 - **性能指标可视化**：通过实时统计卡片提供 API 健康检查、平均响应时间、请求成功率和错误率。
@@ -69,7 +76,13 @@ ApiLens 使用**工作组**来保持项目的独立性。
 - 连接端口以定义逻辑流（例如：将登录节点的 `success` 输出连接到获取节点的 `input`）。
 - 点击 **运行 (Run)** 执行并观看实时可视化调试。
 
-### 4. 利用命令面板提升效率
+### 4. 使用 Load Hub 监控性能测试
+- 从主导航打开 **Load Hub**。
+- 在 Machines 中查看远程机器和代理状态。
+- 在 Runs 和 Metrics 中查看分布式执行、RPS、错误率和延迟百分位。
+- 在 Agent Updates 中跟踪分阶段升级和 rollback 状态。
+
+### 5. 利用命令面板提升效率
 - 随时按下 **Cmd + K** (或 **Ctrl + K**)。
 - 输入以搜索特定的请求、工作流或应用程序命令。
 - 使用方向键和 **Enter** 键即时跳转。
@@ -93,6 +106,8 @@ ApiLens 使用**工作组**来保持项目的独立性。
 ### 📖 指南
 - **安装方法**: [完整安装指南](docs/INSTALLATION_GUIDE_CN.md)
 - **使用方法**: [详细使用指南](docs/USAGE_GUIDE_CN.md)
+- **Load Hub 设计**: [远程 Load Runner 设计](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
+- **Load Hub 运维**: [Load Hub 运维指南](docs/LOAD_HUB_OPERATIONS.ko.md)
 - **开发指南**: [面向开发人员的技术指南](docs/DEVELOP_GUIDE_KO.md)
 
 ### 🛠 本地开发
@@ -104,6 +119,7 @@ ApiLens 使用**工作组**来保持项目的独立性。
 
 ## 🌍 相关资源
 - **使用指南**：[详细使用指南](docs/USAGE_GUIDE_CN.md)
+- **Load Hub 文档**：[设计](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)、[运维](docs/LOAD_HUB_OPERATIONS.ko.md)、[远程代理设置](docs/REMOTE_AGENT_SETUP.ko.md)
 - **技术文档**：查看 `docs/` 目录中的协议特定指南（GraphQL、WebSocket）。
 
 ---

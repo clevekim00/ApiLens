@@ -205,12 +205,23 @@ class _CompactWorkflowTools extends StatelessWidget {
                   theme.colorScheme.onSurface.withValues(alpha: 0.62),
               tabs: const [
                 Tab(
-                    icon: Icon(Icons.widgets_outlined, size: 16),
-                    text: 'Nodes'),
-                Tab(icon: Icon(Icons.tune, size: 16), text: 'Inspector'),
+                  child: _CompactToolTab(
+                    icon: Icons.widgets_outlined,
+                    label: 'Nodes',
+                  ),
+                ),
                 Tab(
-                    icon: Icon(Icons.bug_report_outlined, size: 16),
-                    text: 'Debug'),
+                  child: _CompactToolTab(
+                    icon: Icons.tune,
+                    label: 'Inspector',
+                  ),
+                ),
+                Tab(
+                  child: _CompactToolTab(
+                    icon: Icons.bug_report_outlined,
+                    label: 'Debug',
+                  ),
+                ),
               ],
             ),
           ),
@@ -226,6 +237,28 @@ class _CompactWorkflowTools extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CompactToolTab extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _CompactToolTab({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15),
+        const SizedBox(width: AppTokens.s1),
+        Text(label),
+      ],
     );
   }
 }

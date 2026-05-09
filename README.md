@@ -29,6 +29,13 @@ Our goal is to **bridge the gap between simple API testing and complex workflow 
 - **Timeout/Retry Policies**: Apply per-attempt timeouts, retry backoff, and retryable status code rules to HTTP, GraphQL, and WebSocket workflow nodes.
 - **Workflow Templates**: Access a library of pre-built scenarios like "Auth Flow", "CRUD Sync", and "GraphQL Explorer".
 
+### 🧭 Load Hub Distributed Performance Testing
+- **Remote Workflow Load Runs**: Split a single Workflow across multiple remote agents for LoadRunner-style performance tests.
+- **Machine and Agent Operations**: Monitor remote machine state, agent heartbeat, capacity, version, and connection health.
+- **Real-time Metrics Ingest**: Aggregate agent-side `MetricWindowEvent` data into RPS, error rate, and p50/p90/p95/p99 latency.
+- **Agent Upgrade Orchestration**: Coordinate drain, install, restart, health check, and rollback flows for remote agents.
+- **Reports and Export**: Export completed run results as JSON, CSV, or Markdown reports.
+
 ### 🛠 Professional Developer Tools
 - **Multi-Protocol Support**: Full-featured clients for REST, WebSocket (with subprotocol support), and GraphQL (with variables and introspection).
 - **Command Palette (Cmd+K)**: Search through thousands of requests and workflows instantly. Switch themes or settings without leaving the keyboard.
@@ -61,7 +68,13 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 - Configure timeout/retry policies for unreliable network calls and connect `failure` ports for recovery paths.
 - Click **Run** to execute and watch the visual debugging in action.
 
-### 4. Master Efficiency with Command Palette
+### 4. Monitor Load Tests with Load Hub
+- Open the **Load Hub** tab from the main navigation.
+- Use Machines to inspect remote machine and agent status.
+- Use Runs and Metrics to monitor distributed execution, RPS, error rate, and latency percentiles.
+- Use Agent Updates to follow staged upgrades and rollback status.
+
+### 5. Master Efficiency with Command Palette
 - Press **Cmd + K** (or **Ctrl + K**) at any time.
 - Type to search for a specific request, workflow, or app command.
 - Use arrow keys and **Enter** to navigate instantly.
@@ -85,6 +98,8 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 ### 📖 Guides
 - **Installation**: [Full Installation Guide](docs/INSTALLATION_GUIDE_EN.md)
 - **Usage**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+- **Load Hub Design**: [Remote Load Runner Design](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
+- **Load Hub Operations**: [Load Hub Operations Guide](docs/LOAD_HUB_OPERATIONS.ko.md)
 - **Development**: [Technical Guide for Developers](docs/DEVELOP_GUIDE_EN.md)
 
 ### 🛠 Local Development
@@ -96,6 +111,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 
 ## 🌍 Resources
 - **User Guide**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
+- **Load Hub Docs**: [Design](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [Operations](docs/LOAD_HUB_OPERATIONS.ko.md), [Remote Agent Setup](docs/REMOTE_AGENT_SETUP.ko.md)
 - **Technical Docs**: Check the `docs/` directory for protocol-specific guides (GraphQL, WebSocket).
 
 ---

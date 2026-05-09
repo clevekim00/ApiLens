@@ -97,11 +97,7 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
                       ),
                     ),
                     const SizedBox(width: AppTokens.s2),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: veryCompact ? 180 : 280,
-                        minWidth: 130,
-                      ),
+                    Flexible(
                       child: TextField(
                         controller: _nameController,
                         focusNode: _nameFocusNode,
@@ -133,7 +129,7 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
                         ),
                       ),
                     ),
-                    if (!veryCompact) ...[
+                    if (!compact) ...[
                       const SizedBox(width: AppTokens.s2),
                       _SaveStateBadge(
                         isDirty: state.isDirty,
@@ -150,26 +146,28 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
                   compact: compact,
                   onPressed: () => _showSamplesDialog(context),
                 ),
-              const SizedBox(width: AppTokens.s1),
-              _ToolbarAction(
-                icon: Icons.add,
-                label: l10n.translate('new'),
-                compact: compact,
-                onPressed: () => WorkflowActions.handleNew(context, ref),
-              ),
-              _ToolbarAction(
-                icon: Icons.folder_open_outlined,
-                label: l10n.translate('open'),
-                compact: compact,
-                onPressed: () => WorkflowActions.handleOpen(context, ref),
-              ),
-              _ToolbarAction(
-                icon: Icons.save_outlined,
-                label: l10n.translate('save'),
-                compact: compact,
-                onPressed: () =>
-                    WorkflowActions.handleSave(context, ref, saveAs: false),
-              ),
+              if (!veryCompact) ...[
+                const SizedBox(width: AppTokens.s1),
+                _ToolbarAction(
+                  icon: Icons.add,
+                  label: l10n.translate('new'),
+                  compact: compact,
+                  onPressed: () => WorkflowActions.handleNew(context, ref),
+                ),
+                _ToolbarAction(
+                  icon: Icons.folder_open_outlined,
+                  label: l10n.translate('open'),
+                  compact: compact,
+                  onPressed: () => WorkflowActions.handleOpen(context, ref),
+                ),
+                _ToolbarAction(
+                  icon: Icons.save_outlined,
+                  label: l10n.translate('save'),
+                  compact: compact,
+                  onPressed: () =>
+                      WorkflowActions.handleSave(context, ref, saveAs: false),
+                ),
+              ],
               _ToolbarAction(
                 icon: Icons.play_arrow_rounded,
                 label: l10n.translate('run'),
@@ -179,7 +177,12 @@ class _WorkflowToolbarState extends ConsumerState<WorkflowToolbar> {
               ),
               _WorkflowOverflowMenu(
                 showSamples: veryCompact,
+                showPrimaryActions: veryCompact,
                 onSamples: () => _showSamplesDialog(context),
+                onNew: () => WorkflowActions.handleNew(context, ref),
+                onOpen: () => WorkflowActions.handleOpen(context, ref),
+                onSave: () =>
+                    WorkflowActions.handleSave(context, ref, saveAs: false),
                 onSaveAs: () =>
                     WorkflowActions.handleSave(context, ref, saveAs: true),
                 onExport: () => WorkflowActions.handleExport(context, ref),
@@ -379,14 +382,22 @@ class _ToolbarAction extends StatelessWidget {
 
 class _WorkflowOverflowMenu extends StatelessWidget {
   final bool showSamples;
+  final bool showPrimaryActions;
   final VoidCallback onSamples;
+  final VoidCallback onNew;
+  final VoidCallback onOpen;
+  final VoidCallback onSave;
   final VoidCallback onSaveAs;
   final VoidCallback onExport;
   final VoidCallback onImport;
 
   const _WorkflowOverflowMenu({
     required this.showSamples,
+    required this.showPrimaryActions,
     required this.onSamples,
+    required this.onNew,
+    required this.onOpen,
+    required this.onSave,
     required this.onSaveAs,
     required this.onExport,
     required this.onImport,
@@ -402,6 +413,12 @@ class _WorkflowOverflowMenu extends StatelessWidget {
         switch (action) {
           case _WorkflowMenuAction.samples:
             onSamples();
+          case _WorkflowMenuAction.newWorkflow:
+            onNew();
+          case _WorkflowMenuAction.open:
+            onOpen();
+          case _WorkflowMenuAction.save:
+            onSave();
           case _WorkflowMenuAction.saveAs:
             onSaveAs();
           case _WorkflowMenuAction.export:
@@ -416,6 +433,20 @@ class _WorkflowOverflowMenu extends StatelessWidget {
             value: _WorkflowMenuAction.samples,
             child: Text(l10n.translate('samples')),
           ),
+        if (showPrimaryActions) ...[
+          PopupMenuItem(
+            value: _WorkflowMenuAction.newWorkflow,
+            child: Text(l10n.translate('new')),
+          ),
+          PopupMenuItem(
+            value: _WorkflowMenuAction.open,
+            child: Text(l10n.translate('open')),
+          ),
+          PopupMenuItem(
+            value: _WorkflowMenuAction.save,
+            child: Text(l10n.translate('save')),
+          ),
+        ],
         PopupMenuItem(
           value: _WorkflowMenuAction.saveAs,
           child: Text(l10n.translate('save_as')),
@@ -434,4 +465,12 @@ class _WorkflowOverflowMenu extends StatelessWidget {
   }
 }
 
-enum _WorkflowMenuAction { samples, saveAs, export, import }
+enum _WorkflowMenuAction {
+  samples,
+  newWorkflow,
+  open,
+  save,
+  saveAs,
+  export,
+  import,
+}

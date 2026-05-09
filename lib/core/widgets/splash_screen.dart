@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:apilens/features/request/screens/request_screen.dart';
+import 'package:apilens/core/widgets/main_workspace_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const RequestScreen()),
+      MaterialPageRoute(builder: (context) => const MainWorkspaceScreen()),
     );
   }
 

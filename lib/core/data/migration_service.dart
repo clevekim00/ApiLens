@@ -279,7 +279,8 @@ class MigrationService {
 
   WorkflowNode _normalizeWorkflowNode(WorkflowNode node) {
     final data = Map<String, dynamic>.from(node.data);
-    if (node.config is EmptyNodeConfig) {
+    final config = _tryReadNodeConfig(node);
+    if (config is EmptyNodeConfig) {
       return WorkflowNode(
         id: node.id,
         type: node.type,
@@ -293,7 +294,7 @@ class MigrationService {
     }
 
     final name = data['name'];
-    final configJson = node.config.toJson();
+    final configJson = config.toJson();
     if (name != null) {
       configJson['name'] = name;
     }
@@ -308,6 +309,18 @@ class MigrationService {
       outputPortKeys: _defaultOutputPorts(node.type, node.outputPortKeys),
       isCompact: node.isCompact,
     );
+  }
+
+  NodeConfig _tryReadNodeConfig(WorkflowNode node) {
+    try {
+      return node.config;
+    } catch (error) {
+      debugPrint(
+        'Skipping malformed workflow node config during migration: '
+        '${node.id} (${node.type}): $error',
+      );
+      return const EmptyNodeConfig();
+    }
   }
 
   List<String> _defaultOutputPorts(String type, List<String> existing) {

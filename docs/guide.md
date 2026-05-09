@@ -14,6 +14,7 @@
 - **Fragmented Tools**: Solves the issue of managing REST (Postman), WebSocket (wscat), and automation scripts (Python) separately.
 - **Collaboration Difficulties**: Easily share API specs and test scenarios via a single file (`.json`).
 - **Complex Testing**: Configure sequential scenarios like "Receive token after login -> Connect WebSocket" without writing code.
+- **Distributed Performance Validation**: Use Load Hub to run one Workflow across multiple remote agents, aggregate live metrics, and export reports.
 
 ### Target Audience
 - **Backend/Frontend Developers** developing and testing APIs.
@@ -64,6 +65,13 @@ A project-level folder concept. Isolates Requests and Workflows just like folder
 
 ### Environment
 Manages global variables like `{{env.baseUrl}}` to easily switch between Development/Production environments. (Currently under development)
+
+### Load Hub
+A distributed performance testing console for running Workflow-based load tests across remote machines.
+- **Remote Machine**: A host where a remote agent can run.
+- **Remote Agent**: A daemon that executes shards and sends `MetricWindowEvent` data back to Load Hub.
+- **Shard**: A deterministic piece of a distributed run assigned to an agent.
+- **Backpressure**: Flow control that reduces agent event volume when ingest pressure rises.
 
 ---
 
