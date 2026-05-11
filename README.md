@@ -31,7 +31,7 @@ Our goal is to **bridge the gap between simple API testing and complex workflow 
 
 ### 🧭 Load Hub Distributed Performance Testing
 - **Remote Workflow Load Runs**: Split a single Workflow across multiple remote agents for LoadRunner-style performance tests.
-- **Machine and Agent Operations**: Monitor remote machine state, agent heartbeat, capacity, version, and connection health.
+- **Machine and Agent Operations**: Monitor remote machine state, agent heartbeat, capacity, version, connection health, CPU, memory, disk I/O, and network throughput.
 - **Real-time Metrics Ingest**: Aggregate agent-side `MetricWindowEvent` data into RPS, error rate, and p50/p90/p95/p99 latency.
 - **Agent Upgrade Orchestration**: Coordinate drain, install, restart, health check, and rollback flows for remote agents.
 - **Reports and Export**: Export completed run results as JSON, CSV, or Markdown reports.
@@ -70,7 +70,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 
 ### 4. Monitor Load Tests with Load Hub
 - Open the **Load Hub** tab from the main navigation.
-- Use Machines to inspect remote machine and agent status.
+- Use Machines and Machine Health to inspect remote machine status, agent heartbeat, CPU, memory, disk I/O, and network throughput.
 - Use Runs and Metrics to monitor distributed execution, RPS, error rate, and latency percentiles.
 - Use Agent Updates to follow staged upgrades and rollback status.
 
@@ -100,6 +100,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 - **Usage**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
 - **Load Hub Design**: [Remote Load Runner Design](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
 - **Load Hub Operations**: [Load Hub Operations Guide](docs/LOAD_HUB_OPERATIONS.ko.md)
+- **Load Hub Docker Tests**: [testainers Verification Guide](docs/LOAD_HUB_TESTCONTAINERS.ko.md)
 - **Development**: [Technical Guide for Developers](docs/DEVELOP_GUIDE_EN.md)
 
 ### 🛠 Local Development
@@ -111,7 +112,7 @@ ApiLens uses **Workgroups** to keep your projects isolated.
 
 ## 🌍 Resources
 - **User Guide**: [Detailed Usage Guide](docs/USAGE_GUIDE_EN.md)
-- **Load Hub Docs**: [Design](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [Operations](docs/LOAD_HUB_OPERATIONS.ko.md), [Remote Agent Setup](docs/REMOTE_AGENT_SETUP.ko.md)
+- **Load Hub Docs**: [Design](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [Operations](docs/LOAD_HUB_OPERATIONS.ko.md), [Remote Agent Setup](docs/REMOTE_AGENT_SETUP.ko.md), [Docker Tests](docs/LOAD_HUB_TESTCONTAINERS.ko.md)
 - **Technical Docs**: Check the `docs/` directory for protocol-specific guides (GraphQL, WebSocket).
 
 ---

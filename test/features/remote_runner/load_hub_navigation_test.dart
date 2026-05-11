@@ -58,6 +58,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('원격 머신 2대, 원격 에이전트 2개'), findsOneWidget);
+    expect(find.text('Machine Health'), findsOneWidget);
     expect(find.text('Agent Updates'), findsOneWidget);
   });
 

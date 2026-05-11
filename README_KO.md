@@ -31,7 +31,7 @@
 
 ### 🧭 Load Hub 분산 성능 테스트
 - **원격 워크플로우 부하 실행**: 하나의 Workflow를 여러 원격 머신의 에이전트로 나누어 실행하는 LoadRunner 스타일 성능 테스트 흐름을 제공합니다.
-- **원격 머신/에이전트 관제**: 머신 상태, 에이전트 heartbeat, capacity, 버전, 연결 품질을 중앙에서 확인합니다.
+- **원격 머신/에이전트 관제**: 머신 상태, 에이전트 heartbeat, capacity, 버전, 연결 품질, CPU, 메모리, disk I/O, network 사용량을 중앙에서 확인합니다.
 - **실시간 지표 취합**: 에이전트가 집계한 `MetricWindowEvent`를 Load Hub에서 합산해 RPS, 오류율, p50/p90/p95/p99 latency를 보여줍니다.
 - **에이전트 업그레이드 오케스트레이션**: drain, install, restart, health check, rollback 흐름으로 원격 에이전트를 단계적으로 업그레이드합니다.
 - **Report/Export**: 실행 결과를 JSON, CSV, Markdown report로 내보낼 수 있습니다.
@@ -80,7 +80,7 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 
 ### 4. Load Hub로 성능 테스트 관제하기
 - 상단 내비게이션의 **Load Hub / 로드 허브** 탭으로 이동합니다.
-- Machines 탭에서 원격 머신과 에이전트 상태를 확인합니다.
+- Machines와 Machine Health 탭에서 원격 머신, 에이전트 상태, CPU, 메모리, disk I/O, network 사용량을 확인합니다.
 - Runs와 Metrics 탭에서 분산 실행 상태, RPS, 오류율, latency percentile을 모니터링합니다.
 - Agent Updates 탭에서 원격 에이전트 업그레이드와 rollback 상태를 추적합니다.
 
@@ -110,6 +110,7 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 - **사용 방법**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
 - **Load Hub 설계**: [원격 로드 러너 설계](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
 - **Load Hub 운영**: [Load Hub 운영 가이드](docs/LOAD_HUB_OPERATIONS.ko.md)
+- **Load Hub Docker 검증**: [testainers 검증 가이드](docs/LOAD_HUB_TESTCONTAINERS.ko.md)
 - **원격 에이전트**: [원격 에이전트 설정 가이드](docs/REMOTE_AGENT_SETUP.ko.md)
 - **테스트 서버**: [샘플 백엔드 구축 및 사용법](be_sample/README.md)
 - **App Store 배포**: [App Store 출시 가이드](docs/APP_STORE_PUBLISH_GUIDE_KO.md)
@@ -125,7 +126,7 @@ ApiLens는 **워크그룹**을 사용하여 프로젝트를 격리합니다.
 
 ## 🌍 관련 리소스
 - **사용 가이드**: [상세 사용 가이드](docs/USAGE_GUIDE_KO.md)
-- **Load Hub 문서**: [설계](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [운영](docs/LOAD_HUB_OPERATIONS.ko.md), [에이전트 설정](docs/REMOTE_AGENT_SETUP.ko.md)
+- **Load Hub 문서**: [설계](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md), [운영](docs/LOAD_HUB_OPERATIONS.ko.md), [에이전트 설정](docs/REMOTE_AGENT_SETUP.ko.md), [Docker 검증](docs/LOAD_HUB_TESTCONTAINERS.ko.md)
 - **기술 문서**: `docs/` 디렉토리에서 프로토콜별 가이드(GraphQL, WebSocket)를 확인하세요.
 
 ---

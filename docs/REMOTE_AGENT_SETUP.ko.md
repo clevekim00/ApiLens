@@ -33,6 +33,7 @@
 - supported node types
 - capacity
 - heartbeat
+- resource snapshot: CPU, memory, disk I/O, network, load average
 
 에이전트 상태:
 
@@ -97,8 +98,29 @@ Event:
 ## 운영 기본값
 
 - heartbeat timeout은 테스트 가능하도록 clock 주입 구조를 유지한다.
+- heartbeat에는 가능하면 `MachineResourceSnapshot`을 포함해 Load Hub가 머신 리소스 상태를 표시할 수 있게 한다.
 - disabled/draining/offline/incompatible agent는 shard 배정에서 제외한다.
 - 성공 raw event 전체 전송은 기본 비활성화한다.
 - 실패 raw event는 rate limit을 둔다.
 - metrics는 `MetricWindowEvent` 중심으로 전송한다.
 
+## Heartbeat resource payload
+
+실제 원격 daemon은 heartbeat event에 다음 payload를 포함한다.
+
+```json
+{
+  "resourceSnapshot": {
+    "cpuUsagePercent": 68.4,
+    "memoryUsagePercent": 72.1,
+    "memoryUsedBytes": 12348030976,
+    "memoryTotalBytes": 17179869184,
+    "diskReadBytesPerSecond": 3145728,
+    "diskWriteBytesPerSecond": 2097152,
+    "networkRxBytesPerSecond": 943718,
+    "networkTxBytesPerSecond": 1258291,
+    "loadAverage1m": 2.6,
+    "capturedAt": "2026-05-10T12:00:00.000Z"
+  }
+}
+```

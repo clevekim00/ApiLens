@@ -1,3 +1,5 @@
+import 'machine_resource_snapshot.dart';
+
 enum RemoteAgentStatus {
   unknown,
   online,
@@ -52,6 +54,7 @@ class RemoteAgent {
   final RemoteAgentStatus status;
   final DateTime? lastHeartbeatAt;
   final String? statusMessage;
+  final MachineResourceSnapshot? resourceSnapshot;
 
   const RemoteAgent({
     required this.id,
@@ -68,6 +71,7 @@ class RemoteAgent {
     this.status = RemoteAgentStatus.unknown,
     this.lastHeartbeatAt,
     this.statusMessage,
+    this.resourceSnapshot,
   });
 
   bool supportsNodeType(String type) {
@@ -90,6 +94,7 @@ class RemoteAgent {
     RemoteAgentStatus? status,
     DateTime? lastHeartbeatAt,
     String? statusMessage,
+    MachineResourceSnapshot? resourceSnapshot,
   }) {
     return RemoteAgent(
       id: id ?? this.id,
@@ -103,6 +108,7 @@ class RemoteAgent {
       status: status ?? this.status,
       lastHeartbeatAt: lastHeartbeatAt ?? this.lastHeartbeatAt,
       statusMessage: statusMessage ?? this.statusMessage,
+      resourceSnapshot: resourceSnapshot ?? this.resourceSnapshot,
     );
   }
 
@@ -118,6 +124,7 @@ class RemoteAgent {
         'status': status.name,
         'lastHeartbeatAt': lastHeartbeatAt?.toIso8601String(),
         'statusMessage': statusMessage,
+        'resourceSnapshot': resourceSnapshot?.toJson(),
       };
 
   factory RemoteAgent.fromJson(Map<String, dynamic> json) {
@@ -131,7 +138,9 @@ class RemoteAgent {
       supportedNodeTypes:
           (json['supportedNodeTypes'] as List?)?.cast<String>() ?? const [],
       capacity: RemoteAgentCapacity.fromJson(
-        json['capacity'] as Map<String, dynamic>?,
+        json['capacity'] is Map
+            ? Map<String, dynamic>.from(json['capacity'] as Map)
+            : null,
       ),
       status: RemoteAgentStatus.values.firstWhere(
         (status) => status.name == json['status'],
@@ -141,6 +150,13 @@ class RemoteAgent {
           ? DateTime.tryParse(json['lastHeartbeatAt'] as String)
           : null,
       statusMessage: json['statusMessage'] as String?,
+      resourceSnapshot: json['resourceSnapshot'] == null
+          ? null
+          : MachineResourceSnapshot.fromJson(
+              json['resourceSnapshot'] is Map
+                  ? Map<String, dynamic>.from(json['resourceSnapshot'] as Map)
+                  : null,
+            ),
     );
   }
 }

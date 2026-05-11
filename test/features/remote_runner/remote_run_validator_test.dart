@@ -1,6 +1,7 @@
 import 'package:apilens/features/remote_runner/application/remote_run_validator.dart';
 import 'package:apilens/features/remote_runner/domain/models/agent_upgrade.dart';
 import 'package:apilens/features/remote_runner/domain/models/load_profile.dart';
+import 'package:apilens/features/remote_runner/domain/models/machine_resource_snapshot.dart';
 import 'package:apilens/features/remote_runner/domain/models/metric_window_event.dart';
 import 'package:apilens/features/remote_runner/domain/models/remote_agent.dart';
 import 'package:apilens/features/remote_runner/domain/models/remote_machine.dart';
@@ -42,6 +43,18 @@ void main() {
         ),
         status: RemoteAgentStatus.online,
         lastHeartbeatAt: now,
+        resourceSnapshot: MachineResourceSnapshot(
+          cpuUsagePercent: 64.5,
+          memoryUsagePercent: 70.2,
+          memoryUsedBytes: 6 * 1024 * 1024 * 1024,
+          memoryTotalBytes: 8 * 1024 * 1024 * 1024,
+          diskReadBytesPerSecond: 12 * 1024 * 1024,
+          diskWriteBytesPerSecond: 4 * 1024 * 1024,
+          networkRxBytesPerSecond: 2 * 1024 * 1024,
+          networkTxBytesPerSecond: 8 * 1024 * 1024,
+          loadAverage1m: 1.7,
+          capturedAt: now,
+        ),
       );
 
       final decodedMachine = RemoteMachine.fromJson(machine.toJson());
@@ -51,6 +64,8 @@ void main() {
       expect(decodedMachine.labels, ['kr', 'staging']);
       expect(decodedAgent.status, RemoteAgentStatus.online);
       expect(decodedAgent.capacity.maxVirtualUsers, 500);
+      expect(decodedAgent.resourceSnapshot?.cpuUsagePercent, 64.5);
+      expect(decodedAgent.resourceSnapshot?.isUnderPressure, isFalse);
       expect(decodedAgent.supportsNodeType('api'), isTrue);
       expect(decodedAgent.supportsNodeType('ws_connect'), isFalse);
     });

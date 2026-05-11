@@ -12,6 +12,7 @@ Load Hub는 ApiLens의 Workflow를 여러 원격 머신의 원격 에이전트�
 | 원격 에이전트 | workflow shard를 실행하고 `MetricWindowEvent`를 Load Hub로 보내는 daemon |
 | Shard | 하나의 run을 여러 agent에 나눈 실행 조각 |
 | MetricWindowEvent | 원격 에이전트가 1초 또는 5초 단위로 local aggregation한 지표 이벤트 |
+| MachineResourceSnapshot | 원격 에이전트가 실행 중인 머신의 CPU, memory, disk I/O, network 상태를 짧은 주기로 측정한 heartbeat payload |
 | Backpressure | Load Hub가 ingest 부하를 감지해 agent 전송량을 줄이도록 지시하는 흐름 제어 |
 
 ## 구현 구조
@@ -43,10 +44,11 @@ lib/features/remote_runner
 2. `RemoteRunValidator`가 workflow graph, load profile, agent eligibility를 검증한다.
 3. `RemoteRunPlanner`가 agent capacity를 기준으로 deterministic shard plan을 만든다.
 4. `LoadHubCoordinator`가 `AgentClient`를 통해 shard를 agent에 dispatch한다.
-5. `FakeAgentClient` 또는 향후 실제 remote transport가 shard lifecycle event와 `MetricWindowEvent`를 보낸다.
-6. `MetricIngestService`가 event dedupe, sequence gap detection, queue 상태 관리를 수행한다.
-7. `MetricsAggregator`가 histogram과 count를 merge해 `RunMetricsSnapshot`을 만든다.
-8. `RunReportService`가 최종 report를 JSON/CSV/Markdown으로 export한다.
+5. 원격 에이전트가 heartbeat마다 `MachineResourceSnapshot`을 함께 보내 머신 자원 상태를 갱신한다.
+6. `FakeAgentClient` 또는 향후 실제 remote transport가 shard lifecycle event와 `MetricWindowEvent`를 보낸다.
+7. `MetricIngestService`가 event dedupe, sequence gap detection, queue 상태 관리를 수행한다.
+8. `MetricsAggregator`가 histogram과 count를 merge해 `RunMetricsSnapshot`을 만든다.
+9. `RunReportService`가 최종 report를 JSON/CSV/Markdown으로 export한다.
 
 ## 실시간 취합 설계
 
@@ -79,4 +81,3 @@ Load Hub는 중복 event id를 버리고, sequence gap을 감지하며, queue de
 - Hive/Isar 기반 Load Hub 영속 저장소
 - 사용자가 직접 run을 생성하는 production form
 - 실제 workflow runtime을 agent process에서 실행하는 packaging
-

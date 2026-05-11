@@ -11,6 +11,7 @@ Load Hub는 원격 머신과 원격 에이전트를 관리하고, workflow 기�
 - Machines
 - Runs
 - Metrics
+- Machine Health
 - Logs
 - Agent Updates
 
@@ -26,6 +27,26 @@ Load Hub는 원격 머신과 원격 에이전트를 관리하고, workflow 기�
 
 - `MachineInventoryService`
 - `MachineTable`
+
+## 머신 리소스 모니터링
+
+원격 에이전트는 heartbeat에 머신 리소스 스냅샷을 함께 실어 Load Hub로 보낸다. Load Hub는 이 값을 `Machine Health` 탭과 `Machines` 테이블에 표시한다.
+
+수집 항목:
+
+- CPU 사용률
+- 메모리 사용률과 사용량/전체 용량
+- Disk read/write bytes per second
+- Network receive/transmit bytes per second
+- 1분 load average
+- snapshot captured time
+
+현재 pressure 기준:
+
+- CPU 사용률 85% 이상
+- 메모리 사용률 90% 이상
+
+이 기준에 걸린 머신은 `Machine Health` 탭에서 warning 상태로 표시한다. 향후 실제 원격 daemon에서는 OS별 collector를 붙여 동일한 `MachineResourceSnapshot` 계약으로 전송한다.
 
 ## Run 운영
 
@@ -127,3 +148,10 @@ dart run scripts/remote_runner/stress_metric_ingest.dart 3 5
 dart run scripts/remote_runner/export_run_report.dart markdown
 ```
 
+Docker 기반 원격 agent endpoint 검증은 별도 환경변수를 켜고 실행한다.
+
+```bash
+APILENS_DOCKER_TESTS=1 flutter test test/features/remote_runner/load_hub_testainers_test.dart
+```
+
+자세한 절차는 [Load Hub testainers 검증 가이드](LOAD_HUB_TESTCONTAINERS.ko.md)를 참고한다.

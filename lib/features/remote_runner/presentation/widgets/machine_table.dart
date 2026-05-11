@@ -60,6 +60,13 @@ class _MachineRow extends StatelessWidget {
               ? '-'
               : '${agent!.capacity.maxVirtualUsers} VU / '
                   '${agent!.capacity.maxConcurrency} C';
+          final resources = agent?.resourceSnapshot;
+          final cpu = resources == null
+              ? '-'
+              : '${resources.cpuUsagePercent.toStringAsFixed(0)}%';
+          final memory = resources == null
+              ? '-'
+              : '${resources.memoryUsagePercent.toStringAsFixed(0)}%';
 
           final cells = [
             _Cell(label: 'Machine', value: machine.name),
@@ -67,6 +74,8 @@ class _MachineRow extends StatelessWidget {
             _Cell(label: 'Agent', value: status),
             _Cell(label: 'Version', value: version),
             _Cell(label: 'Capacity', value: capacity),
+            _Cell(label: 'CPU', value: cpu),
+            _Cell(label: 'Memory', value: memory),
             _Cell(label: 'Admin', value: machine.adminState.name),
           ];
 

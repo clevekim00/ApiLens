@@ -794,6 +794,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
+  testainers:
+    dependency: "direct dev"
+    description:
+      name: testainers
+      sha256: d2c7130c79541d1a90e28ada600317467b92ae09e8e43ead847aa4333dbf981d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   time:
     dependency: transitive
     description:

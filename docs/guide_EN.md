@@ -207,6 +207,7 @@ Load Hub distributes Workflow execution across remote agents and shows performan
 
 ### Views
 - **Machines**: Remote machines, agent status, version, capacity, and admin state.
+- **Machine Health**: CPU, memory, disk I/O, network throughput, and pressure state from agent heartbeats.
 - **Runs**: Distributed runs and shard lifecycle.
 - **Metrics**: RPS, error rate, p50/p90/p95/p99 latency, and agent utilization.
 - **Logs**: Warning/error focused operational logs.

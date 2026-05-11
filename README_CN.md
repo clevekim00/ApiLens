@@ -30,7 +30,7 @@
 
 ### 🧭 Load Hub 分布式性能测试
 - **远程工作流压测**：将一个 Workflow 分配给多台远程机器上的代理执行，支持类似 LoadRunner 的性能测试流程。
-- **远程机器与代理管理**：集中查看机器状态、代理 heartbeat、容量、版本和连接健康度。
+- **远程机器与代理管理**：集中查看机器状态、代理 heartbeat、容量、版本、连接健康度、CPU、内存、disk I/O 和 network 吞吐。
 - **实时指标汇总**：汇总代理侧 `MetricWindowEvent`，展示 RPS、错误率和 p50/p90/p95/p99 延迟。
 - **代理升级编排**：通过 drain、install、restart、health check、rollback 流程分阶段升级远程代理。
 - **报告导出**：将完成的执行结果导出为 JSON、CSV 或 Markdown 报告。
@@ -78,7 +78,7 @@ ApiLens 使用**工作组**来保持项目的独立性。
 
 ### 4. 使用 Load Hub 监控性能测试
 - 从主导航打开 **Load Hub**。
-- 在 Machines 中查看远程机器和代理状态。
+- 在 Machines 和 Machine Health 中查看远程机器、代理状态、CPU、内存、disk I/O 和 network 吞吐。
 - 在 Runs 和 Metrics 中查看分布式执行、RPS、错误率和延迟百分位。
 - 在 Agent Updates 中跟踪分阶段升级和 rollback 状态。
 
@@ -108,6 +108,7 @@ ApiLens 使用**工作组**来保持项目的独立性。
 - **使用方法**: [详细使用指南](docs/USAGE_GUIDE_CN.md)
 - **Load Hub 设计**: [远程 Load Runner 设计](docs/REMOTE_LOAD_RUNNER_DESIGN.ko.md)
 - **Load Hub 运维**: [Load Hub 运维指南](docs/LOAD_HUB_OPERATIONS.ko.md)
+- **Load Hub Docker 验证**: [testainers 验证指南](docs/LOAD_HUB_TESTCONTAINERS.ko.md)
 - **开发指南**: [面向开发人员的技术指南](docs/DEVELOP_GUIDE_KO.md)
 
 ### 🛠 本地开发

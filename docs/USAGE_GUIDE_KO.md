@@ -81,6 +81,7 @@ Load Hub는 작성한 Workflow를 여러 원격 에이전트에 shard 단위로 
 ### 2. 원격 머신과 에이전트 확인
 *   **Machines** 탭에서 원격 머신의 admin state(`enabled`, `disabled`, `draining`)와 에이전트 상태를 확인합니다.
 *   heartbeat, version, capacity, supported node type을 기준으로 shard 배정 가능 여부를 판단합니다.
+*   **Machine Health** 탭에서 CPU, 메모리, disk I/O, network 사용량과 pressure 상태를 확인합니다.
 
 ### 3. 실행과 지표 모니터링
 *   **Runs** 탭은 run 상태와 shard lifecycle을 보여줍니다.

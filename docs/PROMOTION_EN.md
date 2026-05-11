@@ -12,7 +12,7 @@ Modern API development is more than just requests and responses. **ApiLens** tra
 *   **Multi-Protocol Harmony**: Seamlessly weave REST, WebSocket, and GraphQL into a single, unified flow.
 *   **Live Debugging**: Watch your data flow in real-time. Success paths glow **Green**, while failures turn **Red** instantly.
 *   **Real-time Insights**: Monitor API health, response times, and traffic trends at a glance via the main dashboard.
-*   **Load Hub Performance Control**: Run the same workflow across remote agents and monitor RPS, error rate, latency percentiles, and agent health in one place.
+*   **Load Hub Performance Control**: Run the same workflow across remote agents and monitor RPS, error rate, latency percentiles, agent health, and machine resources in one place.
 
 ---
 
@@ -39,7 +39,7 @@ Passing response values from one node to the next is easier than ever. Visually 
 More than just a tool, it's your system's command center. Track API ecosystem health with real-time traffic charts and key performance indicators (KPIs).
 
 ### 5️⃣ Load Hub Distributed Performance Testing
-Run workflow-based load tests across multiple remote machines, aggregate live metrics in Load Hub, and manage remote agent upgrades with drain, health check, and rollback flows.
+Run workflow-based load tests across multiple remote machines, aggregate live metrics plus CPU, memory, disk I/O, and network state in Load Hub, and manage remote agent upgrades with drain, health check, and rollback flows.
 
 ---
 

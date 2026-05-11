@@ -78,6 +78,7 @@ Load Hub runs a Workflow across multiple remote agents as shards, then aggregate
 
 *   **Open Load Hub**: Use the main `Load Hub` tab, the hub icon, or the `Open Load Hub` command.
 *   **Machines**: Inspect machine admin state, agent heartbeat, version, capacity, and scheduling eligibility.
+*   **Machine Health**: Monitor CPU, memory, disk I/O, network throughput, and pressure state from agent heartbeats.
 *   **Runs and Metrics**: Monitor shard lifecycle, RPS, error rate, p50/p90/p95/p99 latency, and agent utilization.
 *   **Agent Updates**: Track drain, install, restart, health check, and rollback progress.
 *   **Reports**: Export completed run results as JSON, CSV, or Markdown.

@@ -61,6 +61,7 @@ Load Hub는 하나의 Workflow를 여러 원격 에이전트에 shard 단위로 
 
 *   **Load Hub 열기**: 상단 `Load Hub` 탭, hub 아이콘, 또는 `Open Load Hub` 명령을 사용합니다.
 *   **Machines**: 원격 머신의 admin state, agent heartbeat, version, capacity를 확인합니다.
+*   **Machine Health**: agent heartbeat로 들어온 CPU, memory, disk I/O, network 상태를 확인합니다.
 *   **Runs / Metrics**: shard lifecycle, RPS, 오류율, p50/p90/p95/p99 latency를 확인합니다.
 *   **Agent Updates**: drain, install, restart, health check, rollback 진행 상태를 추적합니다.
 *   **Reports**: 완료된 run을 JSON, CSV, Markdown으로 내보냅니다.

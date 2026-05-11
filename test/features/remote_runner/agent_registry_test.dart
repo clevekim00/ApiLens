@@ -1,6 +1,7 @@
 import 'package:apilens/features/remote_runner/application/agent_registry.dart';
 import 'package:apilens/features/remote_runner/application/machine_inventory_service.dart';
 import 'package:apilens/features/remote_runner/data/remote_machine_repository.dart';
+import 'package:apilens/features/remote_runner/domain/models/machine_resource_snapshot.dart';
 import 'package:apilens/features/remote_runner/domain/models/remote_agent.dart';
 import 'package:apilens/features/remote_runner/domain/models/remote_machine.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,6 +90,36 @@ void main() {
 
       expect(updated.status, RemoteAgentStatus.draining);
       expect(registry.schedulableAgents(), isEmpty);
+    });
+
+    test('heartbeat stores machine resource snapshot', () async {
+      await registry.register(_registration());
+
+      now = now.add(const Duration(seconds: 2));
+      final resourceSnapshot = MachineResourceSnapshot(
+        cpuUsagePercent: 88,
+        memoryUsagePercent: 91,
+        memoryUsedBytes: 14 * 1024 * 1024 * 1024,
+        memoryTotalBytes: 16 * 1024 * 1024 * 1024,
+        diskReadBytesPerSecond: 12 * 1024 * 1024,
+        diskWriteBytesPerSecond: 8 * 1024 * 1024,
+        networkRxBytesPerSecond: 4 * 1024 * 1024,
+        networkTxBytesPerSecond: 6 * 1024 * 1024,
+        loadAverage1m: 3.4,
+        capturedAt: now,
+      );
+
+      final updated = registry.heartbeat(
+        'agent-1',
+        resourceSnapshot: resourceSnapshot,
+      );
+
+      expect(updated.resourceSnapshot?.cpuUsagePercent, 88);
+      expect(updated.resourceSnapshot?.isUnderPressure, isTrue);
+      expect(
+        registry.getById('agent-1')?.resourceSnapshot?.networkTxBytesPerSecond,
+        6 * 1024 * 1024,
+      );
     });
 
     test('disabled machine registers agent as disabled', () async {

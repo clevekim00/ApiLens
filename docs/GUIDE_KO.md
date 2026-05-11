@@ -216,6 +216,7 @@ Load Hub는 Workflow를 여러 원격 에이전트로 분산 실행하고, 성�
 
 ### 화면 구성
 - **Machines**: 원격 머신, 에이전트 상태, version, capacity, admin state를 확인합니다.
+- **Machine Health**: 에이전트 heartbeat로 들어온 CPU, memory, disk I/O, network 상태를 확인합니다.
 - **Runs**: 분산 run과 shard lifecycle을 확인합니다.
 - **Metrics**: RPS, 오류율, p50/p90/p95/p99 latency, agent utilization을 확인합니다.
 - **Logs**: warning/error 중심 로그를 확인합니다.

@@ -131,9 +131,10 @@ Load Hub가 원격 머신 인벤토리와 에이전트 heartbeat 상태를 관�
 1. `MachineInventoryService`는 원격 머신 추가, 수정, 삭제, enable, disable, tag 변경을 지원한다.
 2. `AgentRegistry`는 agent registration, heartbeat update, heartbeat timeout, 상태 전이를 관리한다.
 3. agent 상태는 최소 `unknown`, `online`, `busy`, `draining`, `disabled`, `offline`, `incompatible`, `upgradeRequired`를 지원한다.
-4. heartbeat timeout은 테스트 가능하도록 clock 또는 now provider를 주입할 수 있게 한다.
-5. 저장소는 1차 구현에서 in-memory repository로 시작해도 된다. 단, interface를 분리해서 이후 Hive/Isar 저장소로 교체 가능해야 한다.
-6. disabled machine에는 shard가 배정되지 않도록 eligibility 판단 메서드를 제공한다.
+4. heartbeat는 선택적으로 `MachineResourceSnapshot`을 받아 CPU, memory, disk I/O, network 상태를 agent record에 저장한다.
+5. heartbeat timeout은 테스트 가능하도록 clock 또는 now provider를 주입할 수 있게 한다.
+6. 저장소는 1차 구현에서 in-memory repository로 시작해도 된다. 단, interface를 분리해서 이후 Hive/Isar 저장소로 교체 가능해야 한다.
+7. disabled machine에는 shard가 배정되지 않도록 eligibility 판단 메서드를 제공한다.
 
 검증:
 - `dart format lib/features/remote_runner test/features/remote_runner`
@@ -351,14 +352,15 @@ UI 원칙:
 운영 콘솔처럼 조밀하고 스캔하기 쉬워야 한다. 마케팅 페이지나 장식적인 hero 화면을 만들지 마라.
 
 구현 요구:
-1. Load Hub 화면은 최소 `Machines`, `Runs`, `Metrics`, `Logs`, `Agent Updates` 탭을 가진다.
-2. Machines 탭은 machine status, agent version, capacity, labels, last heartbeat, admin state를 보여준다.
+1. Load Hub 화면은 최소 `Machines`, `Runs`, `Metrics`, `Machine Health`, `Logs`, `Agent Updates` 탭을 가진다.
+2. Machines 탭은 machine status, agent version, capacity, labels, last heartbeat, admin state, CPU/memory 요약을 보여준다.
 3. Runs 탭은 run status, active VUs, completed iterations, assigned agents, shard status를 보여준다.
 4. Metrics 탭은 RPS, error rate, p50/p90/p95/p99 latency, agent utilization을 보여준다.
-5. Logs 탭은 warning/error 중심이며 raw debug log 폭주를 피한다.
-6. Agent Updates 탭은 upgrade rollout 상태와 rollback 결과를 보여준다.
-7. Riverpod provider 패턴은 기존 코드 스타일을 따른다.
-8. 텍스트가 좁은 화면에서 겹치지 않도록 responsive layout을 적용한다.
+5. Machine Health 탭은 에이전트 heartbeat로 들어온 CPU, memory, disk I/O, network, load average를 머신 단위로 보여준다.
+6. Logs 탭은 warning/error 중심이며 raw debug log 폭주를 피한다.
+7. Agent Updates 탭은 upgrade rollout 상태와 rollback 결과를 보여준다.
+8. Riverpod provider 패턴은 기존 코드 스타일을 따른다.
+9. 텍스트가 좁은 화면에서 겹치지 않도록 responsive layout을 적용한다.
 
 검증:
 - `dart format lib/features/remote_runner test/features/remote_runner`

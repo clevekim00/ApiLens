@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/ui/tokens/app_tokens.dart';
 import '../../domain/models/agent_upgrade.dart';
 import '../../domain/models/load_profile.dart';
+import '../../domain/models/machine_resource_snapshot.dart';
 import '../../domain/models/metrics_models.dart';
 import '../../domain/models/remote_agent.dart';
 import '../../domain/models/remote_machine.dart';
@@ -11,6 +12,7 @@ import '../../domain/models/run_shard.dart';
 import '../../../workflow_editor/domain/models/workflow.dart';
 import '../widgets/agent_update_panel.dart';
 import '../widgets/load_hub_summary_bar.dart';
+import '../widgets/machine_health_panel.dart';
 import '../widgets/machine_table.dart';
 import '../widgets/metrics_overview.dart';
 import '../widgets/run_monitor_panel.dart';
@@ -59,16 +61,28 @@ class LoadHubScreen extends StatefulWidget {
           updatedAt: now,
         ),
       ],
-      agents: const [
+      agents: [
         RemoteAgent(
           id: 'agent-1',
           machineId: 'machine-1',
           endpoint: 'ws://10.0.0.10:8787',
           version: '1.0.0',
           protocolVersion: '1',
-          capacity:
-              RemoteAgentCapacity(maxVirtualUsers: 500, maxConcurrency: 100),
+          capacity: const RemoteAgentCapacity(
+              maxVirtualUsers: 500, maxConcurrency: 100),
           status: RemoteAgentStatus.online,
+          resourceSnapshot: MachineResourceSnapshot(
+            cpuUsagePercent: 68.4,
+            memoryUsagePercent: 72.1,
+            memoryUsedBytes: 12 * 1024 * 1024 * 1024,
+            memoryTotalBytes: 16 * 1024 * 1024 * 1024,
+            diskReadBytesPerSecond: 34 * 1024 * 1024,
+            diskWriteBytesPerSecond: 12 * 1024 * 1024,
+            networkRxBytesPerSecond: 8 * 1024 * 1024,
+            networkTxBytesPerSecond: 16 * 1024 * 1024,
+            loadAverage1m: 2.7,
+            capturedAt: now,
+          ),
         ),
         RemoteAgent(
           id: 'agent-2',
@@ -76,9 +90,21 @@ class LoadHubScreen extends StatefulWidget {
           endpoint: 'ws://10.0.1.10:8787',
           version: '0.9.0',
           protocolVersion: '1',
-          capacity:
-              RemoteAgentCapacity(maxVirtualUsers: 300, maxConcurrency: 60),
+          capacity: const RemoteAgentCapacity(
+              maxVirtualUsers: 300, maxConcurrency: 60),
           status: RemoteAgentStatus.draining,
+          resourceSnapshot: MachineResourceSnapshot(
+            cpuUsagePercent: 91.2,
+            memoryUsagePercent: 86.5,
+            memoryUsedBytes: 6 * 1024 * 1024 * 1024,
+            memoryTotalBytes: 8 * 1024 * 1024 * 1024,
+            diskReadBytesPerSecond: 11 * 1024 * 1024,
+            diskWriteBytesPerSecond: 42 * 1024 * 1024,
+            networkRxBytesPerSecond: 4 * 1024 * 1024,
+            networkTxBytesPerSecond: 9 * 1024 * 1024,
+            loadAverage1m: 4.8,
+            capturedAt: now.subtract(const Duration(seconds: 12)),
+          ),
         ),
       ],
       runs: [
@@ -138,7 +164,7 @@ class _LoadHubScreenState extends State<LoadHubScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -173,6 +199,7 @@ class _LoadHubScreenState extends State<LoadHubScreen>
               isScrollable: true,
               tabs: const [
                 Tab(text: 'Machines'),
+                Tab(text: 'Machine Health'),
                 Tab(text: 'Runs'),
                 Tab(text: 'Metrics'),
                 Tab(text: 'Logs'),
@@ -185,6 +212,8 @@ class _LoadHubScreenState extends State<LoadHubScreen>
                 controller: _tabController,
                 children: [
                   MachineTable(
+                      machines: widget.machines, agents: widget.agents),
+                  MachineHealthPanel(
                       machines: widget.machines, agents: widget.agents),
                   RunMonitorPanel(runs: widget.runs),
                   MetricsOverview(metrics: widget.metrics),

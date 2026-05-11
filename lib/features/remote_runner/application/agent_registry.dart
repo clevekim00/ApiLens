@@ -1,3 +1,4 @@
+import '../domain/models/machine_resource_snapshot.dart';
 import '../domain/models/remote_agent.dart';
 import '../domain/models/remote_machine.dart';
 import 'machine_inventory_service.dart';
@@ -11,6 +12,7 @@ class AgentRegistration {
   final List<String> tags;
   final List<String> supportedNodeTypes;
   final RemoteAgentCapacity capacity;
+  final MachineResourceSnapshot? resourceSnapshot;
 
   const AgentRegistration({
     required this.id,
@@ -24,6 +26,7 @@ class AgentRegistration {
       maxVirtualUsers: 0,
       maxConcurrency: 0,
     ),
+    this.resourceSnapshot,
   });
 }
 
@@ -69,6 +72,7 @@ class AgentRegistry {
       status: status,
       lastHeartbeatAt: now,
       statusMessage: machine == null ? '등록되지 않은 원격 머신입니다.' : null,
+      resourceSnapshot: registration.resourceSnapshot,
     );
     _agents[agent.id] = agent;
     return agent;
@@ -77,6 +81,7 @@ class AgentRegistry {
   RemoteAgent heartbeat(
     String agentId, {
     RemoteAgentCapacity? capacity,
+    MachineResourceSnapshot? resourceSnapshot,
     RemoteAgentStatus? status,
     String? statusMessage,
   }) {
@@ -84,6 +89,7 @@ class AgentRegistry {
     final nextStatus = status ?? _heartbeatStatus(agent);
     final updated = agent.copyWith(
       capacity: capacity,
+      resourceSnapshot: resourceSnapshot,
       status: nextStatus,
       lastHeartbeatAt: _now(),
       statusMessage: statusMessage,

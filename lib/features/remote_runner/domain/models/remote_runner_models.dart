@@ -1,5 +1,6 @@
 export 'agent_upgrade.dart';
 export 'load_profile.dart';
+export 'machine_resource_snapshot.dart';
 export 'metric_window_event.dart';
 export 'metrics_models.dart';
 export 'remote_agent.dart';
